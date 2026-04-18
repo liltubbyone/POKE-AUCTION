@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { prisma } from '@/lib/prisma'
 import { formatCurrency, getTierColor } from '@/lib/utils'
 
