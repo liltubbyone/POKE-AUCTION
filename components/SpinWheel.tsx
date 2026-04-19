@@ -169,10 +169,38 @@ export default function SpinWheel({ segments, spinning, onSpinComplete, winnerLa
   useEffect(() => {
     if (!spinning) return
     setDone(false)
-    const totalRot = Math.PI * 2 * 10 + Math.random() * Math.PI * 2
+
+    const n = expanded.length
+    const arc = (2 * Math.PI) / n
+    const startRot = rotationRef.current
+
+    // Find which segment the server actually picked so the wheel lands on it
+    let totalRot: number
+    if (winnerLabel && n > 0) {
+      // Find all indices matching the winner (item may appear multiple times)
+      const matchingIndices = expanded
+        .map((seg, i) => (seg.label === winnerLabel ? i : -1))
+        .filter((i) => i >= 0)
+      const targetIndex =
+        matchingIndices.length > 0
+          ? matchingIndices[Math.floor(Math.random() * matchingIndices.length)]
+          : Math.floor(Math.random() * n)
+
+      // Pointer is at the top of canvas = angle -π/2 in canvas coords.
+      // Center of segment i is at: rotation + i*arc + arc/2
+      // We need: finalRotation + targetIndex*arc + arc/2 ≡ -π/2 (mod 2π)
+      const pointerAngle = -Math.PI / 2
+      const targetFinalRot = pointerAngle - targetIndex * arc - arc / 2
+      // How much extra rotation needed from startRot to reach targetFinalRot
+      const delta = ((targetFinalRot - startRot) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI)
+      // Add at least 10 full rotations so it looks like a real spin
+      totalRot = delta + Math.PI * 2 * 10
+    } else {
+      totalRot = Math.PI * 2 * 10 + Math.random() * Math.PI * 2
+    }
+
     const duration = 4500
     const startTime = performance.now()
-    const startRot = rotationRef.current
 
     const animate = (now: number) => {
       const elapsed = now - startTime
