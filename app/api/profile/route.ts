@@ -18,6 +18,7 @@ export async function GET() {
         email: true,
         name: true,
         address: true,
+        paymentInfo: true,
         createdAt: true,
         spots: {
           include: {
@@ -41,11 +42,12 @@ export async function PATCH(req: Request) {
 
   try {
     const body = await req.json()
-    const { name, address, currentPassword, newPassword } = body
+    const { name, address, paymentInfo, currentPassword, newPassword } = body
 
     const updateData: Record<string, unknown> = {}
     if (name !== undefined) updateData.name = name
     if (address !== undefined) updateData.address = address
+    if (paymentInfo !== undefined) updateData.paymentInfo = paymentInfo
 
     if (newPassword) {
       if (!currentPassword) {
@@ -63,7 +65,7 @@ export async function PATCH(req: Request) {
     const updated = await prisma.user.update({
       where: { id: session.user.id },
       data: updateData,
-      select: { id: true, email: true, name: true, address: true },
+      select: { id: true, email: true, name: true, address: true, paymentInfo: true },
     })
 
     return NextResponse.json(updated)

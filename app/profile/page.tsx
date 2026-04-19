@@ -14,11 +14,19 @@ interface Address {
   country: string
 }
 
+interface PaymentInfo {
+  preferred: 'stripe' | 'paypal' | 'venmo' | 'cashapp' | ''
+  paypalEmail: string
+  venmoHandle: string
+  cashappTag: string
+}
+
 interface UserProfile {
   id: string
   email: string
   name: string | null
   address: string | null
+  paymentInfo: string | null
   createdAt: string
   spots: {
     id: string
@@ -37,6 +45,13 @@ interface UserProfile {
   }[]
 }
 
+const DEFAULT_PAYMENT: PaymentInfo = {
+  preferred: '',
+  paypalEmail: '',
+  venmoHandle: '',
+  cashappTag: '',
+}
+
 export default function ProfilePage() {
   const { status } = useSession()
   const router = useRouter()
@@ -44,7 +59,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState({ type: '', text: '' })
-  const [activeTab, setActiveTab] = useState<'profile' | 'spots' | 'password'>('profile')
+  const [activeTab, setActiveTab] = useState<'profile' | 'payment' | 'spots' | 'password'>('profile')
 
   const [name, setName] = useState('')
   const [address, setAddress] = useState<Address>({
@@ -54,6 +69,7 @@ export default function ProfilePage() {
     zip: '',
     country: 'US',
   })
+  const [paymentInfo, setPaymentInfo] = useState<PaymentInfo>(DEFAULT_PAYMENT)
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -77,10 +93,10 @@ export default function ProfilePage() {
       setProfile(data)
       setName(data.name || '')
       if (data.address) {
-        try {
-          const parsed = JSON.parse(data.address)
-          setAddress(parsed)
-        } catch {}
+        try { setAddress(JSON.parse(data.address)) } catch {}
+      }
+      if (data.paymentInfo) {
+        try { setPaymentInfo({ ...DEFAULT_PAYMENT, ...JSON.parse(data.paymentInfo) }) } catch {}
       }
     }
     setLoading(false)
@@ -90,13 +106,11 @@ export default function ProfilePage() {
     e.preventDefault()
     setSaving(true)
     setMessage({ type: '', text: '' })
-
     const res = await fetch('/api/profile', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, address: JSON.stringify(address) }),
     })
-
     if (res.ok) {
       setMessage({ type: 'success', text: 'Profile updated successfully!' })
       fetchProfile()
@@ -104,7 +118,25 @@ export default function ProfilePage() {
       const data = await res.json()
       setMessage({ type: 'error', text: data.error || 'Failed to update' })
     }
+    setSaving(false)
+  }
 
+  const handleSavePayment = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSaving(true)
+    setMessage({ type: '', text: '' })
+    const res = await fetch('/api/profile', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ paymentInfo: JSON.stringify(paymentInfo) }),
+    })
+    if (res.ok) {
+      setMessage({ type: 'success', text: 'Payment preferences saved!' })
+      fetchProfile()
+    } else {
+      const data = await res.json()
+      setMessage({ type: 'error', text: data.error || 'Failed to save' })
+    }
     setSaving(false)
   }
 
@@ -115,13 +147,11 @@ export default function ProfilePage() {
       return
     }
     setSaving(true)
-
     const res = await fetch('/api/profile', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ currentPassword, newPassword }),
     })
-
     const data = await res.json()
     if (res.ok) {
       setMessage({ type: 'success', text: 'Password changed successfully!' })
@@ -146,8 +176,16 @@ export default function ProfilePage() {
 
   const tabs = [
     { id: 'profile', label: 'Profile & Address' },
+    { id: 'payment', label: 'Payment Methods' },
     { id: 'spots', label: `My Spots (${profile.spots.length})` },
     { id: 'password', label: 'Change Password' },
+  ]
+
+  const PAYMENT_METHODS = [
+    { id: 'stripe', label: 'Credit / Debit Card', icon: '💳', desc: 'Visa, Mastercard, Amex — processed securely via Stripe' },
+    { id: 'paypal', label: 'PayPal', icon: '🅿️', desc: 'Pay with your PayPal balance or linked bank account' },
+    { id: 'venmo', label: 'Venmo', icon: '💸', desc: 'Send payment to our Venmo handle — confirmed manually' },
+    { id: 'cashapp', label: 'Cash App', icon: '💚', desc: 'Send payment to our $Cashtag — confirmed manually' },
   ]
 
   return (
@@ -158,18 +196,16 @@ export default function ProfilePage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-card border border-border rounded-lg p-1">
+      <div className="flex flex-wrap gap-1 mb-6 bg-card border border-border rounded-lg p-1">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => {
-              setActiveTab(tab.id as any)
+              setActiveTab(tab.id as typeof activeTab)
               setMessage({ type: '', text: '' })
             }}
-            className={`flex-1 py-2 px-4 rounded text-sm font-semibold transition-all ${
-              activeTab === tab.id
-                ? 'bg-gold text-black'
-                : 'text-gray-400 hover:text-white'
+            className={`flex-1 py-2 px-3 rounded text-sm font-semibold transition-all ${
+              activeTab === tab.id ? 'bg-gold text-black' : 'text-gray-400 hover:text-white'
             }`}
           >
             {tab.label}
@@ -227,12 +263,9 @@ export default function ProfilePage() {
                 placeholder="123 Main St"
               />
             </div>
-
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-400 mb-1.5 uppercase tracking-wider">
-                  City
-                </label>
+                <label className="block text-sm font-semibold text-gray-400 mb-1.5 uppercase tracking-wider">City</label>
                 <input
                   type="text"
                   value={address.city}
@@ -242,9 +275,7 @@ export default function ProfilePage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-400 mb-1.5 uppercase tracking-wider">
-                  State
-                </label>
+                <label className="block text-sm font-semibold text-gray-400 mb-1.5 uppercase tracking-wider">State</label>
                 <input
                   type="text"
                   value={address.state}
@@ -255,12 +286,9 @@ export default function ProfilePage() {
                 />
               </div>
             </div>
-
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-400 mb-1.5 uppercase tracking-wider">
-                  ZIP Code
-                </label>
+                <label className="block text-sm font-semibold text-gray-400 mb-1.5 uppercase tracking-wider">ZIP Code</label>
                 <input
                   type="text"
                   value={address.zip}
@@ -270,9 +298,7 @@ export default function ProfilePage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-400 mb-1.5 uppercase tracking-wider">
-                  Country
-                </label>
+                <label className="block text-sm font-semibold text-gray-400 mb-1.5 uppercase tracking-wider">Country</label>
                 <select
                   value={address.country}
                   onChange={(e) => setAddress((a) => ({ ...a, country: e.target.value }))}
@@ -287,15 +313,157 @@ export default function ProfilePage() {
 
           <div className="mt-6 pt-4 border-t border-border">
             <p className="text-gray-500 text-xs mb-4">
-              No sales tax collected. Shipping cost is calculated based on item size and location (~$8-$15).
+              No sales tax collected. Shipping cost is calculated based on item size and location (~$8–$15).
             </p>
-            <button
-              type="submit"
-              disabled={saving}
-              className="btn-gold disabled:opacity-50"
-            >
+            <button type="submit" disabled={saving} className="btn-gold disabled:opacity-50">
               {saving ? 'Saving...' : 'Save Profile'}
             </button>
+          </div>
+        </form>
+      )}
+
+      {/* Payment Methods Tab */}
+      {activeTab === 'payment' && (
+        <form onSubmit={handleSavePayment} className="space-y-4">
+          <div className="card">
+            <h2 className="text-2xl font-heading text-white mb-2">PAYMENT METHODS</h2>
+            <p className="text-gray-400 text-sm mb-6">
+              Select your preferred payment method and enter the relevant details. Your info is stored
+              securely and used only to process auction spot purchases.
+            </p>
+
+            {/* Method selector */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+              {PAYMENT_METHODS.map((method) => (
+                <button
+                  key={method.id}
+                  type="button"
+                  onClick={() => setPaymentInfo((p) => ({ ...p, preferred: method.id as PaymentInfo['preferred'] }))}
+                  className={`text-left p-4 rounded-xl border transition-all ${
+                    paymentInfo.preferred === method.id
+                      ? 'border-gold bg-gold/10 text-white'
+                      : 'border-border bg-card2 text-gray-400 hover:border-gold/40 hover:text-white'
+                  }`}
+                >
+                  <div className="text-2xl mb-1">{method.icon}</div>
+                  <div className="font-heading text-lg">{method.label}</div>
+                  <div className="text-xs mt-1 opacity-70">{method.desc}</div>
+                  {paymentInfo.preferred === method.id && (
+                    <div className="mt-2 text-gold text-xs font-bold">✓ PREFERRED</div>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* Method-specific fields */}
+            {paymentInfo.preferred === 'stripe' && (
+              <div className="bg-blue-950/30 border border-blue-500/30 rounded-xl p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-2xl">💳</span>
+                  <h3 className="font-heading text-white text-lg">CREDIT / DEBIT CARD</h3>
+                </div>
+                <p className="text-blue-300 text-sm">
+                  Your card details are entered securely at checkout via Stripe — we never store your card number.
+                  When you buy a spot, you&apos;ll be prompted to enter your card information directly on the
+                  Stripe-secured payment form.
+                </p>
+              </div>
+            )}
+
+            {paymentInfo.preferred === 'paypal' && (
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-400 mb-1.5 uppercase tracking-wider">
+                    PayPal Email Address
+                  </label>
+                  <input
+                    type="email"
+                    value={paymentInfo.paypalEmail}
+                    onChange={(e) => setPaymentInfo((p) => ({ ...p, paypalEmail: e.target.value }))}
+                    className="input-field"
+                    placeholder="your@email.com"
+                  />
+                  <p className="text-gray-500 text-xs mt-1.5">
+                    This is the email linked to your PayPal account. Payment is processed via PayPal checkout at purchase time.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {paymentInfo.preferred === 'venmo' && (
+              <div className="space-y-3">
+                <div className="bg-purple-950/30 border border-purple-500/30 rounded-xl p-3 mb-3">
+                  <p className="text-purple-300 text-sm">
+                    <strong>How Venmo works:</strong> After buying a spot, send payment to{' '}
+                    <strong>{process.env.NEXT_PUBLIC_VENMO_HANDLE || '@PokeAuction'}</strong> on Venmo with your
+                    spot number in the note. An admin will confirm your payment manually (usually within 1 hour).
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-400 mb-1.5 uppercase tracking-wider">
+                    Your Venmo Handle
+                  </label>
+                  <input
+                    type="text"
+                    value={paymentInfo.venmoHandle}
+                    onChange={(e) => setPaymentInfo((p) => ({ ...p, venmoHandle: e.target.value }))}
+                    className="input-field"
+                    placeholder="@YourVenmo"
+                  />
+                  <p className="text-gray-500 text-xs mt-1.5">
+                    So we can identify your payment quickly.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {paymentInfo.preferred === 'cashapp' && (
+              <div className="space-y-3">
+                <div className="bg-green-950/30 border border-green-500/30 rounded-xl p-3 mb-3">
+                  <p className="text-green-300 text-sm">
+                    <strong>How Cash App works:</strong> After buying a spot, send payment to{' '}
+                    <strong>{process.env.NEXT_PUBLIC_CASHAPP_HANDLE || '$PokeAuction'}</strong> on Cash App with your
+                    spot number in the note. An admin will confirm your payment manually (usually within 1 hour).
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-400 mb-1.5 uppercase tracking-wider">
+                    Your $Cashtag
+                  </label>
+                  <input
+                    type="text"
+                    value={paymentInfo.cashappTag}
+                    onChange={(e) => setPaymentInfo((p) => ({ ...p, cashappTag: e.target.value }))}
+                    className="input-field"
+                    placeholder="$YourCashtag"
+                  />
+                  <p className="text-gray-500 text-xs mt-1.5">
+                    So we can identify your payment quickly.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="mt-6 pt-4 border-t border-border">
+              <button type="submit" disabled={saving || !paymentInfo.preferred} className="btn-gold disabled:opacity-50">
+                {saving ? 'Saving...' : 'Save Payment Preference'}
+              </button>
+              {!paymentInfo.preferred && (
+                <p className="text-gray-500 text-xs mt-2">Select a payment method above to save.</p>
+              )}
+            </div>
+          </div>
+
+          {/* Security note */}
+          <div className="bg-card border border-border rounded-xl p-4 flex gap-3">
+            <span className="text-xl">🔒</span>
+            <div>
+              <p className="text-white font-semibold text-sm mb-1">Your information is secure</p>
+              <p className="text-gray-500 text-xs leading-relaxed">
+                We never store credit card numbers. Card payments are handled exclusively by Stripe&apos;s
+                PCI-compliant infrastructure. Venmo and Cash App handles are only used to match incoming payments.
+              </p>
+            </div>
           </div>
         </form>
       )}
@@ -308,9 +476,7 @@ export default function ProfilePage() {
               <div className="text-4xl mb-4">🎡</div>
               <h3 className="text-2xl font-heading text-gray-400 mb-2">No Spots Yet</h3>
               <p className="text-gray-500 mb-4">Buy a spot in an active auction to get started!</p>
-              <Link href="/" className="btn-gold inline-block">
-                Browse Auctions
-              </Link>
+              <Link href="/" className="btn-gold inline-block">Browse Auctions</Link>
             </div>
           ) : (
             profile.spots.map((spot) => (
@@ -335,19 +501,14 @@ export default function ProfilePage() {
                     </div>
                   </div>
                 </div>
-
                 {spot.assignedItemId && (
                   <div className="mt-3 bg-gold/5 border border-gold/20 rounded-lg px-4 py-3">
-                    <p className="text-gold font-heading text-lg">
-                      RESULT: You won a prize!
-                    </p>
+                    <p className="text-gold font-heading text-lg">RESULT: You won a prize!</p>
                     {spot.shipped ? (
                       <div className="mt-2">
                         <p className="text-green-400 text-sm font-semibold">✓ SHIPPED</p>
                         {spot.trackingNumber && (
-                          <p className="text-gray-400 text-xs mt-1">
-                            Tracking: {spot.trackingNumber}
-                          </p>
+                          <p className="text-gray-400 text-xs mt-1">Tracking: {spot.trackingNumber}</p>
                         )}
                       </div>
                     ) : (
@@ -365,7 +526,6 @@ export default function ProfilePage() {
       {activeTab === 'password' && (
         <form onSubmit={handleChangePassword} className="card">
           <h2 className="text-2xl font-heading text-white mb-6">CHANGE PASSWORD</h2>
-
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-semibold text-gray-400 mb-1.5 uppercase tracking-wider">
@@ -405,13 +565,8 @@ export default function ProfilePage() {
               />
             </div>
           </div>
-
           <div className="mt-6">
-            <button
-              type="submit"
-              disabled={saving}
-              className="btn-gold disabled:opacity-50"
-            >
+            <button type="submit" disabled={saving} className="btn-gold disabled:opacity-50">
               {saving ? 'Changing...' : 'Change Password'}
             </button>
           </div>

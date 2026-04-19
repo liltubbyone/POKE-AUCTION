@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 
 import { prisma } from '@/lib/prisma'
-import { formatCurrency, getTierColor } from '@/lib/utils'
+import { getTierColor } from '@/lib/utils'
 
 async function getInventory() {
   return prisma.inventoryItem.findMany({
@@ -89,24 +89,6 @@ export default async function InventoryPage() {
 
                   {/* Item name */}
                   <h3 className="font-semibold text-white mb-3 leading-tight text-sm">{item.name}</h3>
-
-                  {/* Price info */}
-                  <div className="space-y-1 text-xs">
-                    <div className="flex justify-between text-gray-500">
-                      <span>Cost</span>
-                      <span className="text-gray-300">{formatCurrency(item.cost)}</span>
-                    </div>
-                    <div className="flex justify-between text-gray-500">
-                      <span>Resell Range</span>
-                      <span className="text-green-400 font-semibold">
-                        {formatCurrency(item.resellMin)} – {formatCurrency(item.resellMax)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-gray-500">
-                      <span>Est. Shipping</span>
-                      <span className="text-gray-300">~{formatCurrency(item.shippingCost)}</span>
-                    </div>
-                  </div>
 
                   {/* Note */}
                   {item.note && (
