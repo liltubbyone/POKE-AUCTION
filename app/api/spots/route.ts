@@ -58,11 +58,18 @@ export async function POST(req: Request) {
 
     // Spin immediately for paid spots
     let spinResult = null
+    let finalSpot = spot
     if (isPaid) {
       spinResult = await spinForSpot(auctionId, spot.id)
+      // Re-fetch the spot so assignedItemId is included in the response
+      const updated = await prisma.auctionSpot.findUnique({
+        where: { id: spot.id },
+        include: { user: { select: { id: true, name: true, email: true } } },
+      })
+      if (updated) finalSpot = updated
     }
 
-    return NextResponse.json({ spot, spinResult }, { status: 201 })
+    return NextResponse.json({ spot: finalSpot, spinResult }, { status: 201 })
   } catch (err) {
     console.error('Buy spot error:', err)
     return NextResponse.json({ error: 'Failed to purchase spot' }, { status: 500 })
