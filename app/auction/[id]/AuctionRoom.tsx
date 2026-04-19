@@ -146,11 +146,15 @@ export default function AuctionRoom({ initialAuction }: { initialAuction: Auctio
       const updated: AuctionData = await res.json()
       setAuction(updated)
 
+      // Mark all currently assigned spots as seen so polling doesn't re-trigger
+      for (const spot of updated.spots) {
+        if (spot.assignedItemId) seenAssignedSpotIds.add(spot.id)
+      }
+
       // Trigger wheel animation immediately if spin result is available
       if (spinResult) {
         setWinnerLabel(spinResult.itemName)
         setSpinning(true)
-        // Find my newly assigned spot for the modal
         const mySpot = updated.spots.find(
           (s) => s.user.id === session?.user?.id && s.assignedItemId
         )
