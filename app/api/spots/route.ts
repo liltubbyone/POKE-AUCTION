@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { spinForSpot } from '@/lib/spinLogic'
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions)
@@ -55,17 +56,13 @@ export async function POST(req: Request) {
       },
     })
 
-    // Check if all spots are now filled
-    const newPaidCount = paidSpots + (isPaid ? 1 : 0)
-    if (newPaidCount >= auction.totalSpots && isPaid) {
-      // Trigger auto-spin notification (in production, this would call spin endpoint or queue a job)
-      await prisma.auction.update({
-        where: { id: auctionId },
-        data: { status: 'spinning' },
-      })
+    // Spin immediately for paid spots
+    let spinResult = null
+    if (isPaid) {
+      spinResult = await spinForSpot(auctionId, spot.id)
     }
 
-    return NextResponse.json(spot, { status: 201 })
+    return NextResponse.json({ spot, spinResult }, { status: 201 })
   } catch (err) {
     console.error('Buy spot error:', err)
     return NextResponse.json({ error: 'Failed to purchase spot' }, { status: 500 })

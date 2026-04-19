@@ -5,6 +5,11 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { formatCurrency } from '@/lib/utils'
 
+interface SpinResult {
+  itemName: string
+  itemTier: string
+}
+
 interface BuySpotModalProps {
   auction: {
     id: string
@@ -14,7 +19,7 @@ interface BuySpotModalProps {
   }
   spotsLeft: number
   onClose: () => void
-  onSuccess: () => void
+  onSuccess: (spinResult?: SpinResult) => void
 }
 
 export default function BuySpotModal({ auction, spotsLeft, onClose, onSuccess }: BuySpotModalProps) {
@@ -51,7 +56,7 @@ export default function BuySpotModal({ auction, spotsLeft, onClose, onSuccess }:
       if (!res.ok) {
         setError(data.error || 'Failed to purchase spot')
       } else {
-        onSuccess()
+        onSuccess(data.spinResult ?? undefined)
       }
     } catch {
       setError('Something went wrong. Please try again.')

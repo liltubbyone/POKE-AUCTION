@@ -137,13 +137,35 @@ export default function AuctionRoom({ initialAuction }: { initialAuction: Auctio
     return () => clearInterval(interval)
   }, [auction.id, auction.status, session?.user?.id, spinning, showWinModal, seenAssignedSpotIds])
 
-  const handleBuySuccess = async () => {
+  const handleBuySuccess = async (spinResult?: { itemName: string; itemTier: string }) => {
     setShowBuyModal(false)
+
+    // Refresh auction data
     const res = await fetch(`/api/auctions/${auction.id}`)
     if (res.ok) {
-      const updated = await res.json()
+      const updated: AuctionData = await res.json()
       setAuction(updated)
+
+      // Trigger wheel animation immediately if spin result is available
+      if (spinResult) {
+        setWinnerLabel(spinResult.itemName)
+        setSpinning(true)
+        // Find my newly assigned spot for the modal
+        const mySpot = updated.spots.find(
+          (s) => s.user.id === session?.user?.id && s.assignedItemId
+        )
+        setTimeout(() => {
+          setSpinning(false)
+          setMyWin({
+            itemName: spinResult.itemName,
+            itemTier: spinResult.itemTier,
+            spotNumber: mySpot?.spotNumber ?? 0,
+          })
+          setShowWinModal(true)
+        }, 5000)
+      }
     }
+
     router.refresh()
   }
 
