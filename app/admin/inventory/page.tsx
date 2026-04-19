@@ -15,6 +15,7 @@ interface InventoryItem {
   resellMin: number
   resellMax: number
   note: string | null
+  imageUrl: string | null
   shippingCost: number
 }
 
@@ -36,6 +37,7 @@ export default function AdminInventoryPage() {
     resellMin: 0,
     resellMax: 0,
     shippingCost: 10,
+    imageUrl: '',
   })
   const [message, setMessage] = useState({ type: '', text: '' })
 
@@ -72,6 +74,7 @@ export default function AdminInventoryPage() {
         shippingCost: parseFloat(editValues.shippingCost as any),
         note: editValues.note || null,
         tier: editValues.tier,
+        imageUrl: editValues.imageUrl || null,
       }),
     })
 
@@ -238,6 +241,16 @@ export default function AdminInventoryPage() {
                 className="input-field"
               />
             </div>
+            <div className="col-span-4">
+              <label className="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Image URL (paste a link to the product photo)</label>
+              <input
+                type="url"
+                value={newItem.imageUrl || ''}
+                onChange={(e) => setNewItem((n) => ({ ...n, imageUrl: e.target.value }))}
+                className="input-field"
+                placeholder="https://..."
+              />
+            </div>
           </div>
           <button type="submit" className="btn-gold mt-4">Add Item</button>
         </form>
@@ -260,6 +273,7 @@ export default function AdminInventoryPage() {
                   <th className="text-right py-2 pr-4">Resell</th>
                   <th className="text-right py-2 pr-4">Ship</th>
                   <th className="text-left py-2 pr-4">Note</th>
+                  <th className="text-left py-2 pr-4">Image URL</th>
                   <th className="text-right py-2">Actions</th>
                 </tr>
               </thead>
@@ -323,6 +337,16 @@ export default function AdminInventoryPage() {
                             value={editValues.note || ''}
                             onChange={(e) => setEditValues((v) => ({ ...v, note: e.target.value }))}
                             className="input-field py-1 text-sm"
+                            placeholder="Note"
+                          />
+                        </td>
+                        <td className="py-2 pr-4">
+                          <input
+                            type="url"
+                            value={editValues.imageUrl || ''}
+                            onChange={(e) => setEditValues((v) => ({ ...v, imageUrl: e.target.value }))}
+                            className="input-field py-1 text-sm w-48"
+                            placeholder="https://..."
                           />
                         </td>
                         <td className="py-2 text-right">
@@ -354,6 +378,13 @@ export default function AdminInventoryPage() {
                         </td>
                         <td className="py-3 pr-4 text-right text-gray-300">{formatCurrency(item.shippingCost)}</td>
                         <td className="py-3 pr-4 text-gray-500 text-xs">{item.note || '—'}</td>
+                        <td className="py-3 pr-4">
+                          {item.imageUrl ? (
+                            <img src={item.imageUrl} alt={item.name} className="w-10 h-10 object-contain rounded" />
+                          ) : (
+                            <span className="text-gray-600 text-xs">No image</span>
+                          )}
+                        </td>
                         <td className="py-3 text-right">
                           <button
                             onClick={() => handleEdit(item)}

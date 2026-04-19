@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { spinForSpot } from '@/lib/spinLogic'
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
@@ -11,6 +12,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
   try {
     const body = await req.json()
+
     const spot = await prisma.auctionSpot.update({
       where: { id: params.id },
       data: body,
@@ -19,6 +21,13 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         auction: true,
       },
     })
+
+    // Auto-spin when payment is verified and no item assigned yet
+    if (body.paid === true && !spot.assignedItemId) {
+      const spinResult = await spinForSpot(spot.auctionId, spot.id)
+      return NextResponse.json({ spot, spinResult })
+    }
+
     return NextResponse.json(spot)
   } catch (err) {
     console.error(err)

@@ -79,6 +79,21 @@ export default async function InventoryPage() {
                     </div>
                   )}
 
+                  {/* Product image */}
+                  {item.imageUrl ? (
+                    <div className="w-full h-36 flex items-center justify-center mb-3 rounded-lg overflow-hidden bg-black/20">
+                      <img
+                        src={item.imageUrl}
+                        alt={item.name}
+                        className="max-h-36 max-w-full object-contain"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-full h-24 flex items-center justify-center mb-3 rounded-lg bg-black/20 text-gray-600 text-xs">
+                      No photo
+                    </div>
+                  )}
+
                   {/* Tier badge */}
                   <div className="flex items-center justify-between mb-3">
                     <span className={`tier-badge ${getTierColor(item.tier)}`}>{item.tier}</span>

@@ -28,6 +28,7 @@ model InventoryItem {
   resellMin    Float
   resellMax    Float
   note         String?
+  imageUrl     String?
   shippingCost Float         @default(10.0)
   auctionItems AuctionItem[]
 }

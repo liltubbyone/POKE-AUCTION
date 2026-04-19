@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getStripe } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
+import { spinForSpot } from '@/lib/spinLogic'
 import Stripe from 'stripe'
 
 export async function POST(req: Request) {
@@ -27,7 +28,7 @@ export async function POST(req: Request) {
     const { auctionId, userId } = intent.metadata
 
     if (auctionId && userId) {
-      // Check if spot already exists (idempotency)
+      // Idempotency check
       const existing = await prisma.auctionSpot.findFirst({
         where: { paymentId: intent.id },
       })
@@ -38,12 +39,12 @@ export async function POST(req: Request) {
           include: { spots: { where: { paid: true } } },
         })
 
-        if (auction && auction.spots.length < auction.totalSpots) {
+        if (auction) {
           const takenNumbers = auction.spots.map((s) => s.spotNumber)
           let nextSpot = 1
           while (takenNumbers.includes(nextSpot)) nextSpot++
 
-          await prisma.auctionSpot.create({
+          const newSpot = await prisma.auctionSpot.create({
             data: {
               auctionId,
               userId,
@@ -53,6 +54,9 @@ export async function POST(req: Request) {
               paid: true,
             },
           })
+
+          // Immediately spin for this spot
+          await spinForSpot(auctionId, newSpot.id)
         }
       }
     }
