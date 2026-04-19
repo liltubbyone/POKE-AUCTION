@@ -91,14 +91,15 @@ export default function RegisterPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-semibold text-gray-400 mb-1.5 uppercase tracking-wider">
-                Name
+                Username
               </label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="input-field"
-                placeholder="Your name"
+                placeholder="Your username"
+                required
               />
             </div>
 

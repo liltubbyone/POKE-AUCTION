@@ -102,7 +102,8 @@ export default function AuctionRoom({ initialAuction }: { initialAuction: Auctio
       const res = await fetch(`/api/auctions/${auction.id}`)
       if (res.ok) {
         const updated: AuctionData = await res.json()
-        setAuction(updated)
+        // Don't overwrite state while spin animation is in progress
+        if (!spinning) setAuction(updated)
 
         // Detect if a new spin result appeared for the current user
         if (session?.user?.id && !spinning && !showWinModal) {
@@ -137,24 +138,30 @@ export default function AuctionRoom({ initialAuction }: { initialAuction: Auctio
     return () => clearInterval(interval)
   }, [auction.id, auction.status, session?.user?.id, spinning, showWinModal, seenAssignedSpotIds])
 
-  const handleBuySuccess = async (result?: { spot: AuctionSpot; spinResult: { itemName: string; itemTier: string } | null }) => {
+  const handleBuySuccess = (result?: { spot: AuctionSpot; spinResult: { itemName: string; itemTier: string } | null }) => {
     setShowBuyModal(false)
 
-    // Immediately update local state with the new spot so the wheel
-    // reflects the won item BEFORE the spin animation starts
-    if (result?.spot) {
-      seenAssignedSpotIds.add(result.spot.id)
+    if (!result?.spot) return
+
+    seenAssignedSpotIds.add(result.spot.id)
+
+    if (result.spinResult) {
+      // Add spot WITHOUT assignedItemId first — wheel keeps all items visible during spin
+      const spotDuringSpин = { ...result.spot, assignedItemId: null }
       setAuction((prev) => ({
         ...prev,
-        spots: [...prev.spots.filter((s) => s.id !== result.spot.id), result.spot],
+        spots: [...prev.spots.filter((s) => s.id !== result.spot.id), spotDuringSpин],
       }))
-    }
 
-    // Start spin animation right away if the purchase triggered a spin
-    if (result?.spinResult) {
       setWinnerLabel(result.spinResult.itemName)
       setSpinning(true)
+
       setTimeout(() => {
+        // Spin done — now apply real assignedItemId so item disappears from wheel
+        setAuction((prev) => ({
+          ...prev,
+          spots: [...prev.spots.filter((s) => s.id !== result.spot.id), result.spot],
+        }))
         setSpinning(false)
         setMyWin({
           itemName: result.spinResult!.itemName,
@@ -163,20 +170,13 @@ export default function AuctionRoom({ initialAuction }: { initialAuction: Auctio
         })
         setShowWinModal(true)
       }, 5000)
+    } else {
+      // Venmo/CashApp — unpaid, no spin yet
+      setAuction((prev) => ({
+        ...prev,
+        spots: [...prev.spots.filter((s) => s.id !== result.spot.id), result.spot],
+      }))
     }
-
-    // Background refetch to sync any other changes (other spots, auction status)
-    fetch(`/api/auctions/${auction.id}`, { cache: 'no-store' })
-      .then((r) => r.json())
-      .then((updated: AuctionData) => {
-        setAuction(updated)
-        for (const spot of updated.spots) {
-          if (spot.assignedItemId) seenAssignedSpotIds.add(spot.id)
-        }
-      })
-      .catch(() => {})
-
-    router.refresh()
   }
 
   // Find item by auctionItem id
@@ -385,7 +385,7 @@ export default function AuctionRoom({ initialAuction }: { initialAuction: Auctio
                       <span className="font-heading text-base">{num}</span>
                       {spot && (
                         <span className="text-[9px] truncate w-full text-center px-1 opacity-70">
-                          {isYours ? 'YOU' : spot.user.name?.split(' ')[0] || '•'}
+                          {isYours ? 'YOU' : spot.user.name || spot.user.email.split('@')[0]}
                         </span>
                       )}
                     </div>
