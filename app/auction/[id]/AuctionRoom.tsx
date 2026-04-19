@@ -137,38 +137,44 @@ export default function AuctionRoom({ initialAuction }: { initialAuction: Auctio
     return () => clearInterval(interval)
   }, [auction.id, auction.status, session?.user?.id, spinning, showWinModal, seenAssignedSpotIds])
 
-  const handleBuySuccess = async (spinResult?: { itemName: string; itemTier: string }) => {
+  const handleBuySuccess = async (result?: { spot: AuctionSpot; spinResult: { itemName: string; itemTier: string } | null }) => {
     setShowBuyModal(false)
 
-    // Refresh auction data
-    const res = await fetch(`/api/auctions/${auction.id}`)
-    if (res.ok) {
-      const updated: AuctionData = await res.json()
-      setAuction(updated)
-
-      // Mark all currently assigned spots as seen so polling doesn't re-trigger
-      for (const spot of updated.spots) {
-        if (spot.assignedItemId) seenAssignedSpotIds.add(spot.id)
-      }
-
-      // Trigger wheel animation immediately if spin result is available
-      if (spinResult) {
-        setWinnerLabel(spinResult.itemName)
-        setSpinning(true)
-        const mySpot = updated.spots.find(
-          (s) => s.user.id === session?.user?.id && s.assignedItemId
-        )
-        setTimeout(() => {
-          setSpinning(false)
-          setMyWin({
-            itemName: spinResult.itemName,
-            itemTier: spinResult.itemTier,
-            spotNumber: mySpot?.spotNumber ?? 0,
-          })
-          setShowWinModal(true)
-        }, 5000)
-      }
+    // Immediately update local state with the new spot so the wheel
+    // reflects the won item BEFORE the spin animation starts
+    if (result?.spot) {
+      seenAssignedSpotIds.add(result.spot.id)
+      setAuction((prev) => ({
+        ...prev,
+        spots: [...prev.spots.filter((s) => s.id !== result.spot.id), result.spot],
+      }))
     }
+
+    // Start spin animation right away if the purchase triggered a spin
+    if (result?.spinResult) {
+      setWinnerLabel(result.spinResult.itemName)
+      setSpinning(true)
+      setTimeout(() => {
+        setSpinning(false)
+        setMyWin({
+          itemName: result.spinResult!.itemName,
+          itemTier: result.spinResult!.itemTier,
+          spotNumber: result.spot.spotNumber,
+        })
+        setShowWinModal(true)
+      }, 5000)
+    }
+
+    // Background refetch to sync any other changes (other spots, auction status)
+    fetch(`/api/auctions/${auction.id}`, { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((updated: AuctionData) => {
+        setAuction(updated)
+        for (const spot of updated.spots) {
+          if (spot.assignedItemId) seenAssignedSpotIds.add(spot.id)
+        }
+      })
+      .catch(() => {})
 
     router.refresh()
   }

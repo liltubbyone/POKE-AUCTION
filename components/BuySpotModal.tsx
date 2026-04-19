@@ -10,6 +10,20 @@ interface SpinResult {
   itemTier: string
 }
 
+interface PurchaseResult {
+  spot: {
+    id: string
+    spotNumber: number
+    paid: boolean
+    assignedItemId: string | null
+    paymentMethod: string | null
+    shipped: boolean
+    trackingNumber: string | null
+    user: { id: string; name: string | null; email: string }
+  }
+  spinResult: SpinResult | null
+}
+
 interface BuySpotModalProps {
   auction: {
     id: string
@@ -19,7 +33,7 @@ interface BuySpotModalProps {
   }
   spotsLeft: number
   onClose: () => void
-  onSuccess: (spinResult?: SpinResult) => void
+  onSuccess: (result?: PurchaseResult) => void
 }
 
 export default function BuySpotModal({ auction, spotsLeft, onClose, onSuccess }: BuySpotModalProps) {
@@ -56,7 +70,7 @@ export default function BuySpotModal({ auction, spotsLeft, onClose, onSuccess }:
       if (!res.ok) {
         setError(data.error || 'Failed to purchase spot')
       } else {
-        onSuccess(data.spinResult ?? undefined)
+        onSuccess({ spot: data.spot, spinResult: data.spinResult ?? null })
       }
     } catch {
       setError('Something went wrong. Please try again.')
@@ -89,7 +103,7 @@ export default function BuySpotModal({ auction, spotsLeft, onClose, onSuccess }:
       if (!res.ok) {
         setError(data.error || 'Failed to reserve spot')
       } else {
-        onSuccess()
+        onSuccess({ spot: data.spot, spinResult: null })
       }
     } catch {
       setError('Something went wrong.')
