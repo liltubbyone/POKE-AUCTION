@@ -15,8 +15,6 @@ interface AuctionItem {
     id: string
     name: string
     tier: string
-    resellMin: number
-    resellMax: number
     shippingCost: number
   }
 }
@@ -50,37 +48,94 @@ interface AuctionData {
   spots: AuctionSpot[]
 }
 
+interface WinResult {
+  itemName: string
+  itemTier: string
+  spotNumber: number
+}
+
 export default function AuctionRoom({ initialAuction }: { initialAuction: AuctionData }) {
   const { data: session } = useSession()
   const router = useRouter()
   const [auction, setAuction] = useState<AuctionData>(initialAuction)
   const [showBuyModal, setShowBuyModal] = useState(false)
   const [spinning, setSpinning] = useState(false)
-  const [spinComplete, setSpinComplete] = useState(false)
-  const [revealedResults, setRevealedResults] = useState<AuctionSpot[]>([])
-  const [isAdmin] = useState(session?.user?.isAdmin ?? false)
+  const [myWin, setMyWin] = useState<WinResult | null>(null)
+  const [showWinModal, setShowWinModal] = useState(false)
+  const [winnerLabel, setWinnerLabel] = useState<string | undefined>(undefined)
 
   const paidSpots = auction.spots.filter((s) => s.paid)
   const spotsLeft = auction.totalSpots - paidSpots.length
   const pctFilled = (paidSpots.length / auction.totalSpots) * 100
 
-  // Poll for updates
+  // Count assigned spots per auction item to compute remaining
+  const assignedCounts: Record<string, number> = {}
+  for (const spot of auction.spots) {
+    if (spot.assignedItemId) {
+      assignedCounts[spot.assignedItemId] = (assignedCounts[spot.assignedItemId] || 0) + 1
+    }
+  }
+
+  // Wheel segments: only show items with remaining quantity
+  const wheelSegments = auction.items
+    .map((ai) => ({
+      label: ai.item.name,
+      tier: ai.item.tier,
+      quantity: ai.quantity - (assignedCounts[ai.id] || 0),
+    }))
+    .filter((seg) => seg.quantity > 0)
+
+  // Track which spots were already assigned on load (to detect new wins via polling)
+  const [seenAssignedSpotIds] = useState<Set<string>>(() => {
+    const s = new Set<string>()
+    for (const spot of initialAuction.spots) {
+      if (spot.assignedItemId) s.add(spot.id)
+    }
+    return s
+  })
+
+  // Poll for updates when auction is active
   useEffect(() => {
     if (auction.status === 'completed') return
 
     const interval = setInterval(async () => {
       const res = await fetch(`/api/auctions/${auction.id}`)
       if (res.ok) {
-        const updated = await res.json()
+        const updated: AuctionData = await res.json()
         setAuction(updated)
-        if (updated.status === 'spinning' && !spinning) {
-          setSpinning(true)
+
+        // Detect if a new spin result appeared for the current user
+        if (session?.user?.id && !spinning && !showWinModal) {
+          for (const spot of updated.spots) {
+            if (
+              spot.user.id === session.user.id &&
+              spot.assignedItemId &&
+              !seenAssignedSpotIds.has(spot.id)
+            ) {
+              seenAssignedSpotIds.add(spot.id)
+              const assignedItem = updated.items.find((ai) => ai.id === spot.assignedItemId)
+              if (assignedItem) {
+                setWinnerLabel(assignedItem.item.name)
+                setSpinning(true)
+                setTimeout(() => {
+                  setSpinning(false)
+                  setMyWin({
+                    itemName: assignedItem.item.name,
+                    itemTier: assignedItem.item.tier,
+                    spotNumber: spot.spotNumber,
+                  })
+                  setShowWinModal(true)
+                }, 5000)
+              }
+              break
+            }
+          }
         }
       }
-    }, 5000)
+    }, 4000)
 
     return () => clearInterval(interval)
-  }, [auction.id, auction.status, spinning])
+  }, [auction.id, auction.status, session?.user?.id, spinning, showWinModal, seenAssignedSpotIds])
 
   const handleBuySuccess = async () => {
     setShowBuyModal(false)
@@ -92,49 +147,11 @@ export default function AuctionRoom({ initialAuction }: { initialAuction: Auctio
     router.refresh()
   }
 
-  const handleAdminSpin = async () => {
-    if (!confirm('Are you sure you want to spin now? This cannot be undone.')) return
-
-    const res = await fetch(`/api/auctions/${auction.id}/spin`, { method: 'POST' })
-    const data = await res.json()
-
-    if (res.ok) {
-      setSpinning(true)
-      setTimeout(async () => {
-        const updated = await fetch(`/api/auctions/${auction.id}`)
-        if (updated.ok) {
-          const auctionData = await updated.json()
-          setAuction(auctionData)
-          setSpinning(false)
-          setSpinComplete(true)
-          revealResultsSequentially(auctionData.spots.filter((s: AuctionSpot) => s.paid))
-        }
-      }, 6000)
-    } else {
-      alert(data.error || 'Spin failed')
-    }
-  }
-
-  const revealResultsSequentially = (spots: AuctionSpot[]) => {
-    spots.forEach((spot, i) => {
-      setTimeout(() => {
-        setRevealedResults((prev) => [...prev, spot])
-      }, i * 800)
-    })
-  }
-
   // Find item by auctionItem id
   const getItemByAuctionItemId = (id: string | null) => {
     if (!id) return null
     return auction.items.find((ai) => ai.id === id) || null
   }
-
-  // Wheel segments
-  const wheelSegments = auction.items.map((ai) => ({
-    label: ai.item.name,
-    tier: ai.item.tier,
-    quantity: ai.quantity,
-  }))
 
   const statusColors: Record<string, string> = {
     active: 'text-green-400 bg-green-400/10 border-green-400/30',
@@ -159,7 +176,7 @@ export default function AuctionRoom({ initialAuction }: { initialAuction: Auctio
               statusColors[auction.status] || statusColors.active
             }`}
           >
-            {auction.status === 'spinning' ? '🎡 SPINNING...' : auction.status}
+            {auction.status === 'spinning' ? 'SPINNING...' : auction.status}
           </span>
         </div>
       </div>
@@ -168,33 +185,27 @@ export default function AuctionRoom({ initialAuction }: { initialAuction: Auctio
       <div className="flex flex-wrap gap-3 mb-8">
         <div className="no-refund-banner text-xs flex-1 min-w-fit">ALL SALES FINAL — NO REFUNDS</div>
         <div className="bg-green-950/30 border border-green-500/30 text-green-300 px-4 py-3 rounded-lg text-xs font-semibold text-center flex-1 min-w-fit">
-          100% RANDOMIZED • PROVABLY FAIR
+          100% RANDOMIZED — PROVABLY FAIR
         </div>
-        {auction.spinSeed && (
-          <div className="bg-blue-950/30 border border-blue-500/30 text-blue-300 px-4 py-3 rounded-lg text-xs font-mono flex-1 min-w-fit overflow-hidden">
-            SEED: {auction.spinSeed.substring(0, 20)}...
-          </div>
-        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left: Wheel */}
         <div className="lg:col-span-1 flex flex-col items-center">
           <div className="w-full max-w-sm mx-auto">
-            {/* Spinning status */}
-            {auction.status === 'spinning' && !spinComplete && (
+            {spinning && (
               <div className="text-center mb-4">
                 <p className="text-gold font-heading text-3xl animate-pulse">SPINNING!</p>
-                <p className="text-gray-400 text-sm">The wheel is deciding everyone&apos;s fate...</p>
+                <p className="text-gray-400 text-sm">The Pokeball decides your fate...</p>
               </div>
             )}
 
             <SpinWheel
               segments={wheelSegments}
               spinning={spinning}
+              winnerLabel={winnerLabel}
               onSpinComplete={() => {
                 setSpinning(false)
-                setSpinComplete(true)
               }}
             />
 
@@ -211,7 +222,7 @@ export default function AuctionRoom({ initialAuction }: { initialAuction: Auctio
                   <div className="flex justify-between text-sm mb-1.5">
                     <span className="text-gray-400">{paidSpots.length}/{auction.totalSpots} spots</span>
                     <span className={spotsLeft === 0 ? 'text-gold font-bold' : 'text-gray-400'}>
-                      {spotsLeft === 0 ? '🔥 FULL!' : `${spotsLeft} left`}
+                      {spotsLeft === 0 ? 'FULL!' : `${spotsLeft} left`}
                     </span>
                   </div>
                   <div className="w-full bg-background rounded-full h-3 overflow-hidden">
@@ -233,11 +244,12 @@ export default function AuctionRoom({ initialAuction }: { initialAuction: Auctio
                     <button
                       onClick={() => setShowBuyModal(true)}
                       className="btn-gold w-full active-glow"
+                      disabled={spinning}
                     >
-                      Buy a Spot →
+                      {spinning ? 'Wheel Spinning...' : 'Buy a Spot'}
                     </button>
                   ) : (
-                    <div className="text-gold font-heading text-lg">ALL SPOTS SOLD — WHEEL SPINNING SOON!</div>
+                    <div className="text-gold font-heading text-lg">ALL SPOTS SOLD!</div>
                   )
                 ) : (
                   <button
@@ -245,15 +257,6 @@ export default function AuctionRoom({ initialAuction }: { initialAuction: Auctio
                     className="btn-outline w-full"
                   >
                     Sign In to Buy a Spot
-                  </button>
-                )}
-
-                {isAdmin && paidSpots.length > 0 && (
-                  <button
-                    onClick={handleAdminSpin}
-                    className="mt-3 w-full bg-red-900/50 border border-red-500/40 text-red-300 rounded-lg py-2 text-sm font-semibold hover:bg-red-900/70 transition-colors"
-                  >
-                    [ADMIN] Force Spin Now
                   </button>
                 )}
               </div>
@@ -265,37 +268,27 @@ export default function AuctionRoom({ initialAuction }: { initialAuction: Auctio
         <div className="lg:col-span-1">
           <h2 className="text-2xl font-heading text-white mb-4">ITEMS IN POOL</h2>
           <div className="space-y-3">
-            {auction.items.map((ai) => (
-              <div key={ai.id} className={`card p-4 ${getTierColor(ai.item.tier)}`}>
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={`tier-badge text-xs ${getTierColor(ai.item.tier)}`}>
-                        {ai.item.tier}
-                      </span>
-                      <span className="text-xs text-gray-400">x{ai.quantity}</span>
-                    </div>
-                    <p className="font-semibold text-white text-sm">{ai.item.name}</p>
-                  </div>
-                  <div className="text-right text-xs text-gray-400">
-                    <p>{formatCurrency(ai.item.resellMin)}–{formatCurrency(ai.item.resellMax)}</p>
-                    <p className="text-gray-500">resell</p>
+            {auction.items.map((ai) => {
+              const remaining = ai.quantity - (assignedCounts[ai.id] || 0)
+              const soldOut = remaining <= 0
+              return (
+                <div
+                  key={ai.id}
+                  className={`card p-4 transition-all ${soldOut ? 'opacity-40' : ''}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className={`tier-badge text-xs ${getTierColor(ai.item.tier)}`}>
+                      {ai.item.tier}
+                    </span>
+                    <p className="font-semibold text-white text-sm flex-1">{ai.item.name}</p>
+                    <span className={`text-xs font-bold ${soldOut ? 'text-red-400' : 'text-gray-400'}`}>
+                      {soldOut ? 'GONE' : `x${remaining}`}
+                    </span>
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
-
-          {/* Provably Fair */}
-          {auction.spinSeed && (
-            <div className="mt-4 card bg-blue-950/20 border-blue-500/20">
-              <h3 className="font-heading text-blue-300 mb-2">SPIN SEED (VERIFY)</h3>
-              <p className="font-mono text-xs text-gray-400 break-all">{auction.spinSeed}</p>
-              <p className="text-gray-500 text-xs mt-2">
-                This cryptographic seed was generated before the spin and can be used to independently verify all results.
-              </p>
-            </div>
-          )}
         </div>
 
         {/* Right: Spots & Results */}
@@ -305,22 +298,13 @@ export default function AuctionRoom({ initialAuction }: { initialAuction: Auctio
           </h2>
 
           {auction.status === 'completed' ? (
-            // Show full results
             <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
               {paidSpots
                 .sort((a, b) => a.spotNumber - b.spotNumber)
                 .map((spot) => {
                   const assignedItem = getItemByAuctionItemId(spot.assignedItemId)
-                  const isRevealed =
-                    revealedResults.length === 0 ||
-                    revealedResults.some((r) => r.id === spot.id)
                   return (
-                    <div
-                      key={spot.id}
-                      className={`card p-4 transition-all ${
-                        isRevealed ? 'reveal-animation border-gold/20' : 'opacity-20'
-                      }`}
-                    >
+                    <div key={spot.id} className="card p-4 border-gold/20">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-gold/10 border border-gold/30 flex items-center justify-center flex-shrink-0">
                           <span className="text-gold font-heading text-lg">{spot.spotNumber}</span>
@@ -337,7 +321,7 @@ export default function AuctionRoom({ initialAuction }: { initialAuction: Auctio
                         </div>
                         <div className="text-right text-xs">
                           {spot.shipped ? (
-                            <span className="text-green-400 font-semibold">SHIPPED ✓</span>
+                            <span className="text-green-400 font-semibold">SHIPPED</span>
                           ) : (
                             <span className="text-yellow-400">Pending</span>
                           )}
@@ -348,15 +332,16 @@ export default function AuctionRoom({ initialAuction }: { initialAuction: Auctio
                 })}
             </div>
           ) : (
-            // Show spot grid
             <div>
               <div className="spot-grid mb-4">
                 {Array.from({ length: auction.totalSpots }, (_, i) => i + 1).map((num) => {
                   const spot = paidSpots.find((s) => s.spotNumber === num)
                   const isYours = spot?.user.id === session?.user?.id
+                  const assignedItem = spot ? getItemByAuctionItemId(spot.assignedItemId) : null
                   return (
                     <div
                       key={num}
+                      title={assignedItem ? assignedItem.item.name : undefined}
                       className={`w-14 h-14 rounded-lg flex flex-col items-center justify-center text-xs border transition-all ${
                         spot
                           ? isYours
@@ -390,10 +375,55 @@ export default function AuctionRoom({ initialAuction }: { initialAuction: Auctio
                   <span>Open</span>
                 </div>
               </div>
+
+              {/* Show current user's assigned items */}
+              {session?.user && (
+                <div className="mt-6">
+                  {paidSpots
+                    .filter((s) => s.user.id === session.user.id && s.assignedItemId)
+                    .map((spot) => {
+                      const item = getItemByAuctionItemId(spot.assignedItemId)
+                      if (!item) return null
+                      return (
+                        <div key={spot.id} className="card border-gold/40 bg-gold/5 p-4 mb-2">
+                          <p className="text-gold text-xs font-bold uppercase tracking-wider mb-1">Your Win — Spot #{spot.spotNumber}</p>
+                          <div className="flex items-center gap-2">
+                            <span className={`tier-badge text-xs ${getTierColor(item.item.tier)}`}>{item.item.tier}</span>
+                            <p className="text-white font-semibold text-sm">{item.item.name}</p>
+                          </div>
+                        </div>
+                      )
+                    })}
+                </div>
+              )}
             </div>
           )}
         </div>
       </div>
+
+      {/* Win Modal */}
+      {showWinModal && myWin && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="card max-w-md w-full text-center border-gold/50 shadow-2xl">
+            <div className="text-6xl mb-4">🎉</div>
+            <h2 className="text-4xl font-heading text-gold mb-2">YOU WON!</h2>
+            <p className="text-gray-400 mb-6 text-sm">Spot #{myWin.spotNumber}</p>
+            <div className={`inline-flex items-center gap-3 px-6 py-4 rounded-xl border mb-6 ${getTierColor(myWin.itemTier)}`}>
+              <span className={`tier-badge ${getTierColor(myWin.itemTier)}`}>{myWin.itemTier}</span>
+              <span className="text-white font-heading text-xl">{myWin.itemName}</span>
+            </div>
+            <p className="text-gray-400 text-sm mb-6">
+              Your item will be shipped after payment is confirmed. Check your profile for updates.
+            </p>
+            <button
+              onClick={() => setShowWinModal(false)}
+              className="btn-gold w-full"
+            >
+              Awesome!
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Buy Modal */}
       {showBuyModal && (
