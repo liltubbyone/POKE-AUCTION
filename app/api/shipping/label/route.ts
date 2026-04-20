@@ -38,7 +38,7 @@ export async function POST(req: Request) {
   const { trackingNumber, labelBase64 } = await createFedexLabel(
     {
       name: spot.user.name || spot.user.email.split('@')[0],
-      phone: spot.user.phone || addr.phone || '4174304228',
+      phone: addr.phone || '4174304228',
       email: spot.user.email,
       address: {
         street: addr.street,
