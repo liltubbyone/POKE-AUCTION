@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { loadStripe } from '@stripe/stripe-js'
@@ -8,6 +8,8 @@ import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-
 import { formatCurrency } from '@/lib/utils'
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+
+interface SavedCard { id: string; last4: string; brand: string }
 
 interface SpinResult {
   itemName: string
@@ -126,10 +128,62 @@ export default function BuySpotModal({ auction, spotsLeft, onClose, onSuccess }:
   const [error, setError] = useState('')
   const [step, setStep] = useState<'choose' | 'stripe-form' | 'manual-instructions'>('choose')
   const [clientSecret, setClientSecret] = useState<string | null>(null)
+  const [savedCard, setSavedCard] = useState<SavedCard | null>(null)
+
+  useEffect(() => {
+    fetch('/api/payments/stripe/saved-card')
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => setSavedCard(data))
+      .catch(() => {})
+  }, [])
 
   if (!session?.user) {
     router.push('/auth/login')
     return null
+  }
+
+  // Pay with saved card — no card form needed
+  const handleSavedCardPay = async () => {
+    if (!savedCard) return
+    setLoading(true)
+    setError('')
+    try {
+      // Create payment intent
+      const intentRes = await fetch('/api/payments/stripe/create-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ auctionId: auction.id }),
+      })
+      const intentData = await intentRes.json()
+      if (!intentRes.ok) { setError(intentData.error || 'Could not start payment.'); setLoading(false); return }
+
+      // Confirm with saved card using raw stripe instance (no Elements needed)
+      const stripe = await stripePromise
+      if (!stripe) { setError('Stripe failed to load.'); setLoading(false); return }
+
+      const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(
+        intentData.clientSecret,
+        { payment_method: savedCard.id }
+      )
+
+      if (confirmError) { setError(confirmError.message || 'Payment failed.'); setLoading(false); return }
+
+      if (paymentIntent?.status === 'succeeded') {
+        const spotRes = await fetch('/api/spots', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ auctionId: auction.id, paymentMethod: 'stripe', paymentId: paymentIntent.id }),
+        })
+        const spotData = await spotRes.json()
+        if (!spotRes.ok) { setError(spotData.error || 'Payment succeeded but spot creation failed.') }
+        else { onSuccess({ spot: spotData.spot, spinResult: spotData.spinResult ?? null }) }
+      } else {
+        setError('Payment was not completed. Please try again.')
+      }
+    } catch {
+      setError('Something went wrong. Please try again.')
+    }
+    setLoading(false)
   }
 
   const handleStripeClick = async () => {
@@ -263,13 +317,24 @@ export default function BuySpotModal({ auction, spotsLeft, onClose, onSuccess }:
             </div>
 
             {paymentMethod === 'stripe' ? (
-              <button
-                onClick={handleStripeClick}
-                disabled={loading}
-                className="btn-gold w-full disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? 'Loading checkout...' : `Pay ${formatCurrency(auction.spotPrice)} & Get Spot`}
-              </button>
+              <div className="space-y-2">
+                {savedCard && (
+                  <button
+                    onClick={handleSavedCardPay}
+                    disabled={loading}
+                    className="btn-gold w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loading ? 'Processing...' : `Pay ${formatCurrency(auction.spotPrice)} with ${savedCard.brand} ••••${savedCard.last4}`}
+                  </button>
+                )}
+                <button
+                  onClick={handleStripeClick}
+                  disabled={loading}
+                  className={savedCard ? 'btn-outline w-full disabled:opacity-50' : 'btn-gold w-full disabled:opacity-50 disabled:cursor-not-allowed'}
+                >
+                  {loading ? 'Loading checkout...' : savedCard ? 'Use a different card' : `Pay ${formatCurrency(auction.spotPrice)} & Get Spot`}
+                </button>
+              </div>
             ) : (
               <button
                 onClick={() => setStep('manual-instructions')}

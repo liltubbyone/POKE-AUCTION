@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import Link from 'next/link'
+import SavedCardSetup from '@/components/SavedCardSetup'
 
 interface Address {
   street: string
@@ -357,16 +358,12 @@ export default function ProfilePage() {
 
             {/* Method-specific fields */}
             {paymentInfo.preferred === 'stripe' && (
-              <div className="bg-blue-950/30 border border-blue-500/30 rounded-xl p-4">
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="text-2xl">💳</span>
-                  <h3 className="font-heading text-white text-lg">CREDIT / DEBIT CARD</h3>
-                </div>
-                <p className="text-blue-300 text-sm">
-                  Your card details are entered securely at checkout via Stripe — we never store your card number.
-                  When you buy a spot, you&apos;ll be prompted to enter your card information directly on the
-                  Stripe-secured payment form.
+              <div>
+                <h3 className="font-heading text-white text-lg mb-3">SAVED CARD</h3>
+                <p className="text-gray-500 text-sm mb-4">
+                  Save a card to speed up checkout. Your card is stored securely by Stripe — we never see the number.
                 </p>
+                <SavedCardSetup />
               </div>
             )}
 

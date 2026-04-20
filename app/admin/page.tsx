@@ -230,10 +230,13 @@ function ApproveButton({ spotId }: { spotId: string }) {
       action={async () => {
         'use server'
         const { prisma } = await import('@/lib/prisma')
-        await prisma.auctionSpot.update({
+        const { spinForSpot } = await import('@/lib/spinLogic')
+        const spot = await prisma.auctionSpot.update({
           where: { id: spotId },
           data: { paid: true },
         })
+        // Trigger spin now that manual payment is confirmed — no free spins without this approval
+        await spinForSpot(spot.auctionId, spot.id)
       }}
     >
       <button
