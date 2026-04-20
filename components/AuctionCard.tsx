@@ -131,7 +131,7 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
           </p>
         </div>
         <Link
-          href={`/auction/${auction.id}`}
+          href={auction.status === 'completed' ? `/auction/${auction.id}/results` : `/auction/${auction.id}`}
           className="btn-gold text-sm py-2.5 px-5"
         >
           {auction.status === 'active' ? 'Join Now' : 'View Results'}

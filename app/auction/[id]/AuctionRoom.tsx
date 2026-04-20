@@ -204,13 +204,23 @@ export default function AuctionRoom({ initialAuction }: { initialAuction: Auctio
               <p className="text-gray-400 max-w-2xl">{auction.description}</p>
             )}
           </div>
-          <span
-            className={`text-sm font-bold px-4 py-2 rounded-full border uppercase tracking-widest ${
-              statusColors[auction.status] || statusColors.active
-            }`}
-          >
-            {auction.status === 'spinning' ? 'SPINNING...' : auction.status}
-          </span>
+          <div className="flex items-center gap-3">
+            <span
+              className={`text-sm font-bold px-4 py-2 rounded-full border uppercase tracking-widest ${
+                statusColors[auction.status] || statusColors.active
+              }`}
+            >
+              {auction.status === 'spinning' ? 'SPINNING...' : auction.status}
+            </span>
+            {auction.status === 'completed' && (
+              <a
+                href={`/auction/${auction.id}/results`}
+                className="text-sm font-semibold text-gold border border-gold/40 bg-gold/10 hover:bg-gold/20 px-4 py-2 rounded-full transition-colors"
+              >
+                View Results →
+              </a>
+            )}
+          </div>
         </div>
       </div>
 
