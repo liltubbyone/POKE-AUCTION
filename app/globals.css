@@ -3,12 +3,15 @@
 @tailwind utilities;
 
 :root {
-  --background: #0a0a0f;
+  --background: #06060d;
   --foreground: #e5e7eb;
-  --card: #11111c;
+  --card: #0d0d1a;
+  --surface: #111128;
   --gold: #FFD700;
   --gold-dark: #B8860B;
-  --border: #2a2a3a;
+  --gold-light: #FFE44D;
+  --border: #1e1e35;
+  --border-subtle: #13132a;
 }
 
 * {
@@ -41,7 +44,7 @@ a {
 }
 
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -49,25 +52,55 @@ a {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #2a2a3a;
-  border-radius: 4px;
+  background: linear-gradient(180deg, #FFD700, #B8860B);
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #FFD700;
+  background: #FFE44D;
 }
 
 @layer components {
   .btn-gold {
-    @apply bg-gold text-black font-bold py-3 px-6 rounded-lg hover:bg-gold-light transition-all duration-200 font-body tracking-wide uppercase;
+    @apply relative inline-flex items-center justify-center font-bold py-3 px-6 rounded-xl font-body tracking-wide uppercase transition-all duration-300;
+    background: linear-gradient(135deg, #FFE44D 0%, #FFD700 40%, #B8860B 100%);
+    background-size: 200% auto;
+    color: #000;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.25), inset 0 1px 0 rgba(255,255,255,0.2);
+  }
+
+  .btn-gold:hover {
+    background-position: right center;
+    box-shadow: 0 0 35px rgba(255, 215, 0, 0.45), 0 0 70px rgba(255, 215, 0, 0.12), inset 0 1px 0 rgba(255,255,255,0.2);
+    transform: translateY(-2px);
   }
 
   .btn-outline {
-    @apply border border-gold text-gold font-bold py-3 px-6 rounded-lg hover:bg-gold hover:text-black transition-all duration-200 font-body tracking-wide uppercase;
+    @apply inline-flex items-center justify-center font-bold py-3 px-6 rounded-xl font-body tracking-wide uppercase transition-all duration-300;
+    border: 1px solid rgba(255, 215, 0, 0.4);
+    color: #FFD700;
+    background: rgba(255, 215, 0, 0.03);
+  }
+
+  .btn-outline:hover {
+    background: rgba(255, 215, 0, 0.07);
+    border-color: rgba(255, 215, 0, 0.7);
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.15);
+    transform: translateY(-2px);
   }
 
   .card {
-    @apply bg-card border border-border rounded-xl p-6;
+    @apply rounded-2xl p-6 transition-all duration-300;
+    background: var(--card);
+    border: 1px solid var(--border);
+  }
+
+  .card-glass {
+    @apply rounded-2xl p-6 transition-all duration-300;
+    background: rgba(13, 13, 26, 0.6);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 215, 0, 0.1);
   }
 
   .gold-text {
@@ -75,15 +108,24 @@ a {
   }
 
   .trust-badge {
-    @apply flex items-center gap-2 bg-card border border-border rounded-lg px-4 py-2 text-sm font-semibold;
+    @apply flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200;
+    background: rgba(13, 13, 26, 0.8);
+    border: 1px solid var(--border);
   }
 
   .tier-badge {
-    @apply inline-block px-2 py-0.5 rounded text-xs font-bold font-body tracking-widest;
+    @apply inline-block px-2.5 py-0.5 rounded-md text-xs font-bold font-body tracking-widest;
   }
 
   .input-field {
-    @apply w-full bg-background border border-border rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-gold transition-colors;
+    @apply w-full rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none transition-all duration-300;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+  }
+
+  .input-field:focus {
+    border-color: rgba(255, 215, 0, 0.5);
+    box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.06);
   }
 
   .section-title {
@@ -91,14 +133,29 @@ a {
   }
 
   .gold-gradient-text {
-    background: linear-gradient(135deg, #FFD700 0%, #B8860B 50%, #FFD700 100%);
+    background: linear-gradient(135deg, #FFE44D 0%, #FFD700 40%, #B8860B 80%, #FFD700 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   .no-refund-banner {
-    @apply bg-red-950/50 border border-red-500/40 text-red-300 px-4 py-3 rounded-lg text-sm font-semibold text-center;
+    @apply px-4 py-2 rounded-xl text-sm font-semibold text-center;
+    background: rgba(220, 38, 38, 0.08);
+    border: 1px solid rgba(220, 38, 38, 0.25);
+    color: #fca5a5;
+  }
+
+  .step-icon {
+    @apply w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5 transition-all duration-300;
+    background: rgba(255, 215, 0, 0.08);
+    border: 1px solid rgba(255, 215, 0, 0.15);
+  }
+
+  .stat-card {
+    @apply text-center px-8 py-6 rounded-2xl;
+    background: rgba(255, 215, 0, 0.04);
+    border: 1px solid rgba(255, 215, 0, 0.1);
   }
 }
 
@@ -106,13 +163,29 @@ a {
   .text-balance {
     text-wrap: balance;
   }
+
   .font-heading {
     font-family: 'Bebas Neue', sans-serif;
     letter-spacing: 0.05em;
   }
+
   .font-body {
     font-family: 'Rajdhani', sans-serif;
   }
+}
+
+/* Grid pattern for hero */
+.grid-pattern {
+  background-image:
+    linear-gradient(rgba(255, 215, 0, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 215, 0, 0.025) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+/* Glow divider line */
+.glow-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.35), transparent);
 }
 
 /* Wheel canvas glow */
@@ -139,12 +212,32 @@ a {
   animation: reveal 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
 }
 
-/* Pulsing glow for active auction */
+/* Subtle pulsing glow for active auction cards */
 @keyframes active-glow {
-  0%, 100% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.2); }
-  50% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.5), 0 0 40px rgba(255, 215, 0, 0.2); }
+  0%, 100% { box-shadow: 0 4px 24px rgba(0,0,0,0.4); }
+  50% { box-shadow: 0 4px 24px rgba(0,0,0,0.4), 0 0 40px rgba(255, 215, 0, 0.1); }
 }
 
 .active-glow {
-  animation: active-glow 2s ease-in-out infinite;
+  animation: active-glow 3.5s ease-in-out infinite;
+}
+
+/* Shimmer on gold gradient text */
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.shimmer-gold {
+  background: linear-gradient(90deg, #B8860B 0%, #FFE44D 25%, #FFD700 50%, #FFE44D 75%, #B8860B 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 4s linear infinite;
+}
+
+/* Progress bar glow */
+.progress-glow {
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.5);
 }

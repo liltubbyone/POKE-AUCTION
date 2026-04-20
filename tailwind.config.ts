@@ -9,12 +9,14 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: '#0a0a0f',
-        card: '#11111c',
+        background: '#06060d',
+        card: '#0d0d1a',
+        surface: '#111128',
         gold: '#FFD700',
         'gold-dark': '#B8860B',
         'gold-light': '#FFE44D',
-        border: '#2a2a3a',
+        border: '#1e1e35',
+        'border-subtle': '#13132a',
         muted: '#6b7280',
         'tier-s': '#FF4444',
         'tier-a': '#FF8C00',
@@ -32,6 +34,7 @@ const config: Config = {
         'bounce-in': 'bounce-in 0.5s ease-out',
         'fade-in': 'fade-in 0.3s ease-out',
         'wheel-spin': 'wheel-spin 4s cubic-bezier(0.17, 0.67, 0.12, 0.99) forwards',
+        shimmer: 'shimmer 4s linear infinite',
       },
       keyframes: {
         'pulse-gold': {
@@ -51,10 +54,20 @@ const config: Config = {
           '0%': { transform: 'rotate(0deg)' },
           '100%': { transform: 'rotate(1800deg)' },
         },
+        shimmer: {
+          '0%': { backgroundPosition: '-200% center' },
+          '100%': { backgroundPosition: '200% center' },
+        },
       },
       backgroundImage: {
-        'gold-gradient': 'linear-gradient(135deg, #FFD700 0%, #B8860B 50%, #FFD700 100%)',
-        'dark-gradient': 'linear-gradient(180deg, #0a0a0f 0%, #11111c 100%)',
+        'gold-gradient': 'linear-gradient(135deg, #FFE44D 0%, #FFD700 40%, #B8860B 100%)',
+        'dark-gradient': 'linear-gradient(180deg, #06060d 0%, #0d0d1a 100%)',
+        'gold-shimmer': 'linear-gradient(90deg, #B8860B 0%, #FFE44D 25%, #FFD700 50%, #FFE44D 75%, #B8860B 100%)',
+      },
+      boxShadow: {
+        gold: '0 0 20px rgba(255, 215, 0, 0.25)',
+        'gold-lg': '0 0 40px rgba(255, 215, 0, 0.35)',
+        card: '0 4px 24px rgba(0, 0, 0, 0.4)',
       },
     },
   },

@@ -9,36 +9,81 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
 
   return (
-    <nav className="sticky top-0 z-50 bg-card border-b border-border backdrop-blur-sm bg-opacity-90">
+    <nav
+      className="sticky top-0 z-50 border-b"
+      style={{
+        background: 'rgba(6, 6, 13, 0.85)',
+        backdropFilter: 'blur(24px)',
+        WebkitBackdropFilter: 'blur(24px)',
+        borderColor: 'rgba(30, 30, 53, 0.8)',
+      }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
+
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
-            <span className="text-3xl font-heading gold-gradient-text tracking-wider">
-              POKE<span className="text-white">AUCTION</span>
+          <Link href="/" className="flex items-center gap-3 group">
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-105"
+              style={{
+                background: 'linear-gradient(135deg, #FFE44D 0%, #FFD700 50%, #B8860B 100%)',
+                boxShadow: '0 0 16px rgba(255, 215, 0, 0.35)',
+              }}
+            >
+              <svg className="w-5 h-5 text-black" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+              </svg>
+            </div>
+            <span className="text-xl font-heading tracking-wider">
+              <span className="shimmer-gold">POKE</span>
+              <span className="text-white">AUCTION</span>
             </span>
           </Link>
 
           {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-6">
-            <Link href="/" className="text-gray-300 hover:text-gold transition-colors font-semibold tracking-wide text-sm uppercase">
-              Home
-            </Link>
-            <Link href="/inventory" className="text-gray-300 hover:text-gold transition-colors font-semibold tracking-wide text-sm uppercase">
-              Inventory
-            </Link>
+          <div className="hidden md:flex items-center gap-1">
+            {[
+              { href: '/', label: 'Home' },
+              { href: '/inventory', label: 'Inventory' },
+            ].map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="relative px-4 py-2 text-sm font-semibold uppercase tracking-wide text-gray-400 hover:text-white transition-colors duration-200 group"
+              >
+                {link.label}
+                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-px bg-gold group-hover:w-4/5 transition-all duration-300" />
+              </Link>
+            ))}
             {session?.user?.isAdmin && (
-              <Link href="/admin" className="text-gold hover:text-gold-light transition-colors font-semibold tracking-wide text-sm uppercase border border-gold/30 px-3 py-1 rounded">
+              <Link
+                href="/admin"
+                className="px-4 py-1.5 text-sm font-semibold uppercase tracking-wide rounded-lg transition-all duration-200"
+                style={{
+                  color: '#FFD700',
+                  border: '1px solid rgba(255,215,0,0.25)',
+                  background: 'rgba(255,215,0,0.05)',
+                }}
+              >
                 Admin
               </Link>
             )}
           </div>
 
-          {/* Auth buttons */}
+          {/* Auth */}
           <div className="hidden md:flex items-center gap-3">
             {session ? (
-              <div className="flex items-center gap-3">
-                <Link href="/profile" className="text-gray-300 hover:text-gold transition-colors font-semibold text-sm">
+              <>
+                <Link
+                  href="/profile"
+                  className="flex items-center gap-2 text-sm font-semibold text-gray-300 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-white/5"
+                >
+                  <div
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-black flex-shrink-0"
+                    style={{ background: 'linear-gradient(135deg, #FFD700, #B8860B)' }}
+                  >
+                    {(session.user.name || session.user.email || 'U')[0].toUpperCase()}
+                  </div>
                   {session.user.name || session.user.email?.split('@')[0]}
                 </Link>
                 <button
@@ -47,25 +92,28 @@ export default function Navbar() {
                 >
                   Sign Out
                 </button>
-              </div>
+              </>
             ) : (
-              <div className="flex items-center gap-3">
-                <Link href="/auth/login" className="text-gray-300 hover:text-gold transition-colors font-semibold text-sm">
+              <>
+                <Link
+                  href="/auth/login"
+                  className="text-sm font-semibold text-gray-400 hover:text-white transition-colors px-3 py-2"
+                >
                   Sign In
                 </Link>
-                <Link href="/auth/register" className="btn-gold text-sm py-2 px-4">
-                  Register
+                <Link href="/auth/register" className="btn-gold text-sm py-2 px-5">
+                  Get Started
                 </Link>
-              </div>
+              </>
             )}
           </div>
 
           {/* Mobile menu button */}
           <button
-            className="md:hidden text-gray-300 hover:text-gold"
+            className="md:hidden p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
             onClick={() => setMobileOpen(!mobileOpen)}
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               {mobileOpen ? (
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               ) : (
@@ -77,21 +125,25 @@ export default function Navbar() {
 
         {/* Mobile menu */}
         {mobileOpen && (
-          <div className="md:hidden pb-4 border-t border-border pt-4 flex flex-col gap-3">
-            <Link href="/" className="text-gray-300 hover:text-gold font-semibold" onClick={() => setMobileOpen(false)}>Home</Link>
-            <Link href="/inventory" className="text-gray-300 hover:text-gold font-semibold" onClick={() => setMobileOpen(false)}>Inventory</Link>
+          <div
+            className="md:hidden pb-4 pt-3 flex flex-col gap-1"
+            style={{ borderTop: '1px solid rgba(30,30,53,0.8)' }}
+          >
+            <Link href="/" className="px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg font-semibold transition-colors" onClick={() => setMobileOpen(false)}>Home</Link>
+            <Link href="/inventory" className="px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg font-semibold transition-colors" onClick={() => setMobileOpen(false)}>Inventory</Link>
             {session?.user?.isAdmin && (
-              <Link href="/admin" className="text-gold font-semibold" onClick={() => setMobileOpen(false)}>Admin</Link>
+              <Link href="/admin" className="px-3 py-2.5 text-gold font-semibold" onClick={() => setMobileOpen(false)}>Admin</Link>
             )}
+            <div className="h-px my-2" style={{ background: 'rgba(30,30,53,0.8)' }} />
             {session ? (
               <>
-                <Link href="/profile" className="text-gray-300 hover:text-gold font-semibold" onClick={() => setMobileOpen(false)}>Profile</Link>
-                <button onClick={() => signOut()} className="text-left text-red-400 hover:text-red-300 font-semibold">Sign Out</button>
+                <Link href="/profile" className="px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg font-semibold transition-colors" onClick={() => setMobileOpen(false)}>Profile</Link>
+                <button onClick={() => signOut()} className="text-left px-3 py-2.5 text-red-400 hover:text-red-300 font-semibold">Sign Out</button>
               </>
             ) : (
               <>
-                <Link href="/auth/login" className="text-gray-300 hover:text-gold font-semibold" onClick={() => setMobileOpen(false)}>Sign In</Link>
-                <Link href="/auth/register" className="btn-gold text-center" onClick={() => setMobileOpen(false)}>Register</Link>
+                <Link href="/auth/login" className="px-3 py-2.5 text-gray-300 hover:text-white font-semibold" onClick={() => setMobileOpen(false)}>Sign In</Link>
+                <Link href="/auth/register" className="btn-gold text-center mt-1" onClick={() => setMobileOpen(false)}>Get Started</Link>
               </>
             )}
           </div>
