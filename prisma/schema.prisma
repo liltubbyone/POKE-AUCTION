@@ -42,10 +42,11 @@ model Auction {
   status      String        @default("active")
   spotPrice   Float
   totalSpots  Int
-  spinSeed    String?
-  createdAt   DateTime      @default(now())
-  completedAt DateTime?
-  expiresAt   DateTime?
+  spinSeed     String?
+  shippingRate Float         @default(8.0)
+  createdAt    DateTime      @default(now())
+  completedAt  DateTime?
+  expiresAt    DateTime?
   items       AuctionItem[]
   spots       AuctionSpot[]
 }

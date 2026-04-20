@@ -41,6 +41,7 @@ interface AuctionData {
   status: string
   spotPrice: number
   totalSpots: number
+  shippingRate: number
   spinSeed: string | null
   createdAt: string
   completedAt: string | null

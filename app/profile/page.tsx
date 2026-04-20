@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import Link from 'next/link'
 import SavedCardSetup from '@/components/SavedCardSetup'
-import ShippingPayment from '@/components/ShippingPayment'
 
 interface Address {
   street: string
@@ -253,7 +252,7 @@ export default function ProfilePage() {
 
           <h3 className="text-xl font-heading text-white mb-4">SHIPPING ADDRESS</h3>
           <p className="text-gray-500 text-sm mb-4">
-            Required before winning an auction. Buyer pays actual shipping cost.
+            Used to ship your winnings. Shipping is included in your spot purchase.
           </p>
 
           <div className="space-y-4">
@@ -319,7 +318,7 @@ export default function ProfilePage() {
 
           <div className="mt-6 pt-4 border-t border-border">
             <p className="text-gray-500 text-xs mb-4">
-              No sales tax collected. Shipping cost is calculated based on item size and location (~$8–$15).
+              No sales tax collected. Shipping is bundled into your first spot purchase per show.
             </p>
             <button type="submit" disabled={saving} className="btn-gold disabled:opacity-50">
               {saving ? 'Saving...' : 'Save Profile'}
@@ -504,31 +503,19 @@ export default function ProfilePage() {
                   </div>
                 </div>
                 {spot.assignedItemId && (
-                  <div className="mt-3 rounded-xl p-4 space-y-3" style={{ background: 'rgba(255,215,0,0.04)', border: '1px solid rgba(255,215,0,0.15)' }}>
+                  <div className="mt-3 rounded-xl p-4 space-y-2" style={{ background: 'rgba(255,215,0,0.04)', border: '1px solid rgba(255,215,0,0.15)' }}>
                     <p className="text-gold font-heading text-lg">YOU WON A PRIZE!</p>
+                    <p className="text-gray-400 text-xs">Shipping was included in your purchase — all your wins from this show ship together.</p>
 
-                    {/* Step 1: Shipping address check */}
-                    {!address.street ? (
-                      <div className="rounded-lg p-3 text-sm" style={{ background: 'rgba(251,146,60,0.08)', border: '1px solid rgba(251,146,60,0.2)', color: '#fdba74' }}>
-                        <p className="font-semibold mb-1">Add your shipping address first</p>
-                        <p className="text-xs opacity-80">Go to the Profile &amp; Address tab to save your address before paying for shipping.</p>
+                    {!address.street && (
+                      <div className="rounded-lg p-3 text-sm mt-2" style={{ background: 'rgba(251,146,60,0.08)', border: '1px solid rgba(251,146,60,0.2)', color: '#fdba74' }}>
+                        <p className="font-semibold mb-1">Add your shipping address</p>
+                        <p className="text-xs opacity-80">Go to the Profile &amp; Address tab so we know where to send your item.</p>
                       </div>
-                    ) : !spot.shippingPaid ? (
-                      /* Step 2: Pay shipping */
-                      <div>
-                        <p className="text-sm text-gray-400 mb-1">Shipping address on file:</p>
-                        <p className="text-white text-sm font-semibold mb-3">
-                          {address.street}, {address.city}, {address.state} {address.zip}
-                        </p>
-                        <ShippingPayment
-                          spotId={spot.id}
-                          savedCard={savedCard}
-                          onPaid={fetchProfile}
-                        />
-                      </div>
-                    ) : spot.shipped ? (
-                      /* Step 4: Shipped */
-                      <div className="space-y-1">
+                    )}
+
+                    {spot.shipped ? (
+                      <div className="space-y-1 mt-1">
                         <div className="flex items-center gap-2">
                           <svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -542,15 +529,12 @@ export default function ProfilePage() {
                         )}
                       </div>
                     ) : (
-                      /* Step 3: Shipping paid, awaiting label/ship */
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <svg className="w-4 h-4 text-gold" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                          <p className="text-gold text-sm font-semibold">Shipping paid {spot.shippingCost ? `(${formatCurrency(spot.shippingCost)})` : ''}</p>
-                        </div>
-                        <p className="text-gray-500 text-xs">Your item is being prepared for shipment. Tracking will appear here once shipped.</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <svg className="w-4 h-4 text-gold animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+                          <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1v-1h3.05a2.5 2.5 0 014.9 0H19a1 1 0 001-1v-5a1 1 0 00-.293-.707l-3-3A1 1 0 0016 4H3z" />
+                        </svg>
+                        <p className="text-gray-400 text-sm">Being prepared for shipment — tracking will appear here once shipped.</p>
                       </div>
                     )}
                   </div>

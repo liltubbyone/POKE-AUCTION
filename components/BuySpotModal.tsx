@@ -36,6 +36,7 @@ interface BuySpotModalProps {
     name: string
     spotPrice: number
     totalSpots: number
+    shippingRate?: number
   }
   spotsLeft: number
   onClose: () => void
@@ -129,6 +130,7 @@ export default function BuySpotModal({ auction, spotsLeft, onClose, onSuccess }:
   const [step, setStep] = useState<'choose' | 'stripe-form' | 'manual-instructions'>('choose')
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [savedCard, setSavedCard] = useState<SavedCard | null>(null)
+  const [chargedTotal, setChargedTotal] = useState<number | null>(null)
 
   useEffect(() => {
     fetch('/api/payments/stripe/saved-card')
@@ -156,6 +158,7 @@ export default function BuySpotModal({ auction, spotsLeft, onClose, onSuccess }:
       })
       const intentData = await intentRes.json()
       if (!intentRes.ok) { setError(intentData.error || 'Could not start payment.'); setLoading(false); return }
+      if (intentData.total) setChargedTotal(intentData.total)
 
       // Confirm with saved card using raw stripe instance (no Elements needed)
       const stripe = await stripePromise
@@ -200,6 +203,7 @@ export default function BuySpotModal({ auction, spotsLeft, onClose, onSuccess }:
         setError(data.error || 'Could not start checkout. Try again.')
       } else {
         setClientSecret(data.clientSecret)
+        setChargedTotal(data.total)
         setStep('stripe-form')
       }
     } catch {
@@ -260,9 +264,19 @@ export default function BuySpotModal({ auction, spotsLeft, onClose, onSuccess }:
         >
           <div className="flex justify-between items-center mb-1">
             <span className="text-gray-400 text-sm">Spot Price</span>
-            <span className="text-gold font-bold text-xl font-heading">{formatCurrency(auction.spotPrice)}</span>
+            <span className="text-white font-semibold">{formatCurrency(auction.spotPrice)}</span>
           </div>
-          <div className="flex justify-between items-center text-xs">
+          {auction.shippingRate != null && (
+            <div className="flex justify-between items-center mb-1 text-sm">
+              <span className="text-gray-400">Shipping <span className="text-gray-600 text-xs">(1st spot only — all wins ship together)</span></span>
+              <span className="text-gray-300">{formatCurrency(auction.shippingRate)}</span>
+            </div>
+          )}
+          <div className="border-t border-gold/20 mt-2 pt-2 flex justify-between items-center">
+            <span className="text-gray-400 text-sm font-semibold">Total</span>
+            <span className="text-gold font-bold text-xl font-heading">{formatCurrency(chargedTotal ?? (auction.spotPrice + (auction.shippingRate ?? 0)))}</span>
+          </div>
+          <div className="flex justify-between items-center text-xs mt-1">
             <span className="text-gray-600">Spots Remaining</span>
             <span className="text-white font-semibold">{spotsLeft}</span>
           </div>
@@ -324,7 +338,7 @@ export default function BuySpotModal({ auction, spotsLeft, onClose, onSuccess }:
                     disabled={loading}
                     className="btn-gold w-full disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {loading ? 'Processing...' : `Pay ${formatCurrency(auction.spotPrice)} with ${savedCard.brand} ••••${savedCard.last4}`}
+                    {loading ? 'Processing...' : `Pay ${formatCurrency(chargedTotal ?? auction.spotPrice)} with ${savedCard.brand} ••••${savedCard.last4}`}
                   </button>
                 )}
                 <button
@@ -332,7 +346,7 @@ export default function BuySpotModal({ auction, spotsLeft, onClose, onSuccess }:
                   disabled={loading}
                   className={savedCard ? 'btn-outline w-full disabled:opacity-50' : 'btn-gold w-full disabled:opacity-50 disabled:cursor-not-allowed'}
                 >
-                  {loading ? 'Loading checkout...' : savedCard ? 'Use a different card' : `Pay ${formatCurrency(auction.spotPrice)} & Get Spot`}
+                  {loading ? 'Loading checkout...' : savedCard ? 'Use a different card' : `Pay ${formatCurrency(chargedTotal ?? auction.spotPrice)} & Get Spot`}
                 </button>
               </div>
             ) : (
@@ -397,7 +411,7 @@ export default function BuySpotModal({ auction, spotsLeft, onClose, onSuccess }:
               <ol className="space-y-2 text-sm text-gray-300">
                 <li>1. Open {paymentMethod === 'venmo' ? 'Venmo' : 'Cash App'} on your phone</li>
                 <li>
-                  2. Send <strong className="text-gold">{formatCurrency(auction.spotPrice)}</strong> to{' '}
+                  2. Send <strong className="text-gold">{formatCurrency(chargedTotal ?? auction.spotPrice)}</strong> to{' '}
                   <strong className="text-white">
                     {paymentMethod === 'venmo'
                       ? (process.env.NEXT_PUBLIC_VENMO_HANDLE || '@PokeAuction')

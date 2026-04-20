@@ -27,7 +27,7 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json()
-    const { name, description, spotPrice, totalSpots, items, expiresInDays } = body
+    const { name, description, spotPrice, totalSpots, items, expiresInDays, shippingRate } = body
 
     const expiresAt = expiresInDays
       ? new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000)
@@ -39,6 +39,7 @@ export async function POST(req: Request) {
         description,
         spotPrice: parseFloat(spotPrice),
         totalSpots: parseInt(totalSpots),
+        shippingRate: shippingRate != null ? parseFloat(shippingRate) : 8,
         expiresAt,
         items: {
           create: items.map((item: { itemId: string; quantity: number }) => ({

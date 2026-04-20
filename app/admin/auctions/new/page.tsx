@@ -29,6 +29,7 @@ export default function CreateAuctionPage() {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [spotPrice, setSpotPrice] = useState<number>(45)
+  const [shippingRate, setShippingRate] = useState<number>(8)
   const [expiresInDays, setExpiresInDays] = useState<number>(7)
   const [selectedItems, setSelectedItems] = useState<AuctionItemEntry[]>([])
   const [loading, setLoading] = useState(false)
@@ -95,6 +96,7 @@ export default function CreateAuctionPage() {
         name,
         description,
         spotPrice,
+        shippingRate,
         totalSpots,
         expiresInDays,
         items: selectedItems,
@@ -181,6 +183,23 @@ export default function CreateAuctionPage() {
                       required
                     />
                   </div>
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wider font-semibold">
+                      Shipping Rate ($)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={shippingRate}
+                      onChange={(e) => setShippingRate(parseFloat(e.target.value))}
+                      className="input-field"
+                    />
+                    <p className="text-gray-600 text-xs mt-1">Charged once per customer per show</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wider font-semibold">
                       Expires In (Days)

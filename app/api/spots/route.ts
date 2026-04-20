@@ -67,6 +67,8 @@ export async function POST(req: Request) {
         paymentMethod,
         paymentId,
         paid: isPaid,
+        // Shipping is bundled into the spot purchase price — mark paid when spot is paid
+        shippingPaid: isPaid,
       },
       include: {
         user: { select: { id: true, name: true, email: true } },
