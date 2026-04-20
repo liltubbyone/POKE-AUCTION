@@ -166,7 +166,7 @@ export default async function AdminDashboard() {
                         Revenue: {formatCurrency(paid * auction.spotPrice)}
                       </span>
                       {auction.status !== 'completed' && auction.status !== 'cancelled' && (
-                        <MarkCompletedForm auctionId={auction.id} />
+                        <EndAuctionForm auctionId={auction.id} />
                       )}
                     </div>
                   </div>
@@ -387,12 +387,22 @@ function ApproveButton({ spotId }: { spotId: string }) {
   )
 }
 
-function MarkCompletedForm({ auctionId }: { auctionId: string }) {
+function EndAuctionForm({ auctionId }: { auctionId: string }) {
   return (
     <form
       action={async () => {
         'use server'
         const { prisma } = await import('@/lib/prisma')
+        const { spinForSpot } = await import('@/lib/spinLogic')
+        // Spin any paid spots that haven't been assigned yet
+        const unspun = await prisma.auctionSpot.findMany({
+          where: { auctionId, paid: true, assignedItemId: null },
+          select: { id: true },
+        })
+        for (const spot of unspun) {
+          await spinForSpot(auctionId, spot.id)
+        }
+        // Mark completed (spinForSpot may have already done this, but ensure it)
         await prisma.auction.update({
           where: { id: auctionId },
           data: { status: 'completed', completedAt: new Date() },
@@ -401,9 +411,9 @@ function MarkCompletedForm({ auctionId }: { auctionId: string }) {
     >
       <button
         type="submit"
-        className="text-xs bg-blue-900/50 border border-blue-500/40 text-blue-300 hover:bg-blue-900 px-3 py-1 rounded font-semibold transition-colors"
+        className="text-xs bg-red-900/50 border border-red-500/40 text-red-300 hover:bg-red-900 px-3 py-1 rounded font-semibold transition-colors"
       >
-        Mark Completed
+        End Early
       </button>
     </form>
   )

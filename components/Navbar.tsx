@@ -4,11 +4,12 @@ import Link from 'next/link'
 import { useSession, signOut } from 'next-auth/react'
 import { useState, useEffect, useRef } from 'react'
 
-interface CompletedAuction {
+interface AuctionEntry {
   id: string
   name: string
+  status: string
   completedAt: string | null
-  totalSpots: number
+  createdAt: string
 }
 
 export default function Navbar() {
@@ -16,7 +17,7 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [resultsOpen, setResultsOpen] = useState(false)
   const [mobileResultsOpen, setMobileResultsOpen] = useState(false)
-  const [completedAuctions, setCompletedAuctions] = useState<CompletedAuction[]>([])
+  const [completedAuctions, setCompletedAuctions] = useState<AuctionEntry[]>([])
   const [loadingResults, setLoadingResults] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
@@ -116,12 +117,12 @@ export default function Navbar() {
                   }}
                 >
                   <div className="px-4 py-2.5 border-b" style={{ borderColor: 'rgba(30,30,53,0.8)' }}>
-                    <p className="text-xs font-bold uppercase tracking-widest text-gold">Completed Shows</p>
+                    <p className="text-xs font-bold uppercase tracking-widest text-gold">All Shows</p>
                   </div>
                   {loadingResults ? (
                     <div className="px-4 py-4 text-gray-500 text-sm text-center">Loading…</div>
                   ) : completedAuctions.length === 0 ? (
-                    <div className="px-4 py-4 text-gray-500 text-sm text-center">No completed auctions yet</div>
+                    <div className="px-4 py-4 text-gray-500 text-sm text-center">No auctions yet</div>
                   ) : (
                     <div className="py-1">
                       {completedAuctions.map((a) => (
@@ -131,17 +132,19 @@ export default function Navbar() {
                           onClick={() => setResultsOpen(false)}
                           className="flex items-center justify-between px-4 py-3 hover:bg-white/5 transition-colors group"
                         >
-                          <div>
-                            <p className="text-white text-sm font-semibold group-hover:text-gold transition-colors">{a.name}</p>
-                            {a.completedAt && (
-                              <p className="text-gray-500 text-xs mt-0.5">
-                                {new Date(a.completedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                              </p>
-                            )}
+                          <div className="min-w-0 flex-1">
+                            <p className="text-white text-sm font-semibold group-hover:text-gold transition-colors truncate">{a.name}</p>
+                            <p className="text-gray-500 text-xs mt-0.5">
+                              {new Date(a.completedAt ?? a.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </p>
                           </div>
-                          <svg className="w-4 h-4 text-gray-600 group-hover:text-gold transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                          </svg>
+                          <span className={`ml-2 flex-shrink-0 text-xs font-bold px-2 py-0.5 rounded-full uppercase ${
+                            a.status === 'completed' ? 'text-blue-400 bg-blue-400/10' :
+                            a.status === 'spinning' ? 'text-yellow-400 bg-yellow-400/10' :
+                            'text-green-400 bg-green-400/10'
+                          }`}>
+                            {a.status}
+                          </span>
                         </Link>
                       ))}
                     </div>
@@ -252,9 +255,14 @@ export default function Navbar() {
                       key={a.id}
                       href={`/auction/${a.id}/results`}
                       onClick={() => { setMobileOpen(false); setMobileResultsOpen(false) }}
-                      className="block py-2 px-1 text-sm text-gray-300 hover:text-gold transition-colors"
+                      className="flex items-center justify-between py-2 px-1 text-sm text-gray-300 hover:text-gold transition-colors"
                     >
-                      {a.name}
+                      <span>{a.name}</span>
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full uppercase ${
+                        a.status === 'completed' ? 'text-blue-400 bg-blue-400/10' :
+                        a.status === 'spinning' ? 'text-yellow-400 bg-yellow-400/10' :
+                        'text-green-400 bg-green-400/10'
+                      }`}>{a.status}</span>
                     </Link>
                   ))
                 )}
