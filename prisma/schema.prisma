@@ -7,16 +7,18 @@ datasource db {
 }
 
 model User {
-  id               String        @id @default(cuid())
-  email            String        @unique
-  name             String?
-  password         String
-  isAdmin          Boolean       @default(false)
-  address          String?
-  paymentInfo      String?
-  stripeCustomerId String?
-  createdAt        DateTime      @default(now())
-  spots            AuctionSpot[]
+  id                String        @id @default(cuid())
+  email             String        @unique
+  name              String?
+  password          String
+  isAdmin           Boolean       @default(false)
+  address           String?
+  paymentInfo       String?
+  stripeCustomerId  String?
+  createdAt         DateTime      @default(now())
+  spots             AuctionSpot[]
+  passwordResetToken String?
+  passwordResetExpiry DateTime?
 }
 
 model InventoryItem {
