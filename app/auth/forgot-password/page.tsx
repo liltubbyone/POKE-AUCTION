@@ -35,7 +35,7 @@ export default function ForgotPasswordPage() {
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="card w-full max-w-md p-8">
         <h1 className="text-3xl font-heading text-white mb-2">FORGOT PASSWORD</h1>
-        <p className="text-gray-400 text-sm mb-6">Enter your email and we'll send you a reset link.</p>
+        <p className="text-gray-400 text-sm mb-6">Enter your email and we&apos;ll send you a reset link.</p>
 
         {done ? (
           <div className="space-y-4">
