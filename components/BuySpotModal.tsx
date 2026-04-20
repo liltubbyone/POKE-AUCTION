@@ -239,9 +239,9 @@ export default function BuySpotModal({ auction, spotsLeft, onClose, onSuccess }:
   }
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-start justify-center z-50 px-4 py-6 overflow-y-auto">
       <div
-        className="w-full max-w-md relative rounded-2xl p-6"
+        className="w-full max-w-md relative rounded-2xl p-6 my-auto"
         style={{ background: '#0d0d1a', border: '1px solid rgba(30,30,53,0.8)' }}
       >
         {/* Close */}
@@ -279,6 +279,10 @@ export default function BuySpotModal({ auction, spotsLeft, onClose, onSuccess }:
           <div className="flex justify-between items-center text-xs mt-1">
             <span className="text-gray-600">Spots Remaining</span>
             <span className="text-white font-semibold">{spotsLeft}</span>
+          </div>
+          <div className="flex justify-between items-center text-xs mt-1">
+            <span className="text-gray-600">Tax</span>
+            <span className="text-green-400 font-semibold">None</span>
           </div>
         </div>
 
