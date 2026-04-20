@@ -45,13 +45,14 @@ export default function SpinWheel({ segments, spinning, onSpinComplete, winnerLa
 
     const dpr = window.devicePixelRatio || 1
     const cssSize = 400
-    if (canvas.width !== cssSize * dpr) {
-      canvas.width = cssSize * dpr
-      canvas.height = cssSize * dpr
-      canvas.style.width = `${cssSize}px`
-      canvas.style.height = `${cssSize}px`
-      ctx.scale(dpr, dpr)
-    }
+
+    // Always resize to physical pixels and reset the transform.
+    // React's width/height props reset the canvas on re-render, wiping the scale.
+    canvas.width = cssSize * dpr
+    canvas.height = cssSize * dpr
+    canvas.style.width = `${cssSize}px`
+    canvas.style.height = `${cssSize}px`
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
 
     const size = cssSize
     const cx = size / 2
@@ -249,10 +250,8 @@ export default function SpinWheel({ segments, spinning, onSpinComplete, winnerLa
       }}>
         <canvas
           ref={canvasRef}
-          width={400}
-          height={400}
-          className="max-w-full rounded-full"
-          style={{ maxWidth: '400px' }}
+          className="rounded-full"
+          style={{ width: '400px', height: '400px', maxWidth: '100%' }}
         />
       </div>
 
