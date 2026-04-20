@@ -41,8 +41,8 @@ export default function ForgotPasswordPage() {
           <div className="space-y-4">
             <div className="bg-green-900/30 border border-green-500/30 rounded-lg p-4 text-green-300 text-sm">
               {resetUrl
-                ? 'Email not configured — use the link below to reset your password:'
-                : 'If an account exists with that email, a reset link has been sent.'}
+                ? 'Email delivery not yet configured. Use the link below to reset your password:'
+                : `Check your inbox at ${email} for a reset link. It expires in 1 hour.`}
             </div>
             {resetUrl && (
               <a
