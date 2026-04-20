@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { spinForSpot } from '@/lib/spinLogic'
+import { getStripe } from '@/lib/stripe'
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions)
@@ -38,9 +39,25 @@ export async function POST(req: Request) {
       nextSpot++
     }
 
-    // For Stripe/PayPal - payment must be verified
-    // For Venmo/CashApp - mark as unpaid, admin confirms
-    const isPaid = paymentMethod === 'stripe' || paymentMethod === 'paypal'
+    // For Stripe — verify the PaymentIntent actually succeeded before marking paid
+    let isPaid = false
+    if (paymentMethod === 'stripe') {
+      if (!paymentId) {
+        return NextResponse.json({ error: 'Missing payment confirmation' }, { status: 400 })
+      }
+      const stripe = getStripe()
+      const intent = await stripe.paymentIntents.retrieve(paymentId)
+      if (intent.status !== 'succeeded') {
+        return NextResponse.json({ error: 'Payment not confirmed by Stripe' }, { status: 402 })
+      }
+      // Idempotency: reject if this paymentId already has a spot
+      const duplicate = await prisma.auctionSpot.findFirst({ where: { paymentId } })
+      if (duplicate) {
+        return NextResponse.json({ error: 'This payment has already been used' }, { status: 409 })
+      }
+      isPaid = true
+    }
+    // Venmo/CashApp — mark unpaid, admin confirms manually
 
     const spot = await prisma.auctionSpot.create({
       data: {

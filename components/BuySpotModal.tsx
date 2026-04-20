@@ -3,7 +3,11 @@
 import { useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import { loadStripe } from '@stripe/stripe-js'
+import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { formatCurrency } from '@/lib/utils'
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
 interface SpinResult {
   itemName: string
@@ -36,57 +40,123 @@ interface BuySpotModalProps {
   onSuccess: (result?: PurchaseResult) => void
 }
 
+// Inner form — must live inside <Elements>
+function StripeCheckoutForm({
+  auction,
+  onSuccess,
+  onError,
+}: {
+  auction: BuySpotModalProps['auction']
+  onSuccess: (result?: PurchaseResult) => void
+  onError: (msg: string) => void
+}) {
+  const stripe = useStripe()
+  const elements = useElements()
+  const [loading, setLoading] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!stripe || !elements) return
+
+    setLoading(true)
+
+    const { error, paymentIntent } = await stripe.confirmPayment({
+      elements,
+      confirmParams: { return_url: window.location.href },
+      redirect: 'if_required',
+    })
+
+    if (error) {
+      onError(error.message || 'Payment failed. Please try again.')
+      setLoading(false)
+      return
+    }
+
+    if (paymentIntent?.status === 'succeeded') {
+      try {
+        const res = await fetch('/api/spots', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            auctionId: auction.id,
+            paymentMethod: 'stripe',
+            paymentId: paymentIntent.id,
+          }),
+        })
+        const data = await res.json()
+        if (!res.ok) {
+          onError(data.error || 'Payment succeeded but spot creation failed. Contact support.')
+        } else {
+          onSuccess({ spot: data.spot, spinResult: data.spinResult ?? null })
+        }
+      } catch {
+        onError('Payment succeeded but we could not confirm your spot. Contact support.')
+      }
+    } else {
+      onError('Payment was not completed. Please try again.')
+    }
+
+    setLoading(false)
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <div
+        className="rounded-xl p-4 mb-5"
+        style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(30,30,53,0.8)' }}
+      >
+        <PaymentElement options={{ layout: 'tabs' }} />
+      </div>
+      <button
+        type="submit"
+        disabled={!stripe || loading}
+        className="btn-gold w-full disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {loading ? 'Processing...' : `Pay ${formatCurrency(auction.spotPrice)} & Get Spot`}
+      </button>
+    </form>
+  )
+}
+
 export default function BuySpotModal({ auction, spotsLeft, onClose, onSuccess }: BuySpotModalProps) {
   const { data: session } = useSession()
   const router = useRouter()
-  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'paypal' | 'venmo' | 'cashapp'>('stripe')
+  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'venmo' | 'cashapp'>('stripe')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [step, setStep] = useState<'choose' | 'manual-instructions'>('choose')
+  const [step, setStep] = useState<'choose' | 'stripe-form' | 'manual-instructions'>('choose')
+  const [clientSecret, setClientSecret] = useState<string | null>(null)
 
   if (!session?.user) {
     router.push('/auth/login')
     return null
   }
 
-  const handleStripeOrPayPal = async () => {
+  const handleStripeClick = async () => {
     setLoading(true)
     setError('')
-
     try {
-      // For demo: directly create spot with mock payment
-      // In production, this would go through Stripe Payment Intent
-      const res = await fetch('/api/spots', {
+      const res = await fetch('/api/payments/stripe/create-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          auctionId: auction.id,
-          paymentMethod,
-          paymentId: `demo_${Date.now()}`,
-        }),
+        body: JSON.stringify({ auctionId: auction.id }),
       })
-
       const data = await res.json()
       if (!res.ok) {
-        setError(data.error || 'Failed to purchase spot')
+        setError(data.error || 'Could not start checkout. Try again.')
       } else {
-        onSuccess({ spot: data.spot, spinResult: data.spinResult ?? null })
+        setClientSecret(data.clientSecret)
+        setStep('stripe-form')
       }
     } catch {
       setError('Something went wrong. Please try again.')
     }
-
     setLoading(false)
-  }
-
-  const handleManualPayment = () => {
-    setStep('manual-instructions')
   }
 
   const handleManualConfirm = async () => {
     setLoading(true)
     setError('')
-
     try {
       const res = await fetch('/api/spots', {
         method: 'POST',
@@ -98,7 +168,6 @@ export default function BuySpotModal({ auction, spotsLeft, onClose, onSuccess }:
           paid: false,
         }),
       })
-
       const data = await res.json()
       if (!res.ok) {
         setError(data.error || 'Failed to reserve spot')
@@ -108,157 +177,184 @@ export default function BuySpotModal({ auction, spotsLeft, onClose, onSuccess }:
     } catch {
       setError('Something went wrong.')
     }
-
     setLoading(false)
   }
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-      <div className="card w-full max-w-md relative animate-bounce-in">
+      <div
+        className="w-full max-w-md relative rounded-2xl p-6"
+        style={{ background: '#0d0d1a', border: '1px solid rgba(30,30,53,0.8)' }}
+      >
         {/* Close */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-white"
+          className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
 
-        <h2 className="text-2xl font-heading text-white mb-2">BUY A SPOT</h2>
-        <p className="text-gray-400 text-sm mb-6">{auction.name}</p>
+        <h2 className="text-2xl font-heading text-white mb-1">Buy a Spot</h2>
+        <p className="text-gray-500 text-sm mb-5">{auction.name}</p>
 
         {/* Price summary */}
-        <div className="bg-background border border-border rounded-lg p-4 mb-6">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-gray-400">Spot Price</span>
-            <span className="text-gold font-bold text-xl">{formatCurrency(auction.spotPrice)}</span>
+        <div
+          className="rounded-xl p-4 mb-5"
+          style={{ background: 'rgba(255,215,0,0.04)', border: '1px solid rgba(255,215,0,0.12)' }}
+        >
+          <div className="flex justify-between items-center mb-1">
+            <span className="text-gray-400 text-sm">Spot Price</span>
+            <span className="text-gold font-bold text-xl font-heading">{formatCurrency(auction.spotPrice)}</span>
           </div>
-          <div className="flex justify-between items-center text-sm">
-            <span className="text-gray-500">Spots Remaining</span>
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-gray-600">Spots Remaining</span>
             <span className="text-white font-semibold">{spotsLeft}</span>
           </div>
         </div>
 
-        <div className="no-refund-banner mb-6 text-xs">
-          ALL SALES FINAL — NO REFUNDS — PAYMENT IS IMMEDIATE
+        <div className="no-refund-banner mb-5 text-xs">
+          All Sales Final — No Refunds — Payment Is Immediate
         </div>
 
         {error && (
-          <div className="bg-red-950/50 border border-red-500/40 text-red-300 px-4 py-3 rounded-lg mb-4 text-sm">
+          <div
+            className="px-4 py-3 rounded-xl mb-4 text-sm"
+            style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.25)', color: '#fca5a5' }}
+          >
             {error}
           </div>
         )}
 
+        {/* Step: choose payment method */}
         {step === 'choose' && (
           <>
-            {/* Payment Method Selection */}
-            <div className="mb-6">
-              <p className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">
+            <div className="mb-5">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">
                 Payment Method
               </p>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-2">
                 {[
-                  { id: 'stripe', label: 'Credit Card', icon: '💳', desc: 'Stripe — Instant' },
-                  { id: 'paypal', label: 'PayPal', icon: '🅿️', desc: 'PayPal — Instant' },
-                  { id: 'venmo', label: 'Venmo', icon: '💙', desc: 'Manual confirm' },
-                  { id: 'cashapp', label: 'Cash App', icon: '💚', desc: 'Manual confirm' },
+                  { id: 'stripe',  label: 'Credit Card', sub: 'Instant' },
+                  { id: 'venmo',   label: 'Venmo',       sub: 'Manual' },
+                  { id: 'cashapp', label: 'Cash App',    sub: 'Manual' },
                 ].map((method) => (
                   <button
                     key={method.id}
-                    onClick={() => setPaymentMethod(method.id as 'stripe' | 'paypal' | 'venmo' | 'cashapp')}
-                    className={`border rounded-lg p-3 text-left transition-all ${
-                      paymentMethod === method.id
-                        ? 'border-gold bg-gold/10 text-gold'
-                        : 'border-border text-gray-400 hover:border-gray-500'
-                    }`}
+                    onClick={() => setPaymentMethod(method.id as 'stripe' | 'venmo' | 'cashapp')}
+                    className="rounded-xl p-3 text-left transition-all duration-200"
+                    style={{
+                      border: paymentMethod === method.id
+                        ? '1px solid rgba(255,215,0,0.5)'
+                        : '1px solid rgba(30,30,53,0.8)',
+                      background: paymentMethod === method.id
+                        ? 'rgba(255,215,0,0.06)'
+                        : 'rgba(255,255,255,0.02)',
+                    }}
                   >
-                    <div className="text-2xl mb-1">{method.icon}</div>
-                    <div className="font-semibold text-sm">{method.label}</div>
-                    <div className="text-xs opacity-70">{method.desc}</div>
+                    <div className="font-semibold text-sm" style={{ color: paymentMethod === method.id ? '#FFD700' : '#9ca3af' }}>
+                      {method.label}
+                    </div>
+                    <div className="text-xs text-gray-600 mt-0.5">{method.sub}</div>
                   </button>
                 ))}
               </div>
             </div>
 
-            {(paymentMethod === 'venmo' || paymentMethod === 'cashapp') ? (
+            {paymentMethod === 'stripe' ? (
               <button
-                onClick={handleManualPayment}
-                className="btn-gold w-full"
-              >
-                View Payment Instructions →
-              </button>
-            ) : (
-              <button
-                onClick={handleStripeOrPayPal}
+                onClick={handleStripeClick}
                 disabled={loading}
                 className="btn-gold w-full disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Processing...' : `Pay ${formatCurrency(auction.spotPrice)} & Get Spot`}
+                {loading ? 'Loading checkout...' : `Pay ${formatCurrency(auction.spotPrice)} & Get Spot`}
+              </button>
+            ) : (
+              <button
+                onClick={() => setStep('manual-instructions')}
+                className="btn-gold w-full"
+              >
+                View Payment Instructions
               </button>
             )}
           </>
         )}
 
+        {/* Step: Stripe card form */}
+        {step === 'stripe-form' && clientSecret && (
+          <div>
+            <button
+              onClick={() => { setStep('choose'); setClientSecret(null) }}
+              className="flex items-center gap-1 text-xs text-gray-500 hover:text-white mb-4 transition-colors"
+            >
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Back
+            </button>
+            <Elements
+              stripe={stripePromise}
+              options={{
+                clientSecret,
+                appearance: {
+                  theme: 'night',
+                  variables: {
+                    colorPrimary: '#FFD700',
+                    colorBackground: '#06060d',
+                    colorText: '#e5e7eb',
+                    colorDanger: '#f87171',
+                    fontFamily: 'Rajdhani, sans-serif',
+                    borderRadius: '10px',
+                  },
+                },
+              }}
+            >
+              <StripeCheckoutForm
+                auction={auction}
+                onSuccess={onSuccess}
+                onError={setError}
+              />
+            </Elements>
+          </div>
+        )}
+
+        {/* Step: manual (Venmo / CashApp) instructions */}
         {step === 'manual-instructions' && (
           <div>
-            <div className="bg-background border border-gold/30 rounded-lg p-5 mb-6">
-              <h3 className="font-heading text-xl text-gold mb-3">
-                {paymentMethod === 'venmo' ? 'VENMO INSTRUCTIONS' : 'CASH APP INSTRUCTIONS'}
+            <div
+              className="rounded-xl p-5 mb-5"
+              style={{ background: 'rgba(255,215,0,0.04)', border: '1px solid rgba(255,215,0,0.15)' }}
+            >
+              <h3 className="font-heading text-lg text-gold mb-3">
+                {paymentMethod === 'venmo' ? 'Venmo Instructions' : 'Cash App Instructions'}
               </h3>
-
-              {paymentMethod === 'venmo' ? (
-                <div className="space-y-3">
-                  <p className="text-gray-300 text-sm">1. Open Venmo on your phone</p>
-                  <p className="text-gray-300 text-sm">
-                    2. Send{' '}
-                    <strong className="text-gold">{formatCurrency(auction.spotPrice)}</strong> to:{' '}
-                    <strong className="text-white text-lg">
-                      {process.env.NEXT_PUBLIC_VENMO_HANDLE || '@PokeAuction'}
-                    </strong>
-                  </p>
-                  <p className="text-gray-300 text-sm">
-                    3. In the note, write:{' '}
-                    <strong className="text-white">PokeAuction - {session.user.email}</strong>
-                  </p>
-                  <p className="text-gray-300 text-sm">
-                    4. Click &ldquo;Reserve My Spot&rdquo; below. Admin will confirm your payment and activate
-                    your spot within a few hours.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <p className="text-gray-300 text-sm">1. Open Cash App on your phone</p>
-                  <p className="text-gray-300 text-sm">
-                    2. Send{' '}
-                    <strong className="text-gold">{formatCurrency(auction.spotPrice)}</strong> to:{' '}
-                    <strong className="text-white text-lg">
-                      {process.env.NEXT_PUBLIC_CASHAPP_HANDLE || '$PokeAuction'}
-                    </strong>
-                  </p>
-                  <p className="text-gray-300 text-sm">
-                    3. In the note, write:{' '}
-                    <strong className="text-white">PokeAuction - {session.user.email}</strong>
-                  </p>
-                  <p className="text-gray-300 text-sm">
-                    4. Click &ldquo;Reserve My Spot&rdquo; below. Admin will confirm and activate your spot.
-                  </p>
-                </div>
-              )}
-
-              <div className="mt-4 bg-red-950/30 border border-red-500/30 rounded p-3">
-                <p className="text-red-300 text-xs font-semibold">
-                  ⚠️ Your spot is NOT guaranteed until the admin confirms your payment.
-                  Spots are assigned on a first-come, first-served basis.
-                </p>
+              <ol className="space-y-2 text-sm text-gray-300">
+                <li>1. Open {paymentMethod === 'venmo' ? 'Venmo' : 'Cash App'} on your phone</li>
+                <li>
+                  2. Send <strong className="text-gold">{formatCurrency(auction.spotPrice)}</strong> to{' '}
+                  <strong className="text-white">
+                    {paymentMethod === 'venmo'
+                      ? (process.env.NEXT_PUBLIC_VENMO_HANDLE || '@PokeAuction')
+                      : (process.env.NEXT_PUBLIC_CASHAPP_HANDLE || '$PokeAuction')}
+                  </strong>
+                </li>
+                <li>
+                  3. In the note write:{' '}
+                  <strong className="text-white">PokeAuction — {session.user.email}</strong>
+                </li>
+                <li>4. Click &quot;Reserve My Spot&quot; below — admin will confirm within a few hours.</li>
+              </ol>
+              <div
+                className="mt-4 rounded-lg p-3 text-xs"
+                style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: '#fca5a5' }}
+              >
+                Your spot is NOT guaranteed until the admin confirms your payment.
               </div>
             </div>
 
             <div className="flex gap-3">
-              <button
-                onClick={() => setStep('choose')}
-                className="btn-outline flex-1"
-              >
+              <button onClick={() => setStep('choose')} className="btn-outline flex-1">
                 Back
               </button>
               <button

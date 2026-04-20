@@ -20,6 +20,7 @@
     "@paypal/react-paypal-js": "^9.1.1",
     "@prisma/adapter-pg": "^7.7.0",
     "@prisma/client": "^7.7.0",
+    "@stripe/react-stripe-js": "^6.2.0",
     "@stripe/stripe-js": "^9.2.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/nodemailer": "^8.0.0",
