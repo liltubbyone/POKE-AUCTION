@@ -147,16 +147,27 @@ export default async function AdminDashboard() {
                         style={{ width: `${pct}%` }}
                       />
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap">
                       <Link
                         href={`/auction/${auction.id}`}
                         className="flex-1 text-center border border-border text-gray-300 hover:text-white py-1.5 rounded text-xs font-semibold transition-colors"
                       >
                         View Room
                       </Link>
-                      <span className="text-gray-600 text-xs self-center">
+                      <Link
+                        href={`/auction/${auction.id}/results`}
+                        className="flex-1 text-center border border-gold/30 text-gold hover:bg-gold/10 py-1.5 rounded text-xs font-semibold transition-colors"
+                      >
+                        View Results
+                      </Link>
+                    </div>
+                    <div className="flex justify-between items-center mt-2">
+                      <span className="text-gray-600 text-xs">
                         Revenue: {formatCurrency(paid * auction.spotPrice)}
                       </span>
+                      {auction.status !== 'completed' && auction.status !== 'cancelled' && (
+                        <MarkCompletedForm auctionId={auction.id} />
+                      )}
                     </div>
                   </div>
                 )
@@ -371,6 +382,28 @@ function ApproveButton({ spotId }: { spotId: string }) {
         className="text-xs bg-green-900/50 border border-green-500/40 text-green-300 hover:bg-green-900 px-3 py-1 rounded font-semibold transition-colors"
       >
         Approve
+      </button>
+    </form>
+  )
+}
+
+function MarkCompletedForm({ auctionId }: { auctionId: string }) {
+  return (
+    <form
+      action={async () => {
+        'use server'
+        const { prisma } = await import('@/lib/prisma')
+        await prisma.auction.update({
+          where: { id: auctionId },
+          data: { status: 'completed', completedAt: new Date() },
+        })
+      }}
+    >
+      <button
+        type="submit"
+        className="text-xs bg-blue-900/50 border border-blue-500/40 text-blue-300 hover:bg-blue-900 px-3 py-1 rounded font-semibold transition-colors"
+      >
+        Mark Completed
       </button>
     </form>
   )
