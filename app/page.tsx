@@ -196,10 +196,7 @@ export default async function HomePage() {
             {steps.map((step) => (
               <div
                 key={step.step}
-                className="relative text-center rounded-2xl p-6 transition-all duration-300 group"
-                style={{ background: 'rgba(13,13,26,0.8)', border: '1px solid rgba(30,30,53,0.8)' }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,215,0,0.2)' }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(30,30,53,0.8)' }}
+                className="step-card relative text-center rounded-2xl p-6 group"
               >
                 <div className="step-icon group-hover:bg-gold/15 group-hover:border-gold/30 transition-all duration-300">
                   {step.icon}
@@ -332,19 +329,7 @@ export default async function HomePage() {
             {trustItems.map((item) => (
               <div
                 key={item.title}
-                className="rounded-2xl p-7 text-center transition-all duration-300 group"
-                style={{
-                  background: 'rgba(13,13,26,0.8)',
-                  border: '1px solid rgba(30,30,53,0.8)',
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,215,0,0.15)'
-                  ;(e.currentTarget as HTMLDivElement).style.background = 'rgba(17,17,40,0.9)'
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(30,30,53,0.8)'
-                  ;(e.currentTarget as HTMLDivElement).style.background = 'rgba(13,13,26,0.8)'
-                }}
+                className="trust-card rounded-2xl p-7 text-center group"
               >
                 <div
                   className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5 transition-all duration-300 group-hover:scale-110"

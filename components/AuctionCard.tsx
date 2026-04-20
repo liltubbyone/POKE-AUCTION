@@ -1,3 +1,5 @@
+'use client'
+
 import Link from 'next/link'
 import { formatCurrency } from '@/lib/utils'
 
@@ -38,24 +40,7 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
   const status = statusColors[auction.status] ?? statusColors.active
 
   return (
-    <div
-      className="relative rounded-2xl p-6 flex flex-col gap-4 group transition-all duration-300 active-glow"
-      style={{
-        background: 'linear-gradient(145deg, #0d0d1a 0%, #0a0a16 100%)',
-        border: '1px solid rgba(30,30,53,1)',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
-      }}
-      onMouseEnter={(e) => {
-        (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,215,0,0.2)'
-        ;(e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'
-        ;(e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,215,0,0.1)'
-      }}
-      onMouseLeave={(e) => {
-        (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(30,30,53,1)'
-        ;(e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)'
-        ;(e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 24px rgba(0,0,0,0.4)'
-      }}
-    >
+    <div className="auction-card relative rounded-2xl p-6 flex flex-col gap-4 group active-glow">
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <h3 className="text-xl font-heading text-white leading-tight group-hover:text-gold-light transition-colors duration-200">

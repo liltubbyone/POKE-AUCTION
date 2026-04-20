@@ -241,3 +241,37 @@ a {
 .progress-glow {
   box-shadow: 0 0 12px rgba(255, 215, 0, 0.5);
 }
+
+/* Step cards hover (server component safe) */
+.step-card {
+  background: rgba(13, 13, 26, 0.8);
+  border: 1px solid rgba(30, 30, 53, 0.8);
+  transition: border-color 0.3s;
+}
+.step-card:hover {
+  border-color: rgba(255, 215, 0, 0.2);
+}
+
+/* Trust cards hover (server component safe) */
+.trust-card {
+  background: rgba(13, 13, 26, 0.8);
+  border: 1px solid rgba(30, 30, 53, 0.8);
+  transition: all 0.3s;
+}
+.trust-card:hover {
+  border-color: rgba(255, 215, 0, 0.15);
+  background: rgba(17, 17, 40, 0.9);
+}
+
+/* Auction card hover */
+.auction-card {
+  background: linear-gradient(145deg, #0d0d1a 0%, #0a0a16 100%);
+  border: 1px solid rgba(30, 30, 53, 1);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s;
+}
+.auction-card:hover {
+  border-color: rgba(255, 215, 0, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 215, 0, 0.1);
+}
