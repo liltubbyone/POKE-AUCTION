@@ -107,6 +107,9 @@ export default async function AuctionResultsPage({ params }: { params: { id: str
                   <p className="text-white font-semibold text-sm truncate">
                     {spot.user.name || spot.user.email.split('@')[0]}
                   </p>
+                  <p className="text-gray-600 text-xs mt-0.5">
+                    {new Date(spot.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                  </p>
                 </div>
 
                 {/* Item won */}

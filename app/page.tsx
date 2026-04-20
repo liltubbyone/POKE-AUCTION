@@ -40,7 +40,7 @@ const steps = [
   {
     step: '03',
     title: 'Wheel Spins',
-    desc: 'All spots filled? The wheel spins live using a cryptographic seed — verifiable by anyone.',
+    desc: 'All spots filled? The wheel spins live and results are published publicly for everyone to see.',
     icon: (
       <svg className="w-6 h-6 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -77,7 +77,7 @@ const trustItems = [
       </svg>
     ),
     title: 'Never Manipulated',
-    desc: 'Cryptographic random seed shuffles items. The seed is published before the spin so you can verify every result.',
+    desc: 'The wheel spin is live and all results are published publicly. Every winner and item is on the record.',
   },
   {
     icon: (
@@ -130,7 +130,7 @@ export default async function HomePage() {
 
           <p className="text-lg md:text-xl text-gray-400 mb-8 font-body max-w-xl mx-auto leading-relaxed">
             Buy a spot. Fill the auction. Spin the wheel. Every outcome is{' '}
-            <span className="text-white font-semibold">100% randomized</span> and cryptographically verifiable.
+            <span className="text-white font-semibold">100% randomized</span> and results are published publicly.
           </p>
 
           {/* Policy badges */}
@@ -144,7 +144,7 @@ export default async function HomePage() {
                 color: '#86efac',
               }}
             >
-              Cryptographic Seed — Provably Fair
+              Results Published — 100% Transparent
             </div>
           </div>
 
@@ -183,7 +183,7 @@ export default async function HomePage() {
             <p className="text-xs font-bold uppercase tracking-widest text-gold mb-3">Process</p>
             <h2 className="section-title">How the Wheel Works</h2>
             <p className="text-gray-500 max-w-md mx-auto mt-3 text-sm leading-relaxed">
-              Simple, transparent, and provably fair. No tricks, no manipulation, ever.
+              Simple and transparent. No tricks, no manipulation, ever.
             </p>
           </div>
 
@@ -211,57 +211,6 @@ export default async function HomePage() {
                 <p className="text-gray-500 text-sm leading-relaxed">{step.desc}</p>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      <div className="glow-line" />
-
-      {/* ── Provably Fair ── */}
-      <section className="py-16">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div
-            className="rounded-2xl p-8"
-            style={{
-              background: 'linear-gradient(135deg, rgba(13,13,26,0.9) 0%, rgba(17,17,40,0.9) 100%)',
-              border: '1px solid rgba(255,215,0,0.12)',
-              boxShadow: '0 0 40px rgba(255,215,0,0.04)',
-            }}
-          >
-            <div className="flex items-start gap-5">
-              <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: 'rgba(255,215,0,0.1)', border: '1px solid rgba(255,215,0,0.2)' }}
-              >
-                <svg className="w-6 h-6 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
-              </div>
-              <div className="flex-1">
-                <h3 className="text-2xl font-heading text-gold mb-2">Provably Fair Randomization</h3>
-                <p className="text-gray-400 mb-4 leading-relaxed text-sm">
-                  When the wheel spins, we generate a cryptographic random seed and publish it publicly. The seed
-                  determines the shuffle order. You can independently verify every single result.
-                </p>
-                <div
-                  className="rounded-xl p-4 font-mono text-xs leading-relaxed"
-                  style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(30,30,53,0.8)' }}
-                >
-                  <div className="flex gap-2 mb-1">
-                    <span style={{ color: '#4ade80' }}>seed:</span>
-                    <span className="text-gray-400">a7f3e9b2c1d4... (SHA-256 hash published BEFORE spin)</span>
-                  </div>
-                  <div className="flex gap-2 mb-1">
-                    <span style={{ color: '#60a5fa' }}>algorithm:</span>
-                    <span className="text-gray-400">Fisher-Yates shuffle seeded by CSPRNG</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <span style={{ color: '#FFD700' }}>result:</span>
-                    <span className="text-gray-400">spot #1 → Booster Box, spot #2 → PO Sleeve...</span>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </section>
@@ -366,7 +315,7 @@ export default async function HomePage() {
               },
               {
                 name: 'Jake R.',
-                text: 'The provably fair system gives me real confidence. Got my item shipped fast with tracking. 10/10.',
+                text: 'Results are posted publicly so you can verify everything. Got my item shipped fast with tracking. 10/10.',
                 item: 'Won: First Partner Coll.',
               },
             ].map((t) => (
