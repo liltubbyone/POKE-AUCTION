@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import Link from 'next/link'
+import GenerateLabelButton from '@/components/GenerateLabelButton'
 
 async function getAdminData() {
   const [auctions, inventory, recentSpots] = await Promise.all([
@@ -200,7 +201,13 @@ export default async function AdminDashboard() {
                           <p>{addr.country}</p>
                         </div>
                       )}
-                      <MarkShippedForm spotId={spot.id} />
+                      <GenerateLabelButton spotId={spot.id} />
+                      <details className="text-xs text-gray-500 cursor-pointer">
+                        <summary className="hover:text-gray-300 transition-colors">Manual tracking entry</summary>
+                        <div className="mt-2">
+                          <MarkShippedForm spotId={spot.id} />
+                        </div>
+                      </details>
                     </div>
                   )
                 })}

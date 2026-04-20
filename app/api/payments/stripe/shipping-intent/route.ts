@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { getStripe } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
+import { getFedexRate } from '@/lib/fedex'
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions)
@@ -24,9 +25,25 @@ export async function POST(req: Request) {
   if (!spot.assignedItemId) return NextResponse.json({ error: 'No item assigned to this spot yet' }, { status: 400 })
   if (spot.shippingPaid) return NextResponse.json({ error: 'Shipping already paid' }, { status: 400 })
 
-  // Get shipping cost from the assigned auction item
   const auctionItem = spot.auction.items.find((ai) => ai.id === spot.assignedItemId)
-  const shippingCost = auctionItem?.item.shippingCost ?? 10
+
+  // Get live FedEx Ground rate using buyer's saved address
+  let shippingCost = auctionItem?.item.shippingCost ?? 10
+  try {
+    let addr: Record<string, string> = {}
+    try { addr = JSON.parse(spot.user.address || '{}') } catch {}
+    if (addr.street && addr.city && addr.state && addr.zip) {
+      shippingCost = await getFedexRate({
+        street: addr.street,
+        city: addr.city,
+        state: addr.state,
+        zip: addr.zip,
+        country: addr.country || 'US',
+      })
+    }
+  } catch (err) {
+    console.error('FedEx rate fetch failed, falling back to flat rate:', err)
+  }
 
   const amountInCents = Math.round(shippingCost * 100)
   const stripe = getStripe()
