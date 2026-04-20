@@ -43,7 +43,17 @@ export default function SpinWheel({ segments, spinning, onSpinComplete, winnerLa
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    const size = canvas.width
+    const dpr = window.devicePixelRatio || 1
+    const cssSize = 400
+    if (canvas.width !== cssSize * dpr) {
+      canvas.width = cssSize * dpr
+      canvas.height = cssSize * dpr
+      canvas.style.width = `${cssSize}px`
+      canvas.style.height = `${cssSize}px`
+      ctx.scale(dpr, dpr)
+    }
+
+    const size = cssSize
     const cx = size / 2
     const cy = size / 2
     const radius = size / 2 - 16
@@ -101,11 +111,11 @@ export default function SpinWheel({ segments, spinning, onSpinComplete, winnerLa
       ctx.translate(cx, cy)
       ctx.rotate(start + arc / 2)
       ctx.textAlign = 'right'
-      const fs = Math.max(8, Math.min(13, 300 / n))
-      ctx.font = `bold ${fs}px Rajdhani, sans-serif`
+      const fs = Math.max(9, Math.min(14, 320 / n))
+      ctx.font = `700 ${fs}px Arial, sans-serif`
       ctx.fillStyle = pal.text
-      ctx.shadowColor = 'rgba(0,0,0,0.8)'
-      ctx.shadowBlur = 4
+      ctx.shadowColor = 'transparent'
+      ctx.shadowBlur = 0
       const label = seg.label.length > 13 ? seg.label.slice(0, 12) + '\u2026' : seg.label
       ctx.fillText(label, radius - 18, fs / 3)
       ctx.restore()
