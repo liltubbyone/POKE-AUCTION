@@ -325,6 +325,7 @@ function PendingSpotRow({ spot }: { spot: any }) {
         <div className="flex gap-2 items-center">
           <span className="text-yellow-400 text-xs font-semibold">PENDING</span>
           <ApproveButton spotId={spot.id} />
+          <DeclineButton spotId={spot.id} />
         </div>
       </div>
     </div>
@@ -382,6 +383,25 @@ function ApproveButton({ spotId }: { spotId: string }) {
         className="text-xs bg-green-900/50 border border-green-500/40 text-green-300 hover:bg-green-900 px-3 py-1 rounded font-semibold transition-colors"
       >
         Approve
+      </button>
+    </form>
+  )
+}
+
+function DeclineButton({ spotId }: { spotId: string }) {
+  return (
+    <form
+      action={async () => {
+        'use server'
+        const { prisma } = await import('@/lib/prisma')
+        await prisma.auctionSpot.delete({ where: { id: spotId } })
+      }}
+    >
+      <button
+        type="submit"
+        className="text-xs bg-red-900/50 border border-red-500/40 text-red-300 hover:bg-red-900 px-3 py-1 rounded font-semibold transition-colors"
+      >
+        Decline
       </button>
     </form>
   )

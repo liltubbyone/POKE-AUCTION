@@ -2,46 +2,11 @@
 
 import Link from 'next/link'
 import { useSession, signOut } from 'next-auth/react'
-import { useState, useEffect, useRef } from 'react'
-
-interface AuctionEntry {
-  id: string
-  name: string
-  status: string
-  completedAt: string | null
-  createdAt: string
-}
+import { useState } from 'react'
 
 export default function Navbar() {
   const { data: session } = useSession()
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [resultsOpen, setResultsOpen] = useState(false)
-  const [mobileResultsOpen, setMobileResultsOpen] = useState(false)
-  const [completedAuctions, setCompletedAuctions] = useState<AuctionEntry[]>([])
-  const [loadingResults, setLoadingResults] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
-
-  // Fetch completed auctions when dropdown opens
-  useEffect(() => {
-    if (!resultsOpen && !mobileResultsOpen) return
-    if (completedAuctions.length > 0) return
-    setLoadingResults(true)
-    fetch('/api/auctions/completed')
-      .then((r) => r.json())
-      .then((data) => setCompletedAuctions(data))
-      .finally(() => setLoadingResults(false))
-  }, [resultsOpen, mobileResultsOpen])
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setResultsOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [])
 
   return (
     <nav
@@ -91,67 +56,13 @@ export default function Navbar() {
               </Link>
             ))}
 
-            {/* Results Dropdown */}
-            <div className="relative" ref={dropdownRef}>
-              <button
-                onClick={() => setResultsOpen((o) => !o)}
-                className="relative px-4 py-2 text-sm font-semibold uppercase tracking-wide text-gray-400 hover:text-white transition-colors duration-200 flex items-center gap-1 group"
-              >
-                Results
-                <svg
-                  className={`w-3.5 h-3.5 transition-transform duration-200 ${resultsOpen ? 'rotate-180' : ''}`}
-                  fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-px bg-gold group-hover:w-4/5 transition-all duration-300" />
-              </button>
-
-              {resultsOpen && (
-                <div
-                  className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-64 rounded-xl overflow-hidden shadow-2xl"
-                  style={{
-                    background: 'rgba(10,10,22,0.98)',
-                    border: '1px solid rgba(255,215,0,0.15)',
-                    backdropFilter: 'blur(24px)',
-                  }}
-                >
-                  <div className="px-4 py-2.5 border-b" style={{ borderColor: 'rgba(30,30,53,0.8)' }}>
-                    <p className="text-xs font-bold uppercase tracking-widest text-gold">All Shows</p>
-                  </div>
-                  {loadingResults ? (
-                    <div className="px-4 py-4 text-gray-500 text-sm text-center">Loading…</div>
-                  ) : completedAuctions.length === 0 ? (
-                    <div className="px-4 py-4 text-gray-500 text-sm text-center">No auctions yet</div>
-                  ) : (
-                    <div className="py-1">
-                      {completedAuctions.map((a) => (
-                        <Link
-                          key={a.id}
-                          href={`/auction/${a.id}/results`}
-                          onClick={() => setResultsOpen(false)}
-                          className="flex items-center justify-between px-4 py-3 hover:bg-white/5 transition-colors group"
-                        >
-                          <div className="min-w-0 flex-1">
-                            <p className="text-white text-sm font-semibold group-hover:text-gold transition-colors truncate">{a.name}</p>
-                            <p className="text-gray-500 text-xs mt-0.5">
-                              {new Date(a.completedAt ?? a.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                            </p>
-                          </div>
-                          <span className={`ml-2 flex-shrink-0 text-xs font-bold px-2 py-0.5 rounded-full uppercase ${
-                            a.status === 'completed' ? 'text-blue-400 bg-blue-400/10' :
-                            a.status === 'spinning' ? 'text-yellow-400 bg-yellow-400/10' :
-                            'text-green-400 bg-green-400/10'
-                          }`}>
-                            {a.status}
-                          </span>
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+            <Link
+              href="/results"
+              className="relative px-4 py-2 text-sm font-semibold uppercase tracking-wide text-gray-400 hover:text-white transition-colors duration-200 group"
+            >
+              Results
+              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-px bg-gold group-hover:w-4/5 transition-all duration-300" />
+            </Link>
 
             {session?.user?.isAdmin && (
               <Link
@@ -230,44 +141,7 @@ export default function Navbar() {
             <Link href="/" className="px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg font-semibold transition-colors" onClick={() => setMobileOpen(false)}>Home</Link>
             <Link href="/inventory" className="px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg font-semibold transition-colors" onClick={() => setMobileOpen(false)}>Inventory</Link>
 
-            {/* Mobile Results Accordion */}
-            <button
-              onClick={() => setMobileResultsOpen((o) => !o)}
-              className="flex items-center justify-between px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg font-semibold transition-colors w-full text-left"
-            >
-              <span>Results</span>
-              <svg
-                className={`w-4 h-4 transition-transform duration-200 ${mobileResultsOpen ? 'rotate-180' : ''}`}
-                fill="none" stroke="currentColor" viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-            {mobileResultsOpen && (
-              <div className="ml-3 border-l pl-3" style={{ borderColor: 'rgba(255,215,0,0.2)' }}>
-                {loadingResults ? (
-                  <p className="text-gray-500 text-sm py-2 px-1">Loading…</p>
-                ) : completedAuctions.length === 0 ? (
-                  <p className="text-gray-500 text-sm py-2 px-1">No completed auctions yet</p>
-                ) : (
-                  completedAuctions.map((a) => (
-                    <Link
-                      key={a.id}
-                      href={`/auction/${a.id}/results`}
-                      onClick={() => { setMobileOpen(false); setMobileResultsOpen(false) }}
-                      className="flex items-center justify-between py-2 px-1 text-sm text-gray-300 hover:text-gold transition-colors"
-                    >
-                      <span>{a.name}</span>
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full uppercase ${
-                        a.status === 'completed' ? 'text-blue-400 bg-blue-400/10' :
-                        a.status === 'spinning' ? 'text-yellow-400 bg-yellow-400/10' :
-                        'text-green-400 bg-green-400/10'
-                      }`}>{a.status}</span>
-                    </Link>
-                  ))
-                )}
-              </div>
-            )}
+            <Link href="/results" className="px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg font-semibold transition-colors" onClick={() => setMobileOpen(false)}>Results</Link>
 
             {session?.user?.isAdmin && (
               <Link href="/admin" className="px-3 py-2.5 text-gold font-semibold" onClick={() => setMobileOpen(false)}>Admin</Link>
