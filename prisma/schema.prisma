@@ -68,8 +68,11 @@ model AuctionSpot {
   paymentId      String?
   paymentMethod  String?
   paid           Boolean  @default(false)
-  assignedItemId String?
-  shipped        Boolean  @default(false)
-  trackingNumber String?
-  createdAt      DateTime @default(now())
+  assignedItemId    String?
+  shipped           Boolean  @default(false)
+  trackingNumber    String?
+  shippingPaid      Boolean  @default(false)
+  shippingPaymentId String?
+  shippingCost      Float?
+  createdAt         DateTime @default(now())
 }

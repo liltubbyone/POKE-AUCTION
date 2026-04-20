@@ -39,7 +39,27 @@ async function getAdminData() {
     orderBy: { createdAt: 'desc' },
   })
 
-  return { auctions, inventory, recentSpots, totalRevenue, activeAuctions, pendingSpots }
+  // Shipping queue: won + shipping paid + not yet shipped
+  const shippingQueue = await prisma.auctionSpot.findMany({
+    where: { assignedItemId: { not: null }, shippingPaid: true, shipped: false },
+    include: {
+      user: { select: { name: true, email: true, address: true } },
+      auction: { include: { items: { include: { item: true } } } },
+    },
+    orderBy: { createdAt: 'asc' },
+  })
+
+  // Awaiting shipping payment: won but shipping not paid yet
+  const awaitingShippingPayment = await prisma.auctionSpot.findMany({
+    where: { assignedItemId: { not: null }, shippingPaid: false, paid: true },
+    include: {
+      user: { select: { name: true, email: true } },
+      auction: { include: { items: { include: { item: true } } } },
+    },
+    orderBy: { createdAt: 'asc' },
+  })
+
+  return { auctions, inventory, recentSpots, totalRevenue, activeAuctions, pendingSpots, shippingQueue, awaitingShippingPayment }
 }
 
 export default async function AdminDashboard() {
@@ -49,7 +69,7 @@ export default async function AdminDashboard() {
     redirect('/')
   }
 
-  const { auctions, inventory, recentSpots, totalRevenue, activeAuctions, pendingSpots } =
+  const { auctions, inventory, recentSpots, totalRevenue, activeAuctions, pendingSpots, shippingQueue, awaitingShippingPayment } =
     await getAdminData()
 
   const lowStock = inventory.filter((i) => i.qty <= 2 && i.tier !== 'EXCLUDE')
@@ -146,6 +166,75 @@ export default async function AdminDashboard() {
 
         {/* Right column */}
         <div className="space-y-6">
+          {/* Shipping Queue — ready to ship */}
+          {shippingQueue.length > 0 && (
+            <div>
+              <h2 className="text-2xl font-heading text-blue-400 mb-4">
+                SHIP NOW ({shippingQueue.length})
+              </h2>
+              <div className="space-y-3">
+                {shippingQueue.map((spot) => {
+                  const auctionItem = spot.auction.items.find((ai) => ai.id === spot.assignedItemId)
+                  let addr: Record<string, string> = {}
+                  try { addr = JSON.parse(spot.user.address || '{}') } catch {}
+                  return (
+                    <div key={spot.id} className="card border-blue-500/20 p-4 space-y-3">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="text-white font-semibold text-sm">
+                            {spot.user.name || spot.user.email.split('@')[0]}
+                          </p>
+                          <p className="text-gray-500 text-xs">{spot.user.email}</p>
+                          <p className="text-blue-300 text-xs font-semibold mt-1">
+                            {auctionItem?.item.name ?? 'Unknown item'} — Spot #{spot.spotNumber}
+                          </p>
+                        </div>
+                        <span className="text-xs font-bold text-blue-400 bg-blue-400/10 border border-blue-400/30 px-2 py-1 rounded-full">
+                          SHIPPING PAID
+                        </span>
+                      </div>
+                      {addr.street && (
+                        <div className="rounded-lg p-2 text-xs text-gray-300" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(30,30,53,0.8)' }}>
+                          <p>{addr.street}</p>
+                          <p>{addr.city}, {addr.state} {addr.zip}</p>
+                          <p>{addr.country}</p>
+                        </div>
+                      )}
+                      <MarkShippedForm spotId={spot.id} />
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Awaiting shipping payment */}
+          {awaitingShippingPayment.length > 0 && (
+            <div>
+              <h2 className="text-2xl font-heading text-purple-400 mb-4">
+                AWAITING SHIPPING PAYMENT ({awaitingShippingPayment.length})
+              </h2>
+              <div className="space-y-2">
+                {awaitingShippingPayment.map((spot) => {
+                  const auctionItem = spot.auction.items.find((ai) => ai.id === spot.assignedItemId)
+                  return (
+                    <div key={spot.id} className="card p-3 border-purple-500/20">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <p className="text-white text-sm font-semibold">
+                            {spot.user.name || spot.user.email.split('@')[0]}
+                          </p>
+                          <p className="text-gray-500 text-xs">{auctionItem?.item.name} — Spot #{spot.spotNumber}</p>
+                        </div>
+                        <span className="text-purple-400 text-xs font-semibold">PENDING SHIPPING $</span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Pending Payments */}
           {pendingSpots.length > 0 && (
             <div>
@@ -221,6 +310,37 @@ function PendingSpotRow({ spot }: { spot: any }) {
         </div>
       </div>
     </div>
+  )
+}
+
+function MarkShippedForm({ spotId }: { spotId: string }) {
+  return (
+    <form
+      action={async (formData: FormData) => {
+        'use server'
+        const tracking = formData.get('tracking') as string
+        if (!tracking?.trim()) return
+        const { prisma } = await import('@/lib/prisma')
+        await prisma.auctionSpot.update({
+          where: { id: spotId },
+          data: { shipped: true, trackingNumber: tracking.trim() },
+        })
+      }}
+      className="flex gap-2"
+    >
+      <input
+        name="tracking"
+        required
+        placeholder="Tracking number"
+        className="input-field text-xs py-2 flex-1"
+      />
+      <button
+        type="submit"
+        className="text-xs bg-blue-900/50 border border-blue-500/40 text-blue-300 hover:bg-blue-900 px-3 py-2 rounded font-semibold transition-colors whitespace-nowrap"
+      >
+        Mark Shipped
+      </button>
+    </form>
   )
 }
 

@@ -21,7 +21,17 @@ export async function GET() {
         paymentInfo: true,
         createdAt: true,
         spots: {
-          include: {
+          select: {
+            id: true,
+            spotNumber: true,
+            paid: true,
+            assignedItemId: true,
+            shipped: true,
+            trackingNumber: true,
+            shippingPaid: true,
+            shippingCost: true,
+            paymentMethod: true,
+            createdAt: true,
             auction: { select: { name: true, status: true, spotPrice: true } },
           },
           orderBy: { createdAt: 'desc' },

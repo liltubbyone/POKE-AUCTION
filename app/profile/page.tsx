@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import Link from 'next/link'
 import SavedCardSetup from '@/components/SavedCardSetup'
+import ShippingPayment from '@/components/ShippingPayment'
 
 interface Address {
   street: string
@@ -36,6 +37,8 @@ interface UserProfile {
     assignedItemId: string | null
     shipped: boolean
     trackingNumber: string | null
+    shippingPaid: boolean
+    shippingCost: number | null
     paymentMethod: string | null
     createdAt: string
     auction: {
@@ -71,6 +74,7 @@ export default function ProfilePage() {
     country: 'US',
   })
   const [paymentInfo, setPaymentInfo] = useState<PaymentInfo>(DEFAULT_PAYMENT)
+  const [savedCard, setSavedCard] = useState<{ id: string; last4: string; brand: string } | null>(null)
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -84,6 +88,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (status === 'authenticated') {
       fetchProfile()
+      fetch('/api/payments/stripe/saved-card').then(r => r.ok ? r.json() : null).then(setSavedCard).catch(() => {})
     }
   }, [status])
 
@@ -499,17 +504,54 @@ export default function ProfilePage() {
                   </div>
                 </div>
                 {spot.assignedItemId && (
-                  <div className="mt-3 bg-gold/5 border border-gold/20 rounded-lg px-4 py-3">
-                    <p className="text-gold font-heading text-lg">RESULT: You won a prize!</p>
-                    {spot.shipped ? (
-                      <div className="mt-2">
-                        <p className="text-green-400 text-sm font-semibold">✓ SHIPPED</p>
+                  <div className="mt-3 rounded-xl p-4 space-y-3" style={{ background: 'rgba(255,215,0,0.04)', border: '1px solid rgba(255,215,0,0.15)' }}>
+                    <p className="text-gold font-heading text-lg">YOU WON A PRIZE!</p>
+
+                    {/* Step 1: Shipping address check */}
+                    {!address.street ? (
+                      <div className="rounded-lg p-3 text-sm" style={{ background: 'rgba(251,146,60,0.08)', border: '1px solid rgba(251,146,60,0.2)', color: '#fdba74' }}>
+                        <p className="font-semibold mb-1">Add your shipping address first</p>
+                        <p className="text-xs opacity-80">Go to the Profile &amp; Address tab to save your address before paying for shipping.</p>
+                      </div>
+                    ) : !spot.shippingPaid ? (
+                      /* Step 2: Pay shipping */
+                      <div>
+                        <p className="text-sm text-gray-400 mb-1">Shipping address on file:</p>
+                        <p className="text-white text-sm font-semibold mb-3">
+                          {address.street}, {address.city}, {address.state} {address.zip}
+                        </p>
+                        <ShippingPayment
+                          spotId={spot.id}
+                          savedCard={savedCard}
+                          onPaid={fetchProfile}
+                        />
+                      </div>
+                    ) : spot.shipped ? (
+                      /* Step 4: Shipped */
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                          <p className="text-green-400 font-semibold text-sm">Shipped!</p>
+                        </div>
                         {spot.trackingNumber && (
-                          <p className="text-gray-400 text-xs mt-1">Tracking: {spot.trackingNumber}</p>
+                          <p className="text-gray-400 text-xs">
+                            Tracking: <span className="text-white font-mono">{spot.trackingNumber}</span>
+                          </p>
                         )}
                       </div>
                     ) : (
-                      <p className="text-yellow-400 text-sm mt-1">Awaiting shipment</p>
+                      /* Step 3: Shipping paid, awaiting label/ship */
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <svg className="w-4 h-4 text-gold" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                          <p className="text-gold text-sm font-semibold">Shipping paid {spot.shippingCost ? `(${formatCurrency(spot.shippingCost)})` : ''}</p>
+                        </div>
+                        <p className="text-gray-500 text-xs">Your item is being prepared for shipment. Tracking will appear here once shipped.</p>
+                      </div>
                     )}
                   </div>
                 )}
