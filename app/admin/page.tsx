@@ -7,6 +7,7 @@ import { prisma } from '@/lib/prisma'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import Link from 'next/link'
 import GenerateLabelButton from '@/components/GenerateLabelButton'
+import PendingPayments from '@/components/PendingPayments'
 
 async function getAdminData() {
   const [auctions, inventory, recentSpots] = await Promise.all([
@@ -31,15 +32,6 @@ async function getAdminData() {
 
   const totalRevenue = recentSpots.reduce((sum, s) => sum + s.auction.spotPrice, 0)
   const activeAuctions = auctions.filter((a) => a.status === 'active')
-  const pendingSpots = await prisma.auctionSpot.findMany({
-    where: { paid: false },
-    include: {
-      user: { select: { name: true, email: true } },
-      auction: { select: { name: true, spotPrice: true } },
-    },
-    orderBy: { createdAt: 'desc' },
-  })
-
   // Shipping queue: won + shipping paid + not yet shipped
   const shippingQueue = await prisma.auctionSpot.findMany({
     where: { assignedItemId: { not: null }, shippingPaid: true, shipped: false },
@@ -60,7 +52,7 @@ async function getAdminData() {
     orderBy: { createdAt: 'asc' },
   })
 
-  return { auctions, inventory, recentSpots, totalRevenue, activeAuctions, pendingSpots, shippingQueue, awaitingShippingPayment }
+  return { auctions, inventory, recentSpots, totalRevenue, activeAuctions, shippingQueue, awaitingShippingPayment }
 }
 
 export default async function AdminDashboard() {
@@ -70,7 +62,7 @@ export default async function AdminDashboard() {
     redirect('/')
   }
 
-  const { auctions, inventory, recentSpots, totalRevenue, activeAuctions, pendingSpots, shippingQueue, awaitingShippingPayment } =
+  const { auctions, inventory, recentSpots, totalRevenue, activeAuctions, shippingQueue, awaitingShippingPayment } =
     await getAdminData()
 
   const lowStock = inventory.filter((i) => i.qty <= 2 && i.tier !== 'EXCLUDE')
@@ -98,7 +90,7 @@ export default async function AdminDashboard() {
           { label: 'Total Revenue', value: formatCurrency(totalRevenue), color: 'text-gold' },
           { label: 'Active Auctions', value: activeAuctions.length, color: 'text-green-400' },
           { label: 'Total Spots Sold', value: recentSpots.length, color: 'text-blue-400' },
-          { label: 'Pending Payments', value: pendingSpots.length, color: 'text-yellow-400' },
+          { label: 'Pending Payments', value: '—', color: 'text-yellow-400' },
         ].map((stat) => (
           <div key={stat.label} className="card text-center">
             <p className={`text-3xl font-heading ${stat.color} mb-1`}>{stat.value}</p>
@@ -253,19 +245,8 @@ export default async function AdminDashboard() {
             </div>
           )}
 
-          {/* Pending Payments */}
-          {pendingSpots.length > 0 && (
-            <div>
-              <h2 className="text-2xl font-heading text-yellow-400 mb-4">
-                PENDING PAYMENTS ({pendingSpots.length})
-              </h2>
-              <div className="space-y-2">
-                {pendingSpots.map((spot) => (
-                  <PendingSpotRow key={spot.id} spot={spot} />
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Pending Payments — client component, updates in real time */}
+          <PendingPayments />
 
           {/* Low Stock */}
           {lowStock.length > 0 && (
@@ -312,25 +293,6 @@ export default async function AdminDashboard() {
   )
 }
 
-function PendingSpotRow({ spot }: { spot: any }) {
-  return (
-    <div className="card p-3 border-yellow-500/20">
-      <div className="flex justify-between items-center">
-        <div>
-          <p className="text-white text-sm">
-            {spot.user.name || spot.user.email.split('@')[0]} — {spot.paymentMethod?.toUpperCase()}
-          </p>
-          <p className="text-gray-500 text-xs">{spot.auction.name}</p>
-        </div>
-        <div className="flex gap-2 items-center">
-          <span className="text-yellow-400 text-xs font-semibold">PENDING</span>
-          <ApproveButton spotId={spot.id} />
-          <DeclineButton spotId={spot.id} />
-        </div>
-      </div>
-    </div>
-  )
-}
 
 function MarkShippedForm({ spotId }: { spotId: string }) {
   return (
@@ -363,49 +325,6 @@ function MarkShippedForm({ spotId }: { spotId: string }) {
   )
 }
 
-function ApproveButton({ spotId }: { spotId: string }) {
-  return (
-    <form
-      action={async () => {
-        'use server'
-        const { prisma } = await import('@/lib/prisma')
-        const { spinForSpot } = await import('@/lib/spinLogic')
-        const spot = await prisma.auctionSpot.update({
-          where: { id: spotId },
-          data: { paid: true },
-        })
-        // Trigger spin now that manual payment is confirmed — no free spins without this approval
-        await spinForSpot(spot.auctionId, spot.id)
-      }}
-    >
-      <button
-        type="submit"
-        className="text-xs bg-green-900/50 border border-green-500/40 text-green-300 hover:bg-green-900 px-3 py-1 rounded font-semibold transition-colors"
-      >
-        Approve
-      </button>
-    </form>
-  )
-}
-
-function DeclineButton({ spotId }: { spotId: string }) {
-  return (
-    <form
-      action={async () => {
-        'use server'
-        const { prisma } = await import('@/lib/prisma')
-        await prisma.auctionSpot.delete({ where: { id: spotId } })
-      }}
-    >
-      <button
-        type="submit"
-        className="text-xs bg-red-900/50 border border-red-500/40 text-red-300 hover:bg-red-900 px-3 py-1 rounded font-semibold transition-colors"
-      >
-        Decline
-      </button>
-    </form>
-  )
-}
 
 function EndAuctionForm({ auctionId }: { auctionId: string }) {
   return (

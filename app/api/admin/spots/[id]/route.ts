@@ -4,6 +4,15 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { spinForSpot } from '@/lib/spinLogic'
 
+export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+  const session = await getServerSession(authOptions)
+  if (!session?.user?.isAdmin) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+  await prisma.auctionSpot.delete({ where: { id: params.id } })
+  return NextResponse.json({ ok: true })
+}
+
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
   if (!session?.user?.isAdmin) {
