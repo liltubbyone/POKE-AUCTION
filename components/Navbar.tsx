@@ -2,40 +2,11 @@
 
 import Link from 'next/link'
 import { useSession, signOut } from 'next-auth/react'
-import { useState, useEffect, useRef } from 'react'
-
-interface AuctionSummary {
-  id: string
-  name: string
-  status: string
-  spotPrice: number
-}
+import { useState } from 'react'
 
 export default function Navbar() {
   const { data: session } = useSession()
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [auctionsOpen, setAuctionsOpen] = useState(false)
-  const [auctions, setAuctions] = useState<AuctionSummary[]>([])
-  const dropdownRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    fetch('/api/auctions')
-      .then((r) => r.json())
-      .then((data: AuctionSummary[]) =>
-        setAuctions(data.filter((a) => a.status === 'active' || a.status === 'spinning'))
-      )
-      .catch(() => {})
-  }, [])
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setAuctionsOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
 
   return (
     <nav
@@ -85,55 +56,13 @@ export default function Navbar() {
               </Link>
             ))}
 
-            {/* Auctions dropdown */}
-            <div className="relative" ref={dropdownRef}>
-              <button
-                onClick={() => setAuctionsOpen((o) => !o)}
-                className="relative flex items-center gap-1 px-4 py-2 text-sm font-semibold uppercase tracking-wide text-gray-400 hover:text-white transition-colors duration-200 group"
-              >
-                Auctions
-                <svg
-                  className={`w-3.5 h-3.5 transition-transform duration-200 ${auctionsOpen ? 'rotate-180' : ''}`}
-                  fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-px bg-gold group-hover:w-4/5 transition-all duration-300" />
-              </button>
-
-              {auctionsOpen && (
-                <div
-                  className="absolute top-full left-0 mt-1 w-56 rounded-xl border py-1.5 z-50"
-                  style={{
-                    background: 'rgba(10, 10, 20, 0.97)',
-                    backdropFilter: 'blur(24px)',
-                    borderColor: 'rgba(30, 30, 53, 0.9)',
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-                  }}
-                >
-                  {auctions.length === 0 ? (
-                    <p className="px-4 py-2.5 text-xs text-gray-500 uppercase tracking-wider">No active auctions</p>
-                  ) : (
-                    auctions.map((a) => (
-                      <Link
-                        key={a.id}
-                        href={`/auction/${a.id}`}
-                        onClick={() => setAuctionsOpen(false)}
-                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
-                      >
-                        {a.status === 'spinning' && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-gold animate-pulse flex-shrink-0" />
-                        )}
-                        {a.status === 'active' && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-green-400 flex-shrink-0" />
-                        )}
-                        <span className="truncate">{a.name}</span>
-                      </Link>
-                    ))
-                  )}
-                </div>
-              )}
-            </div>
+            <Link
+              href="/auctions"
+              className="relative px-4 py-2 text-sm font-semibold uppercase tracking-wide text-gray-400 hover:text-white transition-colors duration-200 group"
+            >
+              Auctions
+              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-px bg-gold group-hover:w-4/5 transition-all duration-300" />
+            </Link>
 
             <Link
               href="/results"
@@ -220,26 +149,7 @@ export default function Navbar() {
             <Link href="/" className="px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg font-semibold transition-colors" onClick={() => setMobileOpen(false)}>Home</Link>
             <Link href="/inventory" className="px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg font-semibold transition-colors" onClick={() => setMobileOpen(false)}>Inventory</Link>
 
-            {/* Auctions in mobile */}
-            <div>
-              <p className="px-3 pt-2 pb-1 text-xs text-gray-500 uppercase tracking-wider font-semibold">Auctions</p>
-              {auctions.length === 0 ? (
-                <p className="px-3 py-1.5 text-xs text-gray-600">No active auctions</p>
-              ) : (
-                auctions.map((a) => (
-                  <Link
-                    key={a.id}
-                    href={`/auction/${a.id}`}
-                    onClick={() => setMobileOpen(false)}
-                    className="flex items-center gap-2 px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg font-semibold transition-colors"
-                  >
-                    {a.status === 'spinning' && <span className="w-1.5 h-1.5 rounded-full bg-gold animate-pulse flex-shrink-0" />}
-                    {a.status === 'active' && <span className="w-1.5 h-1.5 rounded-full bg-green-400 flex-shrink-0" />}
-                    {a.name}
-                  </Link>
-                ))
-              )}
-            </div>
+            <Link href="/auctions" className="px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg font-semibold transition-colors" onClick={() => setMobileOpen(false)}>Auctions</Link>
 
             <Link href="/results" className="px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg font-semibold transition-colors" onClick={() => setMobileOpen(false)}>Results</Link>
 
