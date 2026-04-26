@@ -30,7 +30,7 @@ export default function CreateAuctionPage() {
   const [description, setDescription] = useState('')
   const [spotPrice, setSpotPrice] = useState<number>(45)
   const [shippingRate, setShippingRate] = useState<number>(8)
-  const [expiresInDays, setExpiresInDays] = useState<number>(7)
+  const [expiresInDays, setExpiresInDays] = useState<number | null>(7)
   const [selectedItems, setSelectedItems] = useState<AuctionItemEntry[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -208,10 +208,20 @@ export default function CreateAuctionPage() {
                       type="number"
                       min="1"
                       max="30"
-                      value={expiresInDays}
+                      value={expiresInDays ?? ''}
+                      disabled={expiresInDays === null}
                       onChange={(e) => setExpiresInDays(parseInt(e.target.value))}
-                      className="input-field"
+                      className="input-field disabled:opacity-40 disabled:cursor-not-allowed"
                     />
+                    <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={expiresInDays === null}
+                        onChange={(e) => setExpiresInDays(e.target.checked ? null : 7)}
+                        className="w-3.5 h-3.5 accent-gold"
+                      />
+                      <span className="text-gray-400 text-xs">No expiration</span>
+                    </label>
                   </div>
                 </div>
               </div>
