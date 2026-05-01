@@ -44,8 +44,10 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-1">
             {[
               { href: '/', label: 'Home' },
-              { href: '/inventory', label: 'Inventory' },
+              { href: '/auctions', label: 'Raffles' },
               { href: '/daily-spin', label: '🎁 Free Spin' },
+              { href: '/inventory', label: 'Inventory' },
+              { href: '/results', label: 'Results' },
               { href: '/support', label: 'Support' },
             ].map((link) => (
               <Link
@@ -57,22 +59,6 @@ export default function Navbar() {
                 <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-px bg-gold group-hover:w-4/5 transition-all duration-300" />
               </Link>
             ))}
-
-            <Link
-              href="/auctions"
-              className="relative px-4 py-2 text-sm font-semibold uppercase tracking-wide text-gray-400 hover:text-white transition-colors duration-200 group"
-            >
-              Raffles
-              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-px bg-gold group-hover:w-4/5 transition-all duration-300" />
-            </Link>
-
-            <Link
-              href="/results"
-              className="relative px-4 py-2 text-sm font-semibold uppercase tracking-wide text-gray-400 hover:text-white transition-colors duration-200 group"
-            >
-              Results
-              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-px bg-gold group-hover:w-4/5 transition-all duration-300" />
-            </Link>
 
             {session?.user?.isAdmin && (
               <Link
@@ -149,11 +135,9 @@ export default function Navbar() {
             style={{ borderTop: '1px solid rgba(30,30,53,0.8)' }}
           >
             <Link href="/" className="px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg font-semibold transition-colors" onClick={() => setMobileOpen(false)}>Home</Link>
-            <Link href="/inventory" className="px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg font-semibold transition-colors" onClick={() => setMobileOpen(false)}>Inventory</Link>
-            <Link href="/daily-spin" className="px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg font-semibold transition-colors" onClick={() => setMobileOpen(false)}>🎁 Free Spin</Link>
-
             <Link href="/auctions" className="px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg font-semibold transition-colors" onClick={() => setMobileOpen(false)}>Raffles</Link>
-
+            <Link href="/daily-spin" className="px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg font-semibold transition-colors" onClick={() => setMobileOpen(false)}>🎁 Free Spin</Link>
+            <Link href="/inventory" className="px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg font-semibold transition-colors" onClick={() => setMobileOpen(false)}>Inventory</Link>
             <Link href="/results" className="px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg font-semibold transition-colors" onClick={() => setMobileOpen(false)}>Results</Link>
             <Link href="/support" className="px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg font-semibold transition-colors" onClick={() => setMobileOpen(false)}>Support</Link>
 
