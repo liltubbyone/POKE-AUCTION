@@ -50,11 +50,12 @@ interface UserProfile {
 }
 
 const TIERS = [
-  { name: 'Poke Trainer',   min: 0,    max: 99,   color: '#9CA3AF', bg: 'rgba(156,163,175,0.15)', border: 'rgba(156,163,175,0.3)',  icon: '🎒' },
-  { name: 'Gym Challenger', min: 100,  max: 299,  color: '#34D399', bg: 'rgba(52,211,153,0.15)',   border: 'rgba(52,211,153,0.3)',   icon: '⚔️' },
-  { name: 'Gym Leader',     min: 300,  max: 699,  color: '#60A5FA', bg: 'rgba(96,165,250,0.15)',   border: 'rgba(96,165,250,0.3)',   icon: '🏅' },
-  { name: 'Elite Four',     min: 700,  max: 1499, color: '#A78BFA', bg: 'rgba(167,139,250,0.15)',  border: 'rgba(167,139,250,0.3)',  icon: '💎' },
-  { name: 'Champion',       min: 1500, max: 3000, color: '#FFD700', bg: 'rgba(255,215,0,0.15)',    border: 'rgba(255,215,0,0.4)',    icon: '🏆' },
+  { name: 'Fisherman',      min: 0,    max: 99,   color: '#78716C', bg: 'rgba(120,113,108,0.12)', border: 'rgba(120,113,108,0.25)', icon: '🎣' },
+  { name: 'Poke Trainer',   min: 100,  max: 299,  color: '#9CA3AF', bg: 'rgba(156,163,175,0.15)', border: 'rgba(156,163,175,0.3)',  icon: '🎒' },
+  { name: 'Gym Challenger', min: 300,  max: 699,  color: '#34D399', bg: 'rgba(52,211,153,0.15)',   border: 'rgba(52,211,153,0.3)',   icon: '⚔️' },
+  { name: 'Gym Leader',     min: 700,  max: 1499, color: '#60A5FA', bg: 'rgba(96,165,250,0.15)',   border: 'rgba(96,165,250,0.3)',   icon: '🏅' },
+  { name: 'Elite Four',     min: 1500, max: 2999, color: '#A78BFA', bg: 'rgba(167,139,250,0.15)',  border: 'rgba(167,139,250,0.3)',  icon: '💎' },
+  { name: 'Champion',       min: 3000, max: 6000, color: '#FFD700', bg: 'rgba(255,215,0,0.15)',    border: 'rgba(255,215,0,0.4)',    icon: '🏆' },
 ]
 
 function getTier(totalSpent: number) {
@@ -327,7 +328,7 @@ export default function ProfilePage() {
             </div>
 
             {/* All tiers */}
-            <div className="grid grid-cols-5 gap-1 mt-4 pt-4 border-t border-white/5">
+            <div className="grid grid-cols-6 gap-1 mt-4 pt-4 border-t border-white/5">
               {TIERS.map((t) => {
                 const reached = totalSpent >= t.min
                 return (
