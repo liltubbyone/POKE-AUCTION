@@ -50,27 +50,30 @@ interface UserProfile {
 }
 
 const TIERS = [
-  { name: 'Poke Trainer',   min: 0,  max: 2,   color: '#9CA3AF', bg: 'rgba(156,163,175,0.15)', border: 'rgba(156,163,175,0.3)',  icon: '🎒' },
-  { name: 'Gym Challenger', min: 3,  max: 9,   color: '#34D399', bg: 'rgba(52,211,153,0.15)',   border: 'rgba(52,211,153,0.3)',   icon: '⚔️' },
-  { name: 'Gym Leader',     min: 10, max: 24,  color: '#60A5FA', bg: 'rgba(96,165,250,0.15)',   border: 'rgba(96,165,250,0.3)',   icon: '🏅' },
-  { name: 'Elite Four',     min: 25, max: 49,  color: '#A78BFA', bg: 'rgba(167,139,250,0.15)',  border: 'rgba(167,139,250,0.3)',  icon: '💎' },
-  { name: 'Champion',       min: 50, max: Infinity, color: '#FFD700', bg: 'rgba(255,215,0,0.15)', border: 'rgba(255,215,0,0.4)', icon: '🏆' },
+  { name: 'Poke Trainer',   min: 0,    max: 99,   color: '#9CA3AF', bg: 'rgba(156,163,175,0.15)', border: 'rgba(156,163,175,0.3)',  icon: '🎒' },
+  { name: 'Gym Challenger', min: 100,  max: 299,  color: '#34D399', bg: 'rgba(52,211,153,0.15)',   border: 'rgba(52,211,153,0.3)',   icon: '⚔️' },
+  { name: 'Gym Leader',     min: 300,  max: 699,  color: '#60A5FA', bg: 'rgba(96,165,250,0.15)',   border: 'rgba(96,165,250,0.3)',   icon: '🏅' },
+  { name: 'Elite Four',     min: 700,  max: 1499, color: '#A78BFA', bg: 'rgba(167,139,250,0.15)',  border: 'rgba(167,139,250,0.3)',  icon: '💎' },
+  { name: 'Champion',       min: 1500, max: 3000, color: '#FFD700', bg: 'rgba(255,215,0,0.15)',    border: 'rgba(255,215,0,0.4)',    icon: '🏆' },
 ]
 
-function getTier(paidSpots: number) {
-  return TIERS.slice().reverse().find((t) => paidSpots >= t.min) ?? TIERS[0]
+function getTier(totalSpent: number) {
+  return TIERS.slice().reverse().find((t) => totalSpent >= t.min) ?? TIERS[0]
 }
 
-function getNextTier(paidSpots: number) {
-  return TIERS.find((t) => t.min > paidSpots) ?? null
+function getNextTier(totalSpent: number) {
+  return TIERS.find((t) => t.min > totalSpent) ?? null
 }
 
-function getTierProgress(paidSpots: number) {
-  const current = getTier(paidSpots)
-  const next = getNextTier(paidSpots)
-  if (!next) return 100
+function getTierProgress(totalSpent: number) {
+  const current = getTier(totalSpent)
+  const next = getNextTier(totalSpent)
+  if (!next) {
+    // Champion: show progress toward $3,000 cap
+    return Math.min(100, Math.round(((totalSpent - current.min) / (current.max - current.min)) * 100))
+  }
   const range = next.min - current.min
-  const progress = paidSpots - current.min
+  const progress = totalSpent - current.min
   return Math.round((progress / range) * 100)
 }
 
@@ -205,9 +208,9 @@ export default function ProfilePage() {
 
   const paidSpots = profile.spots.filter((s) => s.paid).length
   const totalSpent = profile.spots.filter((s) => s.paid).reduce((sum, s) => sum + s.auction.spotPrice, 0)
-  const tier = getTier(paidSpots)
-  const nextTier = getNextTier(paidSpots)
-  const progress = getTierProgress(paidSpots)
+  const tier = getTier(totalSpent)
+  const nextTier = getNextTier(totalSpent)
+  const progress = getTierProgress(totalSpent)
 
   const tabs = [
     { id: 'overview', label: 'Overview' },
@@ -309,7 +312,7 @@ export default function ProfilePage() {
             <div className="mb-3">
               <div className="flex justify-between text-xs text-gray-500 mb-1.5">
                 <span>{tier.name}</span>
-                {nextTier ? <span>{nextTier.name} — {nextTier.min - paidSpots} spots away</span> : <span className="text-gold">MAX RANK</span>}
+                {nextTier ? <span>{nextTier.name} — {formatCurrency(nextTier.min - totalSpent)} away</span> : <span className="text-gold">MAX RANK</span>}
               </div>
               <div className="w-full h-3 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
                 <div
@@ -318,22 +321,22 @@ export default function ProfilePage() {
                 />
               </div>
               <div className="flex justify-between text-xs text-gray-600 mt-1">
-                <span>{tier.min} spots</span>
-                {nextTier && <span>{nextTier.min} spots</span>}
+                <span>{formatCurrency(tier.min)}</span>
+                {nextTier && <span>{formatCurrency(nextTier.min)}</span>}
               </div>
             </div>
 
             {/* All tiers */}
             <div className="grid grid-cols-5 gap-1 mt-4 pt-4 border-t border-white/5">
               {TIERS.map((t) => {
-                const reached = paidSpots >= t.min
+                const reached = totalSpent >= t.min
                 return (
                   <div key={t.name} className="text-center">
                     <div className={`text-lg mb-0.5 ${reached ? '' : 'opacity-30'}`}>{t.icon}</div>
                     <p className="text-xs font-semibold leading-tight" style={{ color: reached ? t.color : '#4B5563', fontSize: '10px' }}>
                       {t.name.split(' ').map((w, i) => <span key={i} className="block">{w}</span>)}
                     </p>
-                    <p className="text-gray-600 mt-0.5" style={{ fontSize: '9px' }}>{t.min}+ spots</p>
+                    <p className="text-gray-600 mt-0.5" style={{ fontSize: '9px' }}>${t.min === 0 ? '0' : t.min >= 1000 ? `${t.min / 1000}k` : t.min}+</p>
                   </div>
                 )
               })}
