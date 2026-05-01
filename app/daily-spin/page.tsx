@@ -212,7 +212,7 @@ export default function DailySpinPage() {
                 )}
                 <p className="text-gold font-heading text-xl">{spinStatus?.mysteryGiftName}</p>
               </div>
-              <p className="text-gray-400 text-xs">We'll reach out to ship your prize!</p>
+              <p className="text-gray-400 text-xs">We&apos;ll reach out to ship your prize!</p>
             </>
           ) : (
             <>
@@ -263,7 +263,7 @@ export default function DailySpinPage() {
       {/* Mystery gift teaser */}
       {spinStatus && !result && !alreadySpun && (
         <div className="mt-8 text-center">
-          <p className="text-gray-600 text-xs uppercase tracking-widest mb-1">Today's Mystery Gift</p>
+          <p className="text-gray-600 text-xs uppercase tracking-widest mb-1">Today&apos;s Mystery Gift</p>
           <p className="text-gray-500 text-sm">??? — Revealed to the winner only</p>
         </div>
       )}
