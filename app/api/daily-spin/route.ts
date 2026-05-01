@@ -3,8 +3,17 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
-function todayUTC() {
-  return new Date().toISOString().split('T')[0]
+function todayCentral() {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Chicago',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date())
+  const y = parts.find((p) => p.type === 'year')!.value
+  const m = parts.find((p) => p.type === 'month')!.value
+  const d = parts.find((p) => p.type === 'day')!.value
+  return `${y}-${m}-${d}`
 }
 
 async function getSettings() {
@@ -20,7 +29,7 @@ export async function GET() {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const today = todayUTC()
+  const today = todayCentral()
   const [existing, totalToday, settings] = await Promise.all([
     prisma.dailySpin.findUnique({
       where: { userId_spinDate: { userId: session.user.id, spinDate: today } },
@@ -45,7 +54,7 @@ export async function POST() {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const today = todayUTC()
+  const today = todayCentral()
   const settings = await getSettings()
 
   try {

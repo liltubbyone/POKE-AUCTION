@@ -99,7 +99,7 @@ export default function DailySpinPage() {
           MYSTERY <span className="gold-gradient-text">SPIN</span>
         </h1>
         <p className="text-gray-400 max-w-md mx-auto">
-          One free spin per day. The <span className="text-gold font-bold">{spinStatus?.winnerSpinNumber ?? 100}th</span> spin of the day wins the mystery gift. Resets at midnight UTC.
+          One free spin per day. One lucky spin wins the mystery gift. Resets at midnight Central.
         </p>
       </div>
 
@@ -109,11 +109,6 @@ export default function DailySpinPage() {
           <div className="text-center">
             <p className="text-3xl font-heading text-white">{spinStatus.totalSpinsToday}</p>
             <p className="text-gray-500 text-xs uppercase tracking-wider">Spins Today</p>
-          </div>
-          <div className="h-10 w-px bg-border" />
-          <div className="text-center">
-            <p className="text-3xl font-heading text-gold">{spinStatus.winnerSpinNumber}</p>
-            <p className="text-gray-500 text-xs uppercase tracking-wider">Winning Spin</p>
           </div>
           <div className="h-10 w-px bg-border" />
           <div className="text-center">
@@ -218,7 +213,7 @@ export default function DailySpinPage() {
             <>
               <div className="text-6xl mb-4">🎲</div>
               <p className="text-white font-heading text-2xl mb-2">TRY AGAIN TOMORROW</p>
-              <p className="text-gray-400 text-sm mb-4">You were spin #{result.spinNumber} today. The mystery gift goes to spin #{spinStatus?.winnerSpinNumber}.</p>
+              <p className="text-gray-400 text-sm mb-4">You were spin #{result.spinNumber} today. Come back tomorrow for another chance!</p>
               <div className="bg-card border border-border rounded-xl px-4 py-3">
                 <p className="text-gray-500 text-xs">Resets in <span className="text-white font-semibold">{timeUntilReset()}</span></p>
               </div>

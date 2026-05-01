@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import AuctionCard from '@/components/AuctionCard'
 import TrustBanner from '@/components/TrustBanner'
+import RecentWinnerFeed from '@/components/RecentWinnerFeed'
 
 async function getActiveAuctions() {
   return prisma.auction.findMany({
@@ -304,6 +305,9 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ── Recent Winner Feed ── */}
+      <RecentWinnerFeed />
 
       {/* ── Testimonials ── */}
       <section className="py-20" style={{ background: 'rgba(13,13,26,0.5)', borderTop: '1px solid rgba(30,30,53,0.8)' }}>
