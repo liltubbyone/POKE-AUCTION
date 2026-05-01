@@ -19,6 +19,7 @@ export async function GET() {
         name: true,
         address: true,
         paymentInfo: true,
+        balance: true,
         createdAt: true,
         spots: {
           select: {

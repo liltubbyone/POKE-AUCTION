@@ -15,6 +15,7 @@ model User {
   address           String?
   paymentInfo       String?
   stripeCustomerId  String?
+  balance           Float         @default(0)
   createdAt         DateTime      @default(now())
   spots             AuctionSpot[]
   dailySpins        DailySpin[]

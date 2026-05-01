@@ -3,6 +3,7 @@ import { Bebas_Neue, Rajdhani } from 'next/font/google'
 import './globals.css'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import MobileBottomBar from '@/components/MobileBottomBar'
 import SessionProvider from '@/components/SessionProvider'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
@@ -47,6 +48,7 @@ export default async function RootLayout({
           <Navbar />
           <main className="flex-1">{children}</main>
           <Footer />
+          <MobileBottomBar />
         </SessionProvider>
       </body>
     </html>
