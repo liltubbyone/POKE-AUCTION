@@ -56,7 +56,7 @@ export default function GenerateLabelButton({ spotId }: { spotId: string }) {
         disabled={loading}
         className="w-full text-xs bg-blue-900/50 border border-blue-500/40 text-blue-300 hover:bg-blue-900 px-3 py-2 rounded font-semibold transition-colors disabled:opacity-50"
       >
-        {loading ? 'Generating...' : 'Generate FedEx Label & Ship'}
+        {loading ? 'Generating...' : 'Generate USPS Label & Ship'}
       </button>
       {error && <p className="text-red-400 text-xs">{error}</p>}
     </div>

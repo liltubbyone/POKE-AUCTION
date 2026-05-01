@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { getStripe } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
-import { getFedexRate } from '@/lib/fedex'
+import { getUspsRate } from '@/lib/usps'
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions)
@@ -27,13 +27,13 @@ export async function POST(req: Request) {
 
   const auctionItem = spot.auction.items.find((ai) => ai.id === spot.assignedItemId)
 
-  // Get live FedEx Ground rate using buyer's saved address
+  // Get live USPS Ground Advantage rate using buyer's saved address
   let shippingCost = auctionItem?.item.shippingCost ?? 10
   try {
     let addr: Record<string, string> = {}
     try { addr = JSON.parse(spot.user.address || '{}') } catch {}
     if (addr.street && addr.city && addr.state && addr.zip) {
-      shippingCost = await getFedexRate({
+      shippingCost = await getUspsRate({
         street: addr.street,
         city: addr.city,
         state: addr.state,
@@ -42,7 +42,7 @@ export async function POST(req: Request) {
       })
     }
   } catch (err) {
-    console.error('FedEx rate fetch failed, falling back to flat rate:', err)
+    console.error('USPS rate fetch failed, falling back to flat rate:', err)
   }
 
   const amountInCents = Math.round(shippingCost * 100)

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { createFedexLabel } from '@/lib/fedex'
+import { createUspsLabel } from '@/lib/usps'
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions)
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
   const auctionItem = spot.auction.items.find((ai) => ai.id === spot.assignedItemId)
   const itemDescription = auctionItem?.item.name ?? 'Pokemon Cards'
 
-  const { trackingNumber, labelBase64 } = await createFedexLabel(
+  const { trackingNumber, labelBase64 } = await createUspsLabel(
     {
       name: spot.user.name || spot.user.email.split('@')[0],
       phone: addr.phone || '4174304228',

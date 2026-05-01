@@ -17,6 +17,7 @@ model User {
   stripeCustomerId  String?
   createdAt         DateTime      @default(now())
   spots             AuctionSpot[]
+  dailySpins        DailySpin[]
   passwordResetToken String?
   passwordResetExpiry DateTime?
 }
@@ -59,6 +60,26 @@ model AuctionItem {
   item       InventoryItem @relation(fields: [itemId], references: [id])
   quantity   Int           @default(1)
   spotNumber Int?
+}
+
+model DailySpin {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  spinDate   String   // "YYYY-MM-DD" UTC date
+  spinNumber Int      // global position for that day
+  won        Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, spinDate])
+}
+
+model SiteSettings {
+  id               String   @id @default("main")
+  mysteryGiftName  String   @default("Perfect Order Booster Pack")
+  mysteryGiftImage String?
+  winnerSpinNumber Int      @default(100)
+  updatedAt        DateTime @updatedAt
 }
 
 model AuctionSpot {

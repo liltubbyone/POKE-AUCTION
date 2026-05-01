@@ -30,7 +30,7 @@ export default async function AuctionsPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="mb-10">
         <p className="text-xs font-bold uppercase tracking-widest text-gold mb-2">Live Now</p>
-        <h1 className="text-4xl font-heading text-white">All Auctions</h1>
+        <h1 className="text-4xl font-heading text-white">All Raffles</h1>
       </div>
 
       {/* Active / Spinning */}
@@ -55,7 +55,7 @@ export default async function AuctionsPage() {
         <>
           <div className="mb-8">
             <p className="text-xs font-bold uppercase tracking-widest text-gold mb-2">Past Shows</p>
-            <h2 className="text-2xl font-heading text-white">Completed Auctions</h2>
+            <h2 className="text-2xl font-heading text-white">Completed Raffles</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {completed.map((auction) => (

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { formatCurrency, getTierColor } from '@/lib/utils'
+import { formatCurrency } from '@/lib/utils'
 import Link from 'next/link'
 
 interface InventoryItem {
@@ -114,7 +114,6 @@ export default function CreateAuctionPage() {
     setLoading(false)
   }
 
-  const tierGroups = ['S', 'A', 'B', 'C']
   const availableInventory = inventory.filter(
     (i) => i.tier !== 'EXCLUDE' && i.qty > 0 && !selectedItems.find((si) => si.itemId === i.id)
   )
@@ -279,9 +278,6 @@ export default function CreateAuctionPage() {
                     if (!item) return null
                     return (
                       <div key={si.itemId} className="flex items-center gap-3 bg-background border border-border rounded-lg p-3">
-                        <span className={`tier-badge text-xs flex-shrink-0 ${getTierColor(item.tier)}`}>
-                          {item.tier}
-                        </span>
                         <span className="flex-1 text-white text-sm font-semibold">{item.name}</span>
                         <input
                           type="number"
@@ -311,38 +307,24 @@ export default function CreateAuctionPage() {
             {/* Available inventory */}
             <div className="card">
               <h2 className="text-xl font-heading text-white mb-3">AVAILABLE INVENTORY</h2>
-              <p className="text-gray-500 text-xs mb-4">Click an item to add it to the auction. EXCLUDE tier items cannot be added.</p>
-              {tierGroups.map((tier) => {
-                const tierItems = availableInventory.filter((i) => i.tier === tier)
-                if (tierItems.length === 0) return null
-                return (
-                  <div key={tier} className="mb-4">
-                    <h3 className={`text-sm font-bold mb-2 ${getTierColor(tier).split(' ')[0]}`}>
-                      {tier}-Tier
-                    </h3>
-                    <div className="space-y-1">
-                      {tierItems.map((item) => (
-                        <button
-                          key={item.id}
-                          type="button"
-                          onClick={() => addItem(item.id)}
-                          className="w-full flex items-center gap-3 bg-background hover:bg-card border border-border hover:border-gold/30 rounded-lg p-3 text-left transition-all"
-                        >
-                          <span className={`tier-badge text-xs flex-shrink-0 ${getTierColor(item.tier)}`}>
-                            {item.tier}
-                          </span>
-                          <span className="flex-1 text-white text-sm">{item.name}</span>
-                          <span className="text-gray-400 text-xs">x{item.qty}</span>
-                          <span className="text-green-400 text-xs font-semibold">
-                            {formatCurrency(item.resellMin)}+
-                          </span>
-                          <span className="text-gold text-xs">+ Add</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )
-              })}
+              <p className="text-gray-500 text-xs mb-4">Click an item to add it to the raffle.</p>
+              <div className="space-y-1">
+                {availableInventory.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => addItem(item.id)}
+                    className="w-full flex items-center gap-3 bg-background hover:bg-card border border-border hover:border-gold/30 rounded-lg p-3 text-left transition-all"
+                  >
+                    <span className="flex-1 text-white text-sm">{item.name}</span>
+                    <span className="text-gray-400 text-xs">x{item.qty}</span>
+                    <span className="text-green-400 text-xs font-semibold">
+                      {formatCurrency(item.resellMin)}+
+                    </span>
+                    <span className="text-gold text-xs">+ Add</span>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>

@@ -8,6 +8,7 @@ import { formatCurrency, formatDate } from '@/lib/utils'
 import Link from 'next/link'
 import GenerateLabelButton from '@/components/GenerateLabelButton'
 import PendingPayments from '@/components/PendingPayments'
+import AdminSettings from '@/components/AdminSettings'
 
 async function getAdminData() {
   const [auctions, inventory, recentSpots] = await Promise.all([
@@ -79,7 +80,7 @@ export default async function AdminDashboard() {
             Manage Inventory
           </Link>
           <Link href="/admin/auctions/new" className="btn-gold text-sm py-2 px-4">
-            + Create Auction
+            + Create Raffle
           </Link>
         </div>
       </div>
@@ -100,9 +101,9 @@ export default async function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Active Auctions */}
+        {/* Active Raffles */}
         <div>
-          <h2 className="text-2xl font-heading text-white mb-4">ACTIVE AUCTIONS</h2>
+          <h2 className="text-2xl font-heading text-white mb-4">ACTIVE RAFFLES</h2>
           {auctions.length === 0 ? (
             <div className="card text-center py-8 text-gray-500">No auctions yet</div>
           ) : (
@@ -153,12 +154,23 @@ export default async function AdminDashboard() {
                         View Results
                       </Link>
                     </div>
-                    <div className="flex justify-between items-center mt-2">
-                      <span className="text-gray-600 text-xs">
-                        Revenue: {formatCurrency(paid * auction.spotPrice)}
-                      </span>
+                    <div className="mt-3 pt-3 border-t border-border space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600 text-xs">
+                          Revenue: {formatCurrency(paid * auction.spotPrice)}
+                        </span>
+                      </div>
                       {auction.status !== 'completed' && auction.status !== 'cancelled' && (
-                        <EndAuctionForm auctionId={auction.id} />
+                        <div className="flex gap-2 flex-wrap">
+                          <RenameAuctionForm auctionId={auction.id} currentName={auction.name} />
+                          {auction.status === 'active' && (
+                            <SetStatusForm auctionId={auction.id} newStatus="paused" label="Pause" className="text-yellow-400 border-yellow-400/30 bg-yellow-400/10 hover:bg-yellow-400/20" />
+                          )}
+                          {auction.status === 'paused' && (
+                            <SetStatusForm auctionId={auction.id} newStatus="active" label="Reactivate" className="text-green-400 border-green-400/30 bg-green-400/10 hover:bg-green-400/20" />
+                          )}
+                          <EndAuctionForm auctionId={auction.id} />
+                        </div>
                       )}
                     </div>
                   </div>
@@ -265,6 +277,9 @@ export default async function AdminDashboard() {
             </div>
           )}
 
+          {/* Mystery Spin Settings */}
+          <AdminSettings />
+
           {/* Recent Sales */}
           <div>
             <h2 className="text-2xl font-heading text-white mb-4">RECENT SPOTS SOLD</h2>
@@ -325,6 +340,53 @@ function MarkShippedForm({ spotId }: { spotId: string }) {
   )
 }
 
+
+function RenameAuctionForm({ auctionId, currentName }: { auctionId: string; currentName: string }) {
+  return (
+    <form
+      action={async (formData: FormData) => {
+        'use server'
+        const name = (formData.get('name') as string)?.trim()
+        if (!name) return
+        const { prisma } = await import('@/lib/prisma')
+        await prisma.auction.update({ where: { id: auctionId }, data: { name } })
+      }}
+      className="flex gap-1 flex-1 min-w-0"
+    >
+      <input
+        name="name"
+        defaultValue={currentName}
+        placeholder="Raffle name"
+        className="input-field text-xs py-1 flex-1 min-w-0"
+      />
+      <button
+        type="submit"
+        className="text-xs bg-card border border-border text-gray-300 hover:text-white px-2 py-1 rounded font-semibold transition-colors whitespace-nowrap"
+      >
+        Rename
+      </button>
+    </form>
+  )
+}
+
+function SetStatusForm({ auctionId, newStatus, label, className }: { auctionId: string; newStatus: string; label: string; className: string }) {
+  return (
+    <form
+      action={async () => {
+        'use server'
+        const { prisma } = await import('@/lib/prisma')
+        await prisma.auction.update({ where: { id: auctionId }, data: { status: newStatus } })
+      }}
+    >
+      <button
+        type="submit"
+        className={`text-xs px-3 py-1 rounded border font-semibold transition-colors ${className}`}
+      >
+        {label}
+      </button>
+    </form>
+  )
+}
 
 function EndAuctionForm({ auctionId }: { auctionId: string }) {
   return (
