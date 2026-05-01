@@ -46,6 +46,7 @@ export default function Navbar() {
               { href: '/', label: 'Home' },
               { href: '/inventory', label: 'Inventory' },
               { href: '/daily-spin', label: '🎁 Free Spin' },
+              { href: '/support', label: 'Support' },
             ].map((link) => (
               <Link
                 key={link.href}
@@ -154,6 +155,7 @@ export default function Navbar() {
             <Link href="/auctions" className="px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg font-semibold transition-colors" onClick={() => setMobileOpen(false)}>Raffles</Link>
 
             <Link href="/results" className="px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg font-semibold transition-colors" onClick={() => setMobileOpen(false)}>Results</Link>
+            <Link href="/support" className="px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg font-semibold transition-colors" onClick={() => setMobileOpen(false)}>Support</Link>
 
             {session?.user?.isAdmin && (
               <Link href="/admin" className="px-3 py-2.5 text-gold font-semibold" onClick={() => setMobileOpen(false)}>Admin</Link>

@@ -82,6 +82,16 @@ model SiteSettings {
   updatedAt        DateTime @updatedAt
 }
 
+model SupportMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  status    String   @default("open")
+  createdAt DateTime @default(now())
+}
+
 model AuctionSpot {
   id             String   @id @default(cuid())
   auctionId      String

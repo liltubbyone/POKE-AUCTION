@@ -76,6 +76,9 @@ export default async function AdminDashboard() {
           <p className="text-gray-400 text-sm">Logged in as {session.user.email}</p>
         </div>
         <div className="flex gap-3">
+          <Link href="/admin/support" className="btn-outline text-sm py-2 px-4">
+            Support Inbox
+          </Link>
           <Link href="/admin/inventory" className="btn-outline text-sm py-2 px-4">
             Manage Inventory
           </Link>
