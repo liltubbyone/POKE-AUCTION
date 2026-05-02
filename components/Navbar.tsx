@@ -65,9 +65,6 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-1">
             {[
               { href: '/', label: 'Home' },
-              { href: '/daily-spin', label: '🎁 Free Spin' },
-              { href: '/inventory', label: 'Inventory' },
-              { href: '/results', label: 'Results' },
             ].map((link) => (
               <Link
                 key={link.href}
@@ -79,7 +76,7 @@ export default function Navbar() {
               </Link>
             ))}
 
-            {/* Games Dropdown */}
+            {/* Games Dropdown — after Home */}
             <div className="relative" ref={gamesRef}>
               <button
                 onClick={() => setGamesOpen((o) => !o)}
@@ -120,6 +117,21 @@ export default function Navbar() {
                 </div>
               )}
             </div>
+
+            {[
+              { href: '/daily-spin', label: '🎁 Free Spin' },
+              { href: '/inventory', label: 'Inventory' },
+              { href: '/results', label: 'Results' },
+            ].map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="relative px-4 py-2 text-sm font-semibold uppercase tracking-wide text-gray-400 hover:text-white transition-colors duration-200 group"
+              >
+                {link.label}
+                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-px bg-gold group-hover:w-4/5 transition-all duration-300" />
+              </Link>
+            ))}
 
             {session?.user?.isAdmin && (
               <Link
@@ -190,9 +202,6 @@ export default function Navbar() {
             style={{ borderTop: '1px solid rgba(30,30,53,0.8)' }}
           >
             <Link href="/" className="px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg font-semibold transition-colors" onClick={() => setMobileOpen(false)}>Home</Link>
-            <Link href="/daily-spin" className="px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg font-semibold transition-colors" onClick={() => setMobileOpen(false)}>🎁 Free Spin</Link>
-            <Link href="/inventory" className="px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg font-semibold transition-colors" onClick={() => setMobileOpen(false)}>Inventory</Link>
-            <Link href="/results" className="px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg font-semibold transition-colors" onClick={() => setMobileOpen(false)}>Results</Link>
 
             {/* Games mobile dropdown */}
             <button
@@ -218,6 +227,10 @@ export default function Navbar() {
                 ))}
               </div>
             )}
+
+            <Link href="/daily-spin" className="px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg font-semibold transition-colors" onClick={() => setMobileOpen(false)}>🎁 Free Spin</Link>
+            <Link href="/inventory" className="px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg font-semibold transition-colors" onClick={() => setMobileOpen(false)}>Inventory</Link>
+            <Link href="/results" className="px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg font-semibold transition-colors" onClick={() => setMobileOpen(false)}>Results</Link>
 
             {session?.user?.isAdmin && (
               <Link href="/admin" className="px-3 py-2.5 text-gold font-semibold" onClick={() => setMobileOpen(false)}>Admin</Link>
