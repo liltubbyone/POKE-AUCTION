@@ -315,22 +315,33 @@ a {
 }
 
 @keyframes shooting-star-occ {
-  /* Invisible for ~90% of the cycle, then briefly shoots across */
-  0%, 90% {
+  /* Silent for ~88% of the cycle */
+  0%, 87% {
     opacity: 0;
-    transform: translateX(0) translateY(0) rotate(-35deg);
+    transform: translateX(0) translateY(0) rotate(-38deg);
   }
-  92% {
+  /* Quick bright flash as it enters */
+  88% {
+    opacity: 0;
+    transform: translateX(5px) translateY(3px) rotate(-38deg);
+  }
+  89.5% {
     opacity: 1;
-    transform: translateX(20px) translateY(10px) rotate(-35deg);
+    transform: translateX(20px) translateY(12px) rotate(-38deg);
   }
+  /* Travel across at speed */
+  94% {
+    opacity: 0.9;
+    transform: translateX(220px) translateY(130px) rotate(-38deg);
+  }
+  /* Fade out as it exits */
   97% {
     opacity: 0;
-    transform: translateX(280px) translateY(140px) rotate(-35deg);
+    transform: translateX(340px) translateY(200px) rotate(-38deg);
   }
   100% {
     opacity: 0;
-    transform: translateX(280px) translateY(140px) rotate(-35deg);
+    transform: translateX(360px) translateY(210px) rotate(-38deg);
   }
 }
 

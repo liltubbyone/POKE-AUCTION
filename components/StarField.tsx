@@ -2,7 +2,6 @@
 
 import { useMemo } from 'react'
 
-// Seeded deterministic LCG so SSR/client always match
 function seededRandom(seed: number) {
   let s = seed
   return () => {
@@ -24,20 +23,22 @@ export default function StarField() {
     }))
   }, [])
 
-  // Occasional shooting stars — long cycle so they appear rarely
   const shootingStars = useMemo(() => {
-    const rng = seededRandom(99)
-    return Array.from({ length: 5 }, (_, i) => ({
-      top: 5 + rng() * 45,
-      left: rng() * 65,
-      delay: i * 7 + rng() * 10,
-      duration: 20 + rng() * 14, // 20–34s per cycle; star shoots in last ~8%
+    const rng = seededRandom(77)
+    return Array.from({ length: 6 }, (_, i) => ({
+      top: 3 + rng() * 48,
+      left: 5 + rng() * 58,
+      delay: i * 5 + rng() * 12,
+      duration: 20 + rng() * 16,   // 20–36s full cycle
+      length: 90 + Math.floor(rng() * 90), // 90–180px tail length
+      brightness: 0.7 + rng() * 0.3,       // slight brightness variation
     }))
   }, [])
 
   return (
     <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
-      {/* Deep nebula orbs */}
+
+      {/* Nebula orbs */}
       <div style={{
         position: 'absolute', top: '-10%', left: '-5%',
         width: '60vw', height: '60vw', borderRadius: '50%',
@@ -74,14 +75,14 @@ export default function StarField() {
             borderRadius: '50%',
             background: star.size === 2 ? '#c4b5fd' : 'white',
             opacity: star.opacity,
-            boxShadow: star.size === 2 ? `0 0 4px rgba(196,181,253,0.8)` : 'none',
+            boxShadow: star.size === 2 ? '0 0 4px rgba(196,181,253,0.8)' : 'none',
             animation: `twinkle ${star.duration}s ease-in-out infinite alternate`,
             animationDelay: `${star.delay}s`,
           }}
         />
       ))}
 
-      {/* Occasional shooting stars */}
+      {/* Shooting stars — occasional, realistic comet style */}
       {shootingStars.map((s, i) => (
         <div
           key={`ss-${i}`}
@@ -89,16 +90,53 @@ export default function StarField() {
             position: 'absolute',
             top: `${s.top}%`,
             left: `${s.left}%`,
-            width: '100px',
-            height: '1.5px',
-            borderRadius: '50%',
-            // Bright leading tip, long fading tail
-            background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 30%, rgba(255,255,255,0.8) 85%, rgba(255,255,255,1) 100%)',
-            boxShadow: '0 0 4px rgba(255,255,255,0.4)',
             animation: `shooting-star-occ ${s.duration}s ease-in ${s.delay}s infinite`,
             opacity: 0,
           }}
-        />
+        >
+          {/* Tail — fades from transparent to bright at the head */}
+          <div style={{
+            width: `${s.length}px`,
+            height: '1.5px',
+            background: `linear-gradient(to right,
+              transparent 0%,
+              rgba(200,215,255,0.04) 15%,
+              rgba(200,215,255,0.2) 40%,
+              rgba(220,230,255,${0.55 * s.brightness}) 65%,
+              rgba(255,255,255,${0.85 * s.brightness}) 85%,
+              rgba(255,255,255,${s.brightness}) 100%
+            )`,
+          }} />
+          {/* Soft glow layer behind the tail */}
+          <div style={{
+            position: 'absolute',
+            top: '-2px',
+            left: '30%',
+            right: 0,
+            height: '5px',
+            background: `linear-gradient(to right,
+              transparent,
+              rgba(180,200,255,${0.12 * s.brightness}) 50%,
+              rgba(200,220,255,${0.3 * s.brightness}) 100%
+            )`,
+            filter: 'blur(2px)',
+          }} />
+          {/* Bright head — glowing dot at the leading tip */}
+          <div style={{
+            position: 'absolute',
+            right: '-3px',
+            top: '-3px',
+            width: '7px',
+            height: '7px',
+            borderRadius: '50%',
+            background: `radial-gradient(circle, rgba(255,255,255,${s.brightness}) 15%, rgba(200,220,255,0.7) 55%, transparent 100%)`,
+            boxShadow: `
+              0 0 4px 1px rgba(220,230,255,${0.8 * s.brightness}),
+              0 0 10px 3px rgba(180,200,255,${0.5 * s.brightness}),
+              0 0 20px 6px rgba(160,180,255,${0.2 * s.brightness})
+            `,
+          }} />
+        </div>
       ))}
     </div>
   )
