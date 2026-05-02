@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useSession, signOut } from 'next-auth/react'
 import { useState, useRef, useEffect } from 'react'
 
@@ -43,22 +44,16 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
 
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110"
-              style={{
-                background: 'linear-gradient(135deg, #7C3AED 0%, #9333EA 50%, #06B6D4 100%)',
-                boxShadow: '0 0 18px rgba(124, 58, 237, 0.5)',
-              }}
-            >
-              <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2L9.09 8.26L2 9.27L7 14.14L5.82 21L12 17.77L18.18 21L17 14.14L22 9.27L14.91 8.26L12 2Z"/>
-              </svg>
-            </div>
-            <span className="text-xl font-heading tracking-wider">
-              <span className="cosmic-title-shimmer">COSMIC</span>
-              <span className="text-white"> GRAILS</span>
-            </span>
+          <Link href="/" className="flex items-center group">
+            <Image
+              src="/logo.png"
+              alt="Cosmic Grails"
+              width={120}
+              height={120}
+              className="transition-all duration-300 group-hover:scale-105"
+              style={{ objectFit: 'contain' }}
+              priority
+            />
           </Link>
 
           {/* Desktop Nav */}

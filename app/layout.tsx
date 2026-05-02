@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Bebas_Neue, Rajdhani } from 'next/font/google'
+import { Orbitron, Rajdhani } from 'next/font/google'
 import './globals.css'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
@@ -9,10 +9,10 @@ import SessionProvider from '@/components/SessionProvider'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 
-const bebasNeue = Bebas_Neue({
-  weight: '400',
+const orbitron = Orbitron({
+  weight: ['400', '500', '600', '700', '800', '900'],
   subsets: ['latin'],
-  variable: '--font-bebas',
+  variable: '--font-orbitron',
   display: 'swap',
 })
 
@@ -43,7 +43,7 @@ export default async function RootLayout({
   const session = await getServerSession(authOptions)
 
   return (
-    <html lang="en" className={`${bebasNeue.variable} ${rajdhani.variable}`}>
+    <html lang="en" className={`${orbitron.variable} ${rajdhani.variable}`}>
       <body className="bg-background text-white font-body antialiased min-h-screen flex flex-col">
         <SessionProvider session={session}>
           <StarField />

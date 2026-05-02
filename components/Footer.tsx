@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState } from 'react'
 
 const FOOTER_FAQS = [
@@ -63,19 +64,14 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-12">
           {/* Brand */}
           <div>
-            <div className="flex items-center gap-3 mb-4">
-              <div
-                className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                style={{ background: 'linear-gradient(135deg, #7C3AED 0%, #9333EA 50%, #06B6D4 100%)', boxShadow: '0 0 16px rgba(124,58,237,0.35)' }}
-              >
-                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2L9.09 8.26L2 9.27L7 14.14L5.82 21L12 17.77L18.18 21L17 14.14L22 9.27L14.91 8.26L12 2Z" />
-                </svg>
-              </div>
-              <span className="text-xl font-heading tracking-wider">
-                <span className="cosmic-title-shimmer">COSMIC</span>
-                <span className="text-white"> GRAILS</span>
-              </span>
+            <div className="mb-4">
+              <Image
+                src="/logo.png"
+                alt="Cosmic Grails"
+                width={140}
+                height={140}
+                style={{ objectFit: 'contain' }}
+              />
             </div>
             <p className="text-gray-500 text-sm leading-relaxed">
               The most trusted space-themed trading card raffle platform. Every spin is 100% randomized
