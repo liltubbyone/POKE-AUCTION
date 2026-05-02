@@ -496,6 +496,11 @@ function ChangeCategoryForm({ auctionId, currentCategory }: { auctionId: string;
         const category = formData.get('category') as string
         const { prisma } = await import('@/lib/prisma')
         await prisma.auction.update({ where: { id: auctionId }, data: { category } })
+        const { revalidatePath } = await import('next/cache')
+        revalidatePath('/admin')
+        revalidatePath('/games')
+        revalidatePath('/auctions')
+        revalidatePath('/browse')
       }}
       className="flex gap-2 items-center flex-wrap"
     >
