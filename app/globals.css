@@ -314,11 +314,24 @@ a {
   100% { transform: translate(25px, -20px) scale(1.06); }
 }
 
-@keyframes shooting-star {
-  0% { transform: translateX(0) translateY(0) rotate(-35deg); opacity: 0; }
-  5% { opacity: 1; }
-  70% { opacity: 0.8; }
-  100% { transform: translateX(400px) translateY(200px) rotate(-35deg); opacity: 0; }
+@keyframes shooting-star-occ {
+  /* Invisible for ~90% of the cycle, then briefly shoots across */
+  0%, 90% {
+    opacity: 0;
+    transform: translateX(0) translateY(0) rotate(-35deg);
+  }
+  92% {
+    opacity: 1;
+    transform: translateX(20px) translateY(10px) rotate(-35deg);
+  }
+  97% {
+    opacity: 0;
+    transform: translateX(280px) translateY(140px) rotate(-35deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(280px) translateY(140px) rotate(-35deg);
+  }
 }
 
 @keyframes float {

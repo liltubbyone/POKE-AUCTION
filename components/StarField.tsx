@@ -14,7 +14,7 @@ function seededRandom(seed: number) {
 export default function StarField() {
   const stars = useMemo(() => {
     const rng = seededRandom(42)
-    return Array.from({ length: 180 }, (_, i) => ({
+    return Array.from({ length: 180 }, () => ({
       x: rng() * 100,
       y: rng() * 100,
       size: rng() > 0.92 ? 2 : 1,
@@ -24,13 +24,14 @@ export default function StarField() {
     }))
   }, [])
 
+  // Occasional shooting stars — long cycle so they appear rarely
   const shootingStars = useMemo(() => {
     const rng = seededRandom(99)
-    return Array.from({ length: 3 }, (_, i) => ({
-      top: 10 + rng() * 40,
-      left: rng() * 60,
-      delay: i * 7 + rng() * 5,
-      duration: 1.5 + rng() * 1,
+    return Array.from({ length: 5 }, (_, i) => ({
+      top: 5 + rng() * 45,
+      left: rng() * 65,
+      delay: i * 7 + rng() * 10,
+      duration: 20 + rng() * 14, // 20–34s per cycle; star shoots in last ~8%
     }))
   }, [])
 
@@ -80,7 +81,7 @@ export default function StarField() {
         />
       ))}
 
-      {/* Shooting stars */}
+      {/* Occasional shooting stars */}
       {shootingStars.map((s, i) => (
         <div
           key={`ss-${i}`}
@@ -88,11 +89,13 @@ export default function StarField() {
             position: 'absolute',
             top: `${s.top}%`,
             left: `${s.left}%`,
-            width: '120px',
-            height: '1px',
-            background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent)',
-            transform: 'rotate(-35deg)',
-            animation: `shooting-star ${s.duration}s ease-in ${s.delay}s infinite`,
+            width: '100px',
+            height: '1.5px',
+            borderRadius: '50%',
+            // Bright leading tip, long fading tail
+            background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 30%, rgba(255,255,255,0.8) 85%, rgba(255,255,255,1) 100%)',
+            boxShadow: '0 0 4px rgba(255,255,255,0.4)',
+            animation: `shooting-star-occ ${s.duration}s ease-in ${s.delay}s infinite`,
             opacity: 0,
           }}
         />
