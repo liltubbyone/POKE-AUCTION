@@ -6,7 +6,7 @@ import Link from 'next/link'
 
 async function getAuctions() {
   return prisma.auction.findMany({
-    where: { status: { in: ['active', 'spinning'] } },
+    where: { status: { in: ['active', 'spinning'] }, category: 'raffle' },
     include: {
       items: { include: { item: true } },
       spots: { where: { paid: true } },

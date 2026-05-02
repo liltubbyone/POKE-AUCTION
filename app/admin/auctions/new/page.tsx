@@ -32,6 +32,7 @@ export default function CreateAuctionPage() {
   const [shippingRate, setShippingRate] = useState<number>(8)
   const [expiresInDays, setExpiresInDays] = useState<number | null>(7)
   const [selectedItems, setSelectedItems] = useState<AuctionItemEntry[]>([])
+  const [category, setCategory] = useState('raffle')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -95,6 +96,7 @@ export default function CreateAuctionPage() {
       body: JSON.stringify({
         name,
         description,
+        category,
         spotPrice,
         shippingRate,
         totalSpots,
@@ -150,9 +152,25 @@ export default function CreateAuctionPage() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="input-field"
-                    placeholder="🔥 First Partner Flex"
+                    placeholder="e.g. Cosmic Drop #1"
                     required
                   />
+                </div>
+
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wider font-semibold">
+                    Category
+                  </label>
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="input-field"
+                    required
+                  >
+                    <option value="raffle">Raffle</option>
+                    <option value="game">Game</option>
+                    <option value="giveaway">Giveaway</option>
+                  </select>
                 </div>
 
                 <div>

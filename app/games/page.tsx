@@ -4,16 +4,9 @@ import { prisma } from '@/lib/prisma'
 import AuctionCard from '@/components/AuctionCard'
 import Link from 'next/link'
 
-async function getGames(filter: string) {
-  const where =
-    filter === 'all'
-      ? {}
-      : filter === 'completed'
-      ? { status: { in: ['completed', 'cancelled'] } }
-      : { status: { in: ['active', 'spinning'] } }
-
+async function getGames() {
   return prisma.auction.findMany({
-    where,
+    where: { status: { in: ['active', 'spinning'] }, category: 'game' },
     include: {
       items: { include: { item: true } },
       spots: { where: { paid: true } },
@@ -22,19 +15,8 @@ async function getGames(filter: string) {
   })
 }
 
-const TABS = [
-  { key: 'active', label: 'Active' },
-  { key: 'completed', label: 'Completed' },
-  { key: 'all', label: 'Browse All' },
-]
-
-export default async function GamesPage({
-  searchParams,
-}: {
-  searchParams: { filter?: string }
-}) {
-  const filter = searchParams.filter ?? 'active'
-  const games = await getGames(filter)
+export default async function GamesPage() {
+  const games = await getGames()
 
   return (
     <div>
@@ -70,39 +52,8 @@ export default async function GamesPage({
         </div>
       </div>
 
-      {/* Filter tabs */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
-        <div className="flex gap-2">
-          {TABS.map((tab) => {
-            const active = filter === tab.key
-            return (
-              <Link
-                key={tab.key}
-                href={`/games${tab.key === 'active' ? '' : `?filter=${tab.key}`}`}
-                className="px-5 py-2 rounded-xl text-sm font-semibold uppercase tracking-wide transition-all duration-200"
-                style={
-                  active
-                    ? {
-                        background: 'rgba(124,58,237,0.2)',
-                        border: '1px solid rgba(124,58,237,0.5)',
-                        color: '#a78bfa',
-                      }
-                    : {
-                        background: 'rgba(10,10,24,0.6)',
-                        border: '1px solid rgba(30,30,53,0.8)',
-                        color: '#6b7280',
-                      }
-                }
-              >
-                {tab.label}
-              </Link>
-            )
-          })}
-        </div>
-      </div>
-
       {/* Games grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {games.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {games.map((game) => (
@@ -120,19 +71,9 @@ export default async function GamesPage({
             >
               🎮
             </div>
-            <h3 className="text-2xl font-heading text-gray-400 mb-2">
-              {filter === 'completed' ? 'No Completed Games Yet' : 'No Active Games Right Now'}
-            </h3>
-            <p className="text-gray-600 text-sm mb-6">
-              {filter === 'completed'
-                ? 'Completed games will appear here after the wheel is spun.'
-                : 'Check back soon — new games drop regularly.'}
-            </p>
-            {filter !== 'all' && (
-              <Link href="/games?filter=all" className="btn-outline text-sm py-2 px-6">
-                Browse All Games
-              </Link>
-            )}
+            <h3 className="text-2xl font-heading text-gray-400 mb-2">No Active Games Right Now</h3>
+            <p className="text-gray-600 text-sm mb-6">Check back soon — new games drop regularly.</p>
+            <Link href="/browse" className="btn-outline text-sm py-2 px-6">Browse All</Link>
           </div>
         )}
       </div>

@@ -178,6 +178,7 @@ export default async function AdminDashboard() {
                       {auction.status === 'completed' && (
                         <ResetAuctionForm auctionId={auction.id} />
                       )}
+                      <ChangeCategoryForm auctionId={auction.id} currentCategory={(auction as any).category ?? 'raffle'} />
                     </div>
                   </div>
                 )
@@ -482,6 +483,36 @@ function ResetAuctionForm({ auctionId }: { auctionId: string }) {
         className="text-xs bg-orange-900/50 border border-orange-500/40 text-orange-300 hover:bg-orange-900 px-3 py-1 rounded font-semibold transition-colors whitespace-nowrap"
       >
         Reset Raffle
+      </button>
+    </form>
+  )
+}
+
+function ChangeCategoryForm({ auctionId, currentCategory }: { auctionId: string; currentCategory: string }) {
+  return (
+    <form
+      action={async (formData: FormData) => {
+        'use server'
+        const category = formData.get('category') as string
+        const { prisma } = await import('@/lib/prisma')
+        await prisma.auction.update({ where: { id: auctionId }, data: { category } })
+      }}
+      className="flex gap-2 items-center flex-wrap"
+    >
+      <select
+        name="category"
+        defaultValue={currentCategory}
+        className="input-field text-xs py-1"
+      >
+        <option value="raffle">Raffle</option>
+        <option value="game">Game</option>
+        <option value="giveaway">Giveaway</option>
+      </select>
+      <button
+        type="submit"
+        className="text-xs bg-violet-900/50 border border-violet-500/40 text-violet-300 hover:bg-violet-900 px-3 py-1 rounded font-semibold transition-colors whitespace-nowrap"
+      >
+        Set Category
       </button>
     </form>
   )

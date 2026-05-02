@@ -42,6 +42,7 @@ model Auction {
   name        String
   description String?
   status      String        @default("active")
+  category    String        @default("raffle")
   spotPrice   Float
   totalSpots  Int
   spinSeed     String?
