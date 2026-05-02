@@ -385,7 +385,7 @@ export default async function HomePage() {
               {
                 name: 'Jake R.',
                 text: 'Results are posted publicly so you can verify everything. Got my item shipped fast with tracking. 10/10.',
-                item: 'Won: First Partner Coll.',
+                item: 'Won: Games',
               },
             ].map((t) => (
               <div
