@@ -247,8 +247,8 @@ export default function DailySpinPage() {
 
           {/* Logo in each segment */}
           {Array.from({ length: 8 }).map((_, i) => {
-            const angle = (i / 8) * Math.PI * 2 - Math.PI / 2
-            const r = 105
+            const angle = (i / 8) * Math.PI * 2 + Math.PI / 8 - Math.PI / 2
+            const r = 95
             return (
               <div
                 key={i}
