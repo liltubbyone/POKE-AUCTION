@@ -23,7 +23,6 @@ export default function Navbar() {
   }, [])
 
   const gamesLinks = [
-    { href: '/games', label: 'Games', desc: 'All games on Cosmic Grails' },
     { href: '/auctions', label: 'Raffles', desc: 'Browse all raffle drops' },
     { href: '/live', label: 'Live', desc: 'Active raffles running now' },
     { href: '/giveaways', label: 'Giveaways', desc: 'Free entry giveaways' },
@@ -77,21 +76,29 @@ export default function Navbar() {
               </Link>
             ))}
 
-            {/* Games Dropdown — after Home */}
+            {/* Games — link + dropdown arrow */}
             <div className="relative" ref={gamesRef}>
-              <button
-                onClick={() => setGamesOpen((o) => !o)}
-                className="relative flex items-center gap-1 px-4 py-2 text-sm font-semibold uppercase tracking-wide text-gray-400 hover:text-white transition-colors duration-200 group"
-              >
-                Games
-                <svg
-                  className={`w-3 h-3 transition-transform duration-200 ${gamesOpen ? 'rotate-180' : ''}`}
-                  fill="none" stroke="currentColor" viewBox="0 0 24 24"
+              <div className="relative flex items-center group">
+                <Link
+                  href="/games"
+                  className="px-3 py-2 text-sm font-semibold uppercase tracking-wide text-gray-400 hover:text-white transition-colors duration-200"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-                </svg>
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-px bg-gold group-hover:w-4/5 transition-all duration-300" />
-              </button>
+                  Games
+                </Link>
+                <button
+                  onClick={() => setGamesOpen((o) => !o)}
+                  className="px-1 py-2 text-gray-400 hover:text-white transition-colors duration-200"
+                  aria-label="Games submenu"
+                >
+                  <svg
+                    className={`w-3 h-3 transition-transform duration-200 ${gamesOpen ? 'rotate-180' : ''}`}
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                <span className="absolute bottom-0 left-0 w-0 h-px bg-gold group-hover:w-full transition-all duration-300" />
+              </div>
 
               {gamesOpen && (
                 <div
@@ -204,16 +211,21 @@ export default function Navbar() {
           >
             <Link href="/" className="px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg font-semibold transition-colors" onClick={() => setMobileOpen(false)}>Home</Link>
 
-            {/* Games mobile dropdown */}
-            <button
-              onClick={() => setMobileGamesOpen((o) => !o)}
-              className="flex items-center justify-between px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg font-semibold transition-colors"
-            >
-              <span>Games</span>
-              <svg className={`w-4 h-4 transition-transform ${mobileGamesOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
+            {/* Games mobile — link + expand toggle */}
+            <div className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors">
+              <Link href="/games" className="text-gray-300 hover:text-white font-semibold flex-1" onClick={() => setMobileOpen(false)}>
+                Games
+              </Link>
+              <button
+                onClick={() => setMobileGamesOpen((o) => !o)}
+                className="text-gray-500 hover:text-white transition-colors pl-3"
+                aria-label="Expand games submenu"
+              >
+                <svg className={`w-4 h-4 transition-transform ${mobileGamesOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            </div>
             {mobileGamesOpen && (
               <div className="ml-4 space-y-0.5" style={{ borderLeft: '2px solid rgba(255,215,0,0.2)' }}>
                 {gamesLinks.map((link) => (
