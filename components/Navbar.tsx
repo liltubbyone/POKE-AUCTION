@@ -24,7 +24,7 @@ export default function Navbar() {
   }, [])
 
   const gamesLinks = [
-    { href: '/auctions', label: 'Most Popular', desc: 'Browse all raffle drops' },
+    { href: '/auctions', label: 'Raffles', desc: 'Browse all raffle drops' },
     { href: '/live', label: 'Live Now', desc: 'Active raffles running now' },
     { href: '/giveaways', label: 'Free Entry', desc: 'Free entry giveaways' },
   ]
