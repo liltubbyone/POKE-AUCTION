@@ -32,7 +32,6 @@ function timeUntilReset() {
   return `${hLeft}h ${mLeft}m`
 }
 
-const SPACE_SYMBOLS = ['⭐', '🪐', '✨', '💫', '🌟', '🌌', '☄️', '🛸']
 const SEGMENT_COLORS = [
   'rgba(124,58,237,0.18)',
   'rgba(6,182,212,0.10)',
@@ -246,23 +245,35 @@ export default function DailySpinPage() {
             />
           ))}
 
-          {/* Space symbols around the ring */}
-          {SPACE_SYMBOLS.map((sym, i) => {
+          {/* Logo in each segment */}
+          {Array.from({ length: 8 }).map((_, i) => {
             const angle = (i / 8) * Math.PI * 2 - Math.PI / 2
-            const r = 108
+            const r = 105
             return (
               <div
                 key={i}
-                className="absolute select-none"
+                className="absolute"
                 style={{
                   left: `calc(50% + ${Math.cos(angle) * r}px)`,
                   top: `calc(50% + ${Math.sin(angle) * r}px)`,
                   transform: 'translate(-50%, -50%)',
-                  fontSize: '18px',
-                  filter: 'drop-shadow(0 0 6px rgba(167,139,250,0.7))',
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '50%',
+                  overflow: 'hidden',
+                  background: 'rgba(7,5,15,0.6)',
+                  boxShadow: '0 0 8px rgba(124,58,237,0.4)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
-                {sym}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/logo.png"
+                  alt=""
+                  style={{ width: '44px', height: '44px', objectFit: 'contain' }}
+                />
               </div>
             )
           })}
