@@ -32,10 +32,11 @@ export default function Navbar() {
     <nav
       className="sticky top-0 z-50 border-b"
       style={{
-        background: 'rgba(6, 6, 13, 0.85)',
+        background: 'rgba(2, 2, 10, 0.88)',
         backdropFilter: 'blur(24px)',
         WebkitBackdropFilter: 'blur(24px)',
-        borderColor: 'rgba(30, 30, 53, 0.8)',
+        borderColor: 'rgba(124, 58, 237, 0.2)',
+        boxShadow: '0 1px 0 rgba(124, 58, 237, 0.08)',
       }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -44,19 +45,19 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 group">
             <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-105"
+              className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110"
               style={{
-                background: 'linear-gradient(135deg, #FFE44D 0%, #FFD700 50%, #B8860B 100%)',
-                boxShadow: '0 0 16px rgba(255, 215, 0, 0.35)',
+                background: 'linear-gradient(135deg, #7C3AED 0%, #9333EA 50%, #06B6D4 100%)',
+                boxShadow: '0 0 18px rgba(124, 58, 237, 0.5)',
               }}
             >
-              <svg className="w-5 h-5 text-black" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+              <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2L9.09 8.26L2 9.27L7 14.14L5.82 21L12 17.77L18.18 21L17 14.14L22 9.27L14.91 8.26L12 2Z"/>
               </svg>
             </div>
             <span className="text-xl font-heading tracking-wider">
-              <span className="shimmer-gold">POKE</span>
-              <span className="text-white">AUCTION</span>
+              <span className="cosmic-title-shimmer">COSMIC</span>
+              <span className="text-white"> GRAILS</span>
             </span>
           </Link>
 

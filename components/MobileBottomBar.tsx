@@ -46,10 +46,10 @@ export default function MobileBottomBar() {
     <div
       className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex"
       style={{
-        background: 'rgba(6,6,13,0.96)',
+        background: 'rgba(2,2,10,0.97)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
-        borderTop: '1px solid rgba(255,215,0,0.15)',
+        borderTop: '1px solid rgba(124,58,237,0.2)',
         paddingBottom: 'env(safe-area-inset-bottom)',
       }}
     >
@@ -61,10 +61,10 @@ export default function MobileBottomBar() {
             href={tab.href}
             className="flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-all active:scale-95"
             style={tab.gold ? {
-              background: 'linear-gradient(135deg, rgba(255,228,77,0.15) 0%, rgba(255,215,0,0.1) 100%)',
+              background: 'linear-gradient(135deg, rgba(255,228,77,0.12) 0%, rgba(255,215,0,0.08) 100%)',
               color: '#FFD700',
             } : {
-              color: active ? '#FFD700' : '#6B7280',
+              color: active ? '#a78bfa' : '#6B7280',
             }}
           >
             <div className="relative">

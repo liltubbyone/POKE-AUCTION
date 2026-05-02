@@ -4,6 +4,7 @@ import './globals.css'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import MobileBottomBar from '@/components/MobileBottomBar'
+import StarField from '@/components/StarField'
 import SessionProvider from '@/components/SessionProvider'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
@@ -23,13 +24,13 @@ const rajdhani = Rajdhani({
 })
 
 export const metadata: Metadata = {
-  title: 'PokeAuction - Surprise Wheel Auctions',
+  title: 'Cosmic Grails — Space-Themed Trading Card Raffles',
   description:
-    'The most trusted Pokemon surprise wheel auction site. 100% randomized, provably fair. Buy a spot, spin the wheel, win rare Pokemon cards and products.',
-  keywords: 'pokemon, auction, surprise wheel, booster box, ETB, pokemon cards',
+    'Discover rare trading card grails through provably fair cosmic raffles. Buy a spot, spin the wheel, win rare cards and collectibles. 100% randomized, fully transparent.',
+  keywords: 'trading cards, raffle, cosmic grails, rare cards, collectibles, booster box, pokemon',
   openGraph: {
-    title: 'PokeAuction - Surprise Wheel Auctions',
-    description: '100% randomized Pokemon surprise wheel auctions',
+    title: 'Cosmic Grails — Space-Themed Trading Card Raffles',
+    description: '100% randomized trading card raffles. Discover your next grail.',
     type: 'website',
   },
 }
@@ -45,8 +46,9 @@ export default async function RootLayout({
     <html lang="en" className={`${bebasNeue.variable} ${rajdhani.variable}`}>
       <body className="bg-background text-white font-body antialiased min-h-screen flex flex-col">
         <SessionProvider session={session}>
+          <StarField />
           <Navbar />
-          <main className="flex-1">{children}</main>
+          <main className="flex-1 relative z-10">{children}</main>
           <Footer />
           <MobileBottomBar />
         </SessionProvider>

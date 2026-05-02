@@ -114,8 +114,25 @@ export default async function HomePage() {
         {/* Background radial glow */}
         <div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(255,215,0,0.07) 0%, transparent 65%)' }}
+          style={{ background: 'radial-gradient(circle, rgba(124,58,237,0.12) 0%, rgba(6,182,212,0.04) 50%, transparent 70%)' }}
         />
+        {/* Orbital ring */}
+        <div
+          className="absolute top-1/2 left-1/2 pointer-events-none"
+          style={{
+            width: '600px', height: '600px',
+            marginLeft: '-300px', marginTop: '-300px',
+            perspective: '800px',
+          }}
+        >
+          <div style={{
+            width: '100%', height: '100%',
+            borderRadius: '50%',
+            border: '1px solid rgba(124,58,237,0.12)',
+            transform: 'rotateX(75deg)',
+            animation: 'orbital-pulse 6s ease-in-out infinite',
+          }} />
+        </div>
         {/* Edge fade */}
         <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-transparent to-background pointer-events-none" />
 
@@ -130,19 +147,19 @@ export default async function HomePage() {
             }}
           >
             <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-            Live Auctions Running Now
+            Raffles Running Now
           </div>
 
           {/* Headline */}
           <h1 className="font-heading leading-none mb-6">
-            <span className="block text-white text-6xl md:text-8xl">WIN RARE</span>
-            <span className="block shimmer-gold text-7xl md:text-9xl">POKEMON</span>
-            <span className="block text-white text-6xl md:text-8xl">PRODUCTS</span>
+            <span className="block text-white text-6xl md:text-8xl">DISCOVER YOUR</span>
+            <span className="block cosmic-title-shimmer text-7xl md:text-9xl">COSMIC</span>
+            <span className="block shimmer-gold text-6xl md:text-8xl">GRAILS</span>
           </h1>
 
           <p className="text-lg md:text-xl text-gray-400 mb-8 font-body max-w-xl mx-auto leading-relaxed">
-            Buy a spot. Fill the auction. Spin the wheel. Every outcome is{' '}
-            <span className="text-white font-semibold">100% randomized</span> and results are published publicly.
+            Buy a spot. Fill the raffle. Spin the wheel. Rare trading cards and collectibles — every outcome is{' '}
+            <span className="text-white font-semibold">100% randomized</span> and published publicly.
           </p>
 
           {/* Policy badges */}
@@ -284,7 +301,7 @@ export default async function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
             <p className="text-xs font-bold uppercase tracking-widest text-gold mb-3">Trust</p>
-            <h2 className="section-title">Why Trust PokeAuction?</h2>
+            <h2 className="section-title">Why Trust <span className="cosmic-gradient-text">Cosmic Grails</span>?</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {trustItems.map((item) => (

@@ -48,7 +48,7 @@ export default function TrustBanner() {
   ]
 
   return (
-    <div style={{ background: 'rgba(13,13,26,0.7)', borderBottom: '1px solid rgba(30,30,53,0.8)' }} className="py-3">
+    <div style={{ background: 'rgba(2,2,10,0.85)', borderBottom: '1px solid rgba(124,58,237,0.15)' }} className="py-3">
       <div className="max-w-7xl mx-auto px-4 flex flex-wrap items-center justify-center gap-3">
         {items.map((item) => (
           <div

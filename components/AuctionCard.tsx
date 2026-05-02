@@ -43,7 +43,7 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
     <div className="auction-card relative rounded-2xl p-6 flex flex-col gap-4 group active-glow">
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
-        <h3 className="text-xl font-heading text-white leading-tight group-hover:text-gold-light transition-colors duration-200">
+        <h3 className="text-xl font-heading text-white leading-tight group-hover:text-violet-300 transition-colors duration-200">
           {auction.name}
         </h3>
         <span
@@ -115,8 +115,10 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
               width: `${pctFilled}%`,
               background: pctFilled === 100
                 ? 'linear-gradient(90deg, #FFD700, #FFE44D)'
-                : 'linear-gradient(90deg, #B8860B, #FFD700)',
-              boxShadow: pctFilled > 0 ? '0 0 8px rgba(255,215,0,0.4)' : 'none',
+                : 'linear-gradient(90deg, #7C3AED, #a78bfa)',
+              boxShadow: pctFilled > 0
+                ? pctFilled === 100 ? '0 0 8px rgba(255,215,0,0.5)' : '0 0 8px rgba(124,58,237,0.5)'
+                : 'none',
             }}
           />
         </div>

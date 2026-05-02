@@ -57,20 +57,20 @@ export default function Footer() {
             <div className="flex items-center gap-3 mb-4">
               <div
                 className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                style={{ background: 'linear-gradient(135deg, #FFE44D 0%, #FFD700 50%, #B8860B 100%)', boxShadow: '0 0 16px rgba(255,215,0,0.25)' }}
+                style={{ background: 'linear-gradient(135deg, #7C3AED 0%, #9333EA 50%, #06B6D4 100%)', boxShadow: '0 0 16px rgba(124,58,237,0.35)' }}
               >
-                <svg className="w-5 h-5 text-black" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
+                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2L9.09 8.26L2 9.27L7 14.14L5.82 21L12 17.77L18.18 21L17 14.14L22 9.27L14.91 8.26L12 2Z" />
                 </svg>
               </div>
               <span className="text-xl font-heading tracking-wider">
-                <span className="shimmer-gold">POKE</span>
-                <span className="text-white">AUCTION</span>
+                <span className="cosmic-title-shimmer">COSMIC</span>
+                <span className="text-white"> GRAILS</span>
               </span>
             </div>
             <p className="text-gray-500 text-sm leading-relaxed">
-              The most trusted Pokemon surprise wheel auction site. Every spin is 100% randomized
-              using cryptographic seeds — never manipulated.
+              The most trusted space-themed trading card raffle platform. Every spin is 100% randomized
+              using cryptographic seeds — provably fair, never manipulated.
             </p>
           </div>
 
@@ -124,8 +124,8 @@ export default function Footer() {
         </div>
 
         <div className="text-center text-gray-700 text-xs space-y-1">
-          <p>&copy; {new Date().getFullYear()} PokeAuction. All rights reserved.</p>
-          <p>Pokemon and all related names are trademarks of Nintendo / Game Freak / The Pokemon Company.</p>
+          <p>&copy; {new Date().getFullYear()} Cosmic Grails. All rights reserved.</p>
+          <p>Trading cards and related names are trademarks of their respective publishers.</p>
         </div>
       </div>
     </footer>
