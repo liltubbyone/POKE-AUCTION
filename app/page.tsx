@@ -111,6 +111,16 @@ export default async function HomePage() {
 
       {/* ── Hero ── */}
       <section className="relative overflow-hidden py-24 md:py-36 grid-pattern">
+        {/* Space photo background */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: 'url(https://images.unsplash.com/photo-1543722530-d2c3201371e7?auto=format&fit=crop&w=1920&q=80)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            opacity: 0.18,
+          }}
+        />
         {/* Background radial glow */}
         <div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full pointer-events-none"
@@ -206,7 +216,16 @@ export default async function HomePage() {
       <div className="glow-line" />
 
       {/* ── How It Works ── */}
-      <section className="py-20" style={{ background: 'rgba(13,13,26,0.6)' }}>
+      <section className="relative py-20" style={{ background: 'rgba(13,13,26,0.6)' }}>
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: 'url(https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1920&q=80)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            opacity: 0.08,
+          }}
+        />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
             <p className="text-xs font-bold uppercase tracking-widest text-gold mb-3">Process</p>
@@ -297,7 +316,16 @@ export default async function HomePage() {
       <div className="glow-line" />
 
       {/* ── Why Trust ── */}
-      <section className="py-20">
+      <section className="relative py-20">
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: 'url(https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?auto=format&fit=crop&w=1920&q=80)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            opacity: 0.07,
+          }}
+        />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
             <p className="text-xs font-bold uppercase tracking-widest text-gold mb-3">Trust</p>
@@ -327,7 +355,16 @@ export default async function HomePage() {
       <RecentWinnerFeed />
 
       {/* ── Testimonials ── */}
-      <section className="py-20" style={{ background: 'rgba(13,13,26,0.5)', borderTop: '1px solid rgba(30,30,53,0.8)' }}>
+      <section className="relative py-20" style={{ background: 'rgba(13,13,26,0.5)', borderTop: '1px solid rgba(30,30,53,0.8)' }}>
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: 'url(https://images.unsplash.com/photo-1516339901601-2e1b62dc0c45?auto=format&fit=crop&w=1920&q=80)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            opacity: 0.07,
+          }}
+        />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
             <p className="text-xs font-bold uppercase tracking-widest text-gold mb-3">Reviews</p>

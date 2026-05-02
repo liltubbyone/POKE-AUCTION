@@ -27,11 +27,29 @@ export default async function AuctionsPage() {
   const [auctions, completed] = await Promise.all([getAuctions(), getCompletedAuctions()])
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="mb-10">
-        <p className="text-xs font-bold uppercase tracking-widest text-gold mb-2">Live Now</p>
-        <h1 className="text-4xl font-heading text-white">All Raffles</h1>
+    <div>
+      {/* Page hero */}
+      <div className="relative overflow-hidden py-16 md:py-24" style={{ borderBottom: '1px solid rgba(124,58,237,0.15)' }}>
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: 'url(https://images.unsplash.com/photo-1465101162946-4377e57745c3?auto=format&fit=crop&w=1920&q=80)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            opacity: 0.18,
+          }}
+        />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at center, rgba(124,58,237,0.15) 0%, transparent 70%)' }} />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-xs font-bold uppercase tracking-widest text-gold mb-3">Live Now</p>
+          <h1 className="text-6xl md:text-7xl font-heading text-white mb-3">
+            ACTIVE <span className="gold-gradient-text">RAFFLES</span>
+          </h1>
+          <p className="text-gray-400 text-sm max-w-md mx-auto">Secure your spot before they sell out. Every raffle is 100% randomized.</p>
+        </div>
       </div>
+
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
       {/* Active / Spinning */}
       {auctions.length > 0 ? (
@@ -84,6 +102,7 @@ export default async function AuctionsPage() {
           </div>
         </>
       )}
+    </div>
     </div>
   )
 }

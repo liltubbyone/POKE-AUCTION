@@ -15,7 +15,16 @@ export default function Footer() {
   const [openFaq, setOpenFaq] = useState<number | null>(null)
 
   return (
-    <footer style={{ background: 'rgba(6,6,13,0.95)', borderTop: '1px solid rgba(30,30,53,0.8)' }} className="mt-16 pb-20 md:pb-0">
+    <footer style={{ background: 'rgba(6,6,13,0.95)', borderTop: '1px solid rgba(30,30,53,0.8)' }} className="relative mt-16 pb-20 md:pb-0">
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage: 'url(https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?auto=format&fit=crop&w=1920&q=80)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center top',
+          opacity: 0.07,
+        }}
+      />
       <div className="glow-line" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
