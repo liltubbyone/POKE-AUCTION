@@ -269,7 +269,7 @@ export default async function HomePage() {
           <div className="flex items-end justify-between mb-10">
             <div>
               <p className="text-xs font-bold uppercase tracking-widest text-gold mb-2">Live Now</p>
-              <h2 className="section-title">Active Auctions</h2>
+              <h2 className="section-title">Active Games</h2>
               <p className="text-gray-500 mt-1 text-sm">Secure your spot before they sell out.</p>
             </div>
             {auctions.length > 0 && (
