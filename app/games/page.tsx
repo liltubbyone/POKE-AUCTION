@@ -1,48 +1,41 @@
+export const dynamic = 'force-dynamic'
+
+import { prisma } from '@/lib/prisma'
+import AuctionCard from '@/components/AuctionCard'
 import Link from 'next/link'
 
-const games = [
-  {
-    href: '/auctions',
-    label: 'Raffles',
-    tag: 'Most Popular',
-    tagColor: '#FFD700',
-    tagBg: 'rgba(255,215,0,0.08)',
-    tagBorder: 'rgba(255,215,0,0.2)',
-    icon: '🎰',
-    desc: 'Buy a spot, fill the raffle, spin the wheel. Every spot wins a random item from the prize pool.',
-    cta: 'Browse Raffles',
-    accentColor: 'rgba(255,215,0,0.15)',
-    borderColor: 'rgba(255,215,0,0.2)',
-  },
-  {
-    href: '/live',
-    label: 'Live',
-    tag: 'Live Now',
-    tagColor: '#4ade80',
-    tagBg: 'rgba(74,222,128,0.08)',
-    tagBorder: 'rgba(74,222,128,0.25)',
-    icon: '📡',
-    desc: 'Active raffles happening right now. Jump in before spots sell out.',
-    cta: 'View Live',
-    accentColor: 'rgba(74,222,128,0.08)',
-    borderColor: 'rgba(74,222,128,0.2)',
-  },
-  {
-    href: '/giveaways',
-    label: 'Giveaways',
-    tag: 'Free Entry',
-    tagColor: '#a78bfa',
-    tagBg: 'rgba(167,139,250,0.08)',
-    tagBorder: 'rgba(167,139,250,0.25)',
-    icon: '🎁',
-    desc: 'No purchase necessary. Free giveaways for the community — follow our socials for announcements.',
-    cta: 'Enter Giveaways',
-    accentColor: 'rgba(124,58,237,0.08)',
-    borderColor: 'rgba(124,58,237,0.2)',
-  },
+async function getGames(filter: string) {
+  const where =
+    filter === 'all'
+      ? {}
+      : filter === 'completed'
+      ? { status: { in: ['completed', 'cancelled'] } }
+      : { status: { in: ['active', 'spinning'] } }
+
+  return prisma.auction.findMany({
+    where,
+    include: {
+      items: { include: { item: true } },
+      spots: { where: { paid: true } },
+    },
+    orderBy: { createdAt: 'desc' },
+  })
+}
+
+const TABS = [
+  { key: 'active', label: 'Active' },
+  { key: 'completed', label: 'Completed' },
+  { key: 'all', label: 'Browse All' },
 ]
 
-export default function GamesPage() {
+export default async function GamesPage({
+  searchParams,
+}: {
+  searchParams: { filter?: string }
+}) {
+  const filter = searchParams.filter ?? 'active'
+  const games = await getGames(filter)
+
   return (
     <div>
       {/* Hero */}
@@ -63,114 +56,85 @@ export default function GamesPage() {
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background:
-              'radial-gradient(ellipse at center, rgba(124,58,237,0.15) 0%, transparent 70%)',
+            background: 'radial-gradient(ellipse at center, rgba(124,58,237,0.15) 0%, transparent 70%)',
           }}
         />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-xs font-bold uppercase tracking-widest text-gold mb-3">
-            Cosmic Grails
-          </p>
+          <p className="text-xs font-bold uppercase tracking-widest text-gold mb-3">Cosmic Grails</p>
           <h1 className="text-6xl md:text-7xl font-heading text-white mb-3">
             <span className="cosmic-title-shimmer">GAMES</span>
           </h1>
           <p className="text-gray-400 text-sm max-w-md mx-auto">
-            Choose your game. Every format is provably fair and 100% randomized.
+            Buy a spot, spin the wheel, win rare grails.
           </p>
         </div>
       </div>
 
-      {/* Game cards */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-
-        {/* Games featured section */}
-        <Link
-          href="/auctions"
-          className="group flex flex-col sm:flex-row items-center gap-6 rounded-2xl p-7 mb-8 transition-all duration-300 hover:-translate-y-1"
-          style={{
-            background: 'rgba(10,10,24,0.85)',
-            border: '1px solid rgba(124,58,237,0.3)',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
-          }}
-        >
-          <div
-            className="w-16 h-16 rounded-2xl flex items-center justify-center text-4xl flex-shrink-0 transition-transform duration-300 group-hover:scale-110"
-            style={{ background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.3)' }}
-          >
-            🎮
-          </div>
-          <div className="flex-1 text-center sm:text-left">
-            <div className="flex items-center justify-center sm:justify-start gap-3 mb-1">
-              <h2 className="text-3xl font-heading text-white">GAMES</h2>
-              <span
-                className="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full"
-                style={{ color: '#a78bfa', background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.3)' }}
+      {/* Filter tabs */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
+        <div className="flex gap-2">
+          {TABS.map((tab) => {
+            const active = filter === tab.key
+            return (
+              <Link
+                key={tab.key}
+                href={`/games${tab.key === 'active' ? '' : `?filter=${tab.key}`}`}
+                className="px-5 py-2 rounded-xl text-sm font-semibold uppercase tracking-wide transition-all duration-200"
+                style={
+                  active
+                    ? {
+                        background: 'rgba(124,58,237,0.2)',
+                        border: '1px solid rgba(124,58,237,0.5)',
+                        color: '#a78bfa',
+                      }
+                    : {
+                        background: 'rgba(10,10,24,0.6)',
+                        border: '1px solid rgba(30,30,53,0.8)',
+                        color: '#6b7280',
+                      }
+                }
               >
-                All Formats
-              </span>
-            </div>
-            <p className="text-gray-500 text-sm">Browse every game format on Cosmic Grails — raffles, live drops, and free giveaways all in one place.</p>
-          </div>
-          <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-violet-400 flex-shrink-0">
-            Browse All
-            <svg className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </div>
-        </Link>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {games.map((game) => (
-            <Link
-              key={game.href}
-              href={game.href}
-              className="group relative rounded-2xl p-7 flex flex-col gap-4 transition-all duration-300 hover:-translate-y-2"
-              style={{
-                background: 'rgba(10,10,24,0.85)',
-                border: `1px solid ${game.borderColor}`,
-                boxShadow: `0 4px 24px rgba(0,0,0,0.4)`,
-              }}
-            >
-              {/* Tag */}
-              <span
-                className="self-start text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full"
-                style={{
-                  color: game.tagColor,
-                  background: game.tagBg,
-                  border: `1px solid ${game.tagBorder}`,
-                }}
-              >
-                {game.tag}
-              </span>
-
-              {/* Icon */}
-              <div
-                className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl transition-transform duration-300 group-hover:scale-110"
-                style={{
-                  background: game.accentColor,
-                  border: `1px solid ${game.borderColor}`,
-                }}
-              >
-                {game.icon}
-              </div>
-
-              <div className="flex-1">
-                <h2 className="text-2xl font-heading text-white mb-2">{game.label}</h2>
-                <p className="text-gray-500 text-sm leading-relaxed">{game.desc}</p>
-              </div>
-
-              <div
-                className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide transition-colors duration-200"
-                style={{ color: game.tagColor }}
-              >
-                {game.cta}
-                <svg className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-            </Link>
-          ))}
+                {tab.label}
+              </Link>
+            )
+          })}
         </div>
+      </div>
+
+      {/* Games grid */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {games.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {games.map((game) => (
+              <AuctionCard key={game.id} auction={game} />
+            ))}
+          </div>
+        ) : (
+          <div
+            className="rounded-2xl py-24 text-center"
+            style={{ background: 'rgba(10,10,24,0.8)', border: '1px solid rgba(124,58,237,0.15)' }}
+          >
+            <div
+              className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5 text-3xl"
+              style={{ background: 'rgba(124,58,237,0.08)', border: '1px solid rgba(124,58,237,0.2)' }}
+            >
+              🎮
+            </div>
+            <h3 className="text-2xl font-heading text-gray-400 mb-2">
+              {filter === 'completed' ? 'No Completed Games Yet' : 'No Active Games Right Now'}
+            </h3>
+            <p className="text-gray-600 text-sm mb-6">
+              {filter === 'completed'
+                ? 'Completed games will appear here after the wheel is spun.'
+                : 'Check back soon — new games drop regularly.'}
+            </p>
+            {filter !== 'all' && (
+              <Link href="/games?filter=all" className="btn-outline text-sm py-2 px-6">
+                Browse All Games
+              </Link>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
