@@ -2,19 +2,6 @@ import Link from 'next/link'
 
 const games = [
   {
-    href: '/daily-spin',
-    label: 'Games',
-    tag: 'Play Free',
-    tagColor: '#06B6D4',
-    tagBg: 'rgba(6,182,212,0.08)',
-    tagBorder: 'rgba(6,182,212,0.25)',
-    icon: '🎮',
-    desc: 'Spin the cosmic wheel once a day for free. One lucky spin wins the mystery gift. No purchase needed.',
-    cta: 'Spin Now',
-    accentColor: 'rgba(6,182,212,0.08)',
-    borderColor: 'rgba(6,182,212,0.2)',
-  },
-  {
     href: '/auctions',
     label: 'Raffles',
     tag: 'Most Popular',
@@ -95,7 +82,7 @@ export default function GamesPage() {
 
       {/* Game cards */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {games.map((game) => (
             <Link
               key={game.href}
