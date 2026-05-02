@@ -507,11 +507,11 @@ function ChangeCategoryForm({ auctionId, currentCategory }: { auctionId: string;
       <select
         name="category"
         defaultValue={currentCategory}
-        className="input-field text-xs py-1 text-black"
+        className="input-field text-xs py-1 text-white"
       >
-        <option value="raffle">Raffle</option>
-        <option value="game">Game</option>
-        <option value="giveaway">Giveaway</option>
+        <option value="raffle" className="text-black">Raffle</option>
+        <option value="game" className="text-black">Game</option>
+        <option value="giveaway" className="text-black">Giveaway</option>
       </select>
       <button
         type="submit"
