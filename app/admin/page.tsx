@@ -175,6 +175,9 @@ export default async function AdminDashboard() {
                           <EndAuctionForm auctionId={auction.id} />
                         </div>
                       )}
+                      {auction.status === 'completed' && (
+                        <ResetAuctionForm auctionId={auction.id} />
+                      )}
                     </div>
                   </div>
                 )
@@ -418,6 +421,67 @@ function EndAuctionForm({ auctionId }: { auctionId: string }) {
         className="text-xs bg-red-900/50 border border-red-500/40 text-red-300 hover:bg-red-900 px-3 py-1 rounded font-semibold transition-colors"
       >
         End Early
+      </button>
+    </form>
+  )
+}
+
+function ResetAuctionForm({ auctionId }: { auctionId: string }) {
+  return (
+    <form
+      action={async (formData: FormData) => {
+        'use server'
+        const confirm = formData.get('confirm') as string
+        if (confirm !== 'RESET') return
+        const { prisma } = await import('@/lib/prisma')
+
+        // Find all spots with assigned items so we can restore inventory
+        const spots = await prisma.auctionSpot.findMany({
+          where: { auctionId, assignedItemId: { not: null } },
+          select: { assignedItemId: true },
+        })
+
+        // Count assignments per auctionItem
+        const counts: Record<string, number> = {}
+        for (const s of spots) {
+          if (s.assignedItemId) counts[s.assignedItemId] = (counts[s.assignedItemId] || 0) + 1
+        }
+
+        // Restore inventory qty for each assigned auctionItem
+        for (const [auctionItemId, count] of Object.entries(counts)) {
+          const auctionItem = await prisma.auctionItem.findUnique({
+            where: { id: auctionItemId },
+            select: { itemId: true },
+          })
+          if (auctionItem) {
+            await prisma.inventoryItem.update({
+              where: { id: auctionItem.itemId },
+              data: { qty: { increment: count } },
+            })
+          }
+        }
+
+        // Delete all spots
+        await prisma.auctionSpot.deleteMany({ where: { auctionId } })
+
+        // Reset auction back to active
+        await prisma.auction.update({
+          where: { id: auctionId },
+          data: { status: 'active', completedAt: null },
+        })
+      }}
+      className="flex gap-2 items-center flex-wrap"
+    >
+      <input
+        name="confirm"
+        placeholder='Type RESET to confirm'
+        className="input-field text-xs py-1 w-40"
+      />
+      <button
+        type="submit"
+        className="text-xs bg-orange-900/50 border border-orange-500/40 text-orange-300 hover:bg-orange-900 px-3 py-1 rounded font-semibold transition-colors whitespace-nowrap"
+      >
+        Reset Raffle
       </button>
     </form>
   )
