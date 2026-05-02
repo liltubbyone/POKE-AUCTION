@@ -8,8 +8,8 @@ const FOOTER_FAQS = [
   { q: 'How do raffles work?', a: 'Buy a spot at a fixed price. When the raffle fills, a provably fair random spin assigns each spot a prize. Every paid spot wins something.' },
   { q: 'How are winners chosen?', a: 'Using a cryptographically seeded random algorithm. The seed is generated at close using participant data — tamper-proof and verifiable.' },
   { q: 'Are sales final?', a: 'Yes. All purchases are final. If there is a fulfillment issue on our end we will make it right — contact support.' },
-  { q: 'How is shipping handled?', a: 'Shipping is calculated at cost via USPS ($8–$15 est.). You pay after winning and we generate a label once payment is confirmed.' },
-  { q: 'What is the daily free spin?', a: 'Every registered user gets one free spin per day. The 100th spin wins a mystery gift. Resets at midnight UTC.' },
+  { q: 'How is shipping handled?', a: 'Shipping is calculated at cost via USPS ($4–$8 est.). You pay after winning and we generate a label once payment is confirmed.' },
+  { q: 'What is the daily free spin?', a: 'Every registered user gets one free spin per day. One lucky spin wins a mystery gift. Resets at midnight Central.' },
 ]
 
 export default function Footer() {
