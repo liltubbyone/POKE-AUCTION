@@ -24,7 +24,6 @@ export default function Navbar() {
   }, [])
 
   const gamesLinks = [
-    { href: '/games', label: 'Games', desc: 'All games on Cosmic Grails' },
     { href: '/auctions', label: 'Most Popular', desc: 'Browse all raffle drops' },
     { href: '/live', label: 'Live Now', desc: 'Active raffles running now' },
     { href: '/giveaways', label: 'Free Entry', desc: 'Free entry giveaways' },
