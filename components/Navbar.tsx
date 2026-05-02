@@ -49,8 +49,8 @@ export default function Navbar() {
             <Image
               src="/logo.png"
               alt="Cosmic Grails"
-              width={48}
-              height={48}
+              width={64}
+              height={64}
               className="transition-all duration-300 group-hover:scale-105"
               style={{ objectFit: 'contain' }}
               priority
