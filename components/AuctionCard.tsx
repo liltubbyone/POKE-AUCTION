@@ -9,6 +9,7 @@ interface AuctionCardProps {
     name: string
     description?: string | null
     status: string
+    category?: string | null
     spotPrice: number
     totalSpots: number
     spots: { paid: boolean }[]
@@ -17,6 +18,12 @@ interface AuctionCardProps {
       item: { name: string; tier: string }
     }[]
   }
+}
+
+const categoryThemes: Record<string, { accent: string; glow: string; badge: string; label: string }> = {
+  raffle:   { accent: 'rgba(124,58,237,0.5)',  glow: 'rgba(124,58,237,0.12)', badge: 'rgba(124,58,237,0.15)', label: 'RAFFLE'   },
+  game:     { accent: 'rgba(6,182,212,0.5)',   glow: 'rgba(6,182,212,0.1)',   badge: 'rgba(6,182,212,0.12)',  label: 'GAME'     },
+  giveaway: { accent: 'rgba(255,215,0,0.45)',  glow: 'rgba(255,215,0,0.08)',  badge: 'rgba(255,215,0,0.12)',  label: 'GIVEAWAY' },
 }
 
 const statusColors: Record<string, { text: string; bg: string; border: string }> = {
@@ -38,14 +45,29 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
   const pctFilled = Math.round((soldSpots / auction.totalSpots) * 100)
   const spotsLeft = auction.totalSpots - soldSpots
   const status = statusColors[auction.status] ?? statusColors.active
+  const cat = categoryThemes[auction.category ?? 'raffle'] ?? categoryThemes.raffle
 
   return (
-    <div className="auction-card relative rounded-2xl p-6 flex flex-col gap-4 group active-glow">
+    <div
+      className="auction-card relative rounded-2xl p-6 flex flex-col gap-4 group active-glow"
+      style={{
+        borderColor: cat.accent,
+        boxShadow: `0 4px 24px rgba(0,0,0,0.5), 0 0 20px ${cat.glow}`,
+      }}
+    >
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
-        <h3 className="text-xl font-heading text-white leading-tight group-hover:text-violet-300 transition-colors duration-200">
-          {auction.name}
-        </h3>
+        <div className="flex items-center gap-2 min-w-0">
+          <span
+            className="flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-widest"
+            style={{ background: cat.badge, color: cat.accent.replace('0.5', '1').replace('0.45', '1') }}
+          >
+            {cat.label}
+          </span>
+          <h3 className="text-xl font-heading text-white leading-tight group-hover:text-violet-300 transition-colors duration-200 truncate">
+            {auction.name}
+          </h3>
+        </div>
         <span
           className="flex-shrink-0 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider"
           style={{

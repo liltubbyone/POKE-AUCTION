@@ -251,8 +251,8 @@ export default function DailySpinPage() {
             />
           ))}
 
-          {/* Logo in each segment */}
-          {Array.from({ length: 8 }).map((_, i) => {
+          {/* Icons in each segment — 1 pokeball + 7 space symbols */}
+          {[null, '🚀', '⭐', '🌙', '☄️', '🌌', '🪐', '💫'].map((symbol, i) => {
             const angle = (i / 8) * Math.PI * 2 + Math.PI / 8 - Math.PI / 2
             const r = 95
             return (
@@ -274,12 +274,16 @@ export default function DailySpinPage() {
                   justifyContent: 'center',
                 }}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/logo.png"
-                  alt=""
-                  style={{ width: '44px', height: '44px', objectFit: 'contain' }}
-                />
+                {symbol === null ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src="/logo.png"
+                    alt=""
+                    style={{ width: '44px', height: '44px', objectFit: 'contain' }}
+                  />
+                ) : (
+                  <span style={{ fontSize: '26px', lineHeight: 1 }}>{symbol}</span>
+                )}
               </div>
             )
           })}

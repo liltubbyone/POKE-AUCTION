@@ -11,7 +11,7 @@ export default function MobileBottomBar() {
 
   const tabs = [
     {
-      href: '/auctions',
+      href: '/browse',
       label: 'Play',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -21,7 +21,7 @@ export default function MobileBottomBar() {
       ),
     },
     {
-      href: '/auctions',
+      href: '/#active-auctions',
       label: 'Live',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -54,7 +54,8 @@ export default function MobileBottomBar() {
       }}
     >
       {tabs.map((tab) => {
-        const active = pathname === tab.href || (tab.href !== '/' && pathname.startsWith(tab.href))
+        const tabPath = tab.href.split('#')[0] || '/'
+        const active = pathname === tabPath || (tabPath !== '/' && pathname.startsWith(tabPath))
         return (
           <Link
             key={tab.label}
