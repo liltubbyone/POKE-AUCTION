@@ -76,11 +76,17 @@ export default function DailySpinPage() {
     const duration = 3500
     const startAngle = wheelRef.current
 
+    // Snap final angle to nearest segment center so pointer lands in the middle of a slice
+    const segmentSize = (Math.PI * 2) / 8
+    const rawTarget = startAngle + Math.PI * 2 * 9
+    const snappedTarget =
+      Math.round((rawTarget - segmentSize / 2) / segmentSize) * segmentSize + segmentSize / 2
+
     const animate = (now: number) => {
       const elapsed = Math.min(now - start, duration)
       const progress = elapsed / duration
       const eased = 1 - Math.pow(1 - progress, 4)
-      wheelRef.current = startAngle + Math.PI * 2 * 9 * eased
+      wheelRef.current = startAngle + (snappedTarget - startAngle) * eased
       setWheelAngle(wheelRef.current)
       if (elapsed < duration) animRef.current = requestAnimationFrame(animate)
     }
