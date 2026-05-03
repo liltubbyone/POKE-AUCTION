@@ -442,9 +442,6 @@ export default function AuctionRoom({ initialAuction, customWheelTheme = '{}' }:
                   className={`card p-4 transition-all ${soldOut ? 'opacity-40' : ''}`}
                 >
                   <div className="flex items-center gap-3">
-                    <span className={`tier-badge text-xs ${getTierColor(ai.item.tier)}`}>
-                      {ai.item.tier}
-                    </span>
                     <p className="font-semibold text-white text-sm flex-1">{ai.item.name}</p>
                     <span className={`text-xs font-bold ${soldOut ? 'text-red-400' : 'text-gray-400'}`}>
                       {soldOut ? 'GONE' : `x${remaining}`}
