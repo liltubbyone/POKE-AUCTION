@@ -189,7 +189,7 @@ export default async function HomePage() {
 
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="#active-auctions" className="btn-gold text-base px-8 py-3.5">
+            <Link href="/games" className="btn-gold text-base px-8 py-3.5">
               View Active Games
             </Link>
             <Link href="/inventory" className="btn-outline text-base px-8 py-3.5">
