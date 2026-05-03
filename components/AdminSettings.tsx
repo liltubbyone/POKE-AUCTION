@@ -10,44 +10,44 @@ interface Settings {
   wheelSegments: string
 }
 
-// Slot 0 is always pokeball — these are the 7 custom slots
+// All 8 slots — 'pokeball' renders the logo image, anything else is an emoji
 const PRESETS: { name: string; emoji: string; desc: string; slots: string[] }[] = [
   {
     name: 'Cosmic',
     emoji: '🌌',
     desc: 'Rockets, planets & shooting stars',
-    slots: ['🚀', '⭐', '🌙', '☄️', '🌌', '🪐', '💫'],
+    slots: ['pokeball', '🚀', '⭐', '🌙', '☄️', '🌌', '🪐', '💫'],
   },
   {
     name: 'Galaxy Explorer',
     emoji: '🛸',
     desc: 'UFOs, supernovas & deep space',
-    slots: ['🛸', '🌠', '🔭', '🌟', '💥', '🌀', '✨'],
+    slots: ['pokeball', '🛸', '🌠', '🔭', '🌟', '💥', '🌀', '✨'],
   },
   {
     name: 'Solar System',
     emoji: '☀️',
     desc: 'Planets, sun & satellites',
-    slots: ['☀️', '🌍', '🌕', '🪐', '☄️', '🛰️', '🌟'],
+    slots: ['pokeball', '☀️', '🌍', '🌕', '🪐', '☄️', '🛰️', '🌟'],
   },
   {
     name: 'Nebula Storm',
     emoji: '⚡',
     desc: 'Cosmic energy & mystical forces',
-    slots: ['⚡', '🔥', '💎', '🌊', '❄️', '🌪️', '🔮'],
+    slots: ['pokeball', '⚡', '🔥', '💎', '🌊', '❄️', '🌪️', '🔮'],
   },
 ]
 
 function segmentsToSlots(json: string): string[] {
   try {
     const arr = JSON.parse(json)
-    if (arr.length === 8) return arr.slice(1) // skip pokeball at index 0
+    if (arr.length === 8) return arr
   } catch {}
   return PRESETS[0].slots
 }
 
 function slotsToSegments(slots: string[]): string {
-  return JSON.stringify(['pokeball', ...slots])
+  return JSON.stringify(slots)
 }
 
 export default function AdminSettings() {
@@ -186,9 +186,8 @@ export default function AdminSettings() {
                 <p className="text-gray-500 text-xs mb-2">{preset.desc}</p>
                 {/* Slot preview */}
                 <div className="flex gap-1 flex-wrap">
-                  <span className="text-sm" title="Pokeball (always slot 1)">🔴</span>
                   {preset.slots.map((s, i) => (
-                    <span key={i} className="text-sm">{s}</span>
+                    <span key={i} className="text-sm">{s === 'pokeball' ? '🔴' : s}</span>
                   ))}
                 </div>
               </button>
@@ -201,29 +200,60 @@ export default function AdminSettings() {
             style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(30,30,53,0.8)' }}
           >
             <p className="text-xs text-gray-500 mb-3 uppercase tracking-wider">
-              Custom — Edit Slots (slot 1 is always the pokeball)
+              Custom — Edit All 8 Slots
             </p>
-            <div className="grid grid-cols-7 gap-2">
+            <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
               {customSlots.map((slot, i) => (
                 <div key={i} className="flex flex-col items-center gap-1">
-                  <span className="text-xs text-gray-600">S{i + 2}</span>
-                  <input
-                    type="text"
-                    value={slot}
-                    maxLength={4}
-                    onChange={(e) => {
-                      setActivePreset(null)
-                      const next = [...customSlots]
-                      next[i] = e.target.value
-                      setCustomSlots(next)
-                    }}
-                    className="w-full text-center rounded-lg py-2 text-lg"
-                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(30,30,53,0.8)', color: '#fff' }}
-                  />
+                  <span className="text-xs text-gray-600">S{i + 1}</span>
+                  {slot === 'pokeball' ? (
+                    <div className="relative w-full">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src="/logo.png" alt="pokeball" className="w-10 h-10 mx-auto object-contain" />
+                      <button
+                        onClick={() => {
+                          setActivePreset(null)
+                          const next = [...customSlots]
+                          next[i] = '🔴'
+                          setCustomSlots(next)
+                        }}
+                        className="block w-full text-center text-[10px] text-violet-400 hover:text-white mt-0.5"
+                      >
+                        change
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="relative w-full">
+                      <input
+                        type="text"
+                        value={slot}
+                        maxLength={4}
+                        onChange={(e) => {
+                          setActivePreset(null)
+                          const next = [...customSlots]
+                          next[i] = e.target.value
+                          setCustomSlots(next)
+                        }}
+                        className="w-full text-center rounded-lg py-2 text-lg"
+                        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(30,30,53,0.8)', color: '#fff' }}
+                      />
+                      <button
+                        onClick={() => {
+                          setActivePreset(null)
+                          const next = [...customSlots]
+                          next[i] = 'pokeball'
+                          setCustomSlots(next)
+                        }}
+                        className="block w-full text-center text-[10px] text-violet-400 hover:text-white mt-0.5"
+                      >
+                        pokeball
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
-            <p className="text-gray-600 text-xs mt-2">Paste any emoji into each slot. Slot 1 (pokeball) is locked.</p>
+            <p className="text-gray-600 text-xs mt-3">Type any emoji per slot. Click <span className="text-violet-400">pokeball</span> to restore the logo, or <span className="text-violet-400">change</span> to replace it with an emoji.</p>
           </div>
         </div>
 
