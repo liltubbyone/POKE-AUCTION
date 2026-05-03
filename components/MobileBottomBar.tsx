@@ -1,50 +1,31 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 
 export default function MobileBottomBar() {
   const pathname = usePathname()
-  const router = useRouter()
 
-  // Hide on admin pages
   if (pathname.startsWith('/admin')) return null
 
-  const handleLiveClick = () => {
-    if (pathname === '/') {
-      document.getElementById('active-auctions')?.scrollIntoView({ behavior: 'smooth' })
-    } else {
-      router.push('/')
-      // Small delay to let the page load before scrolling
-      setTimeout(() => {
-        document.getElementById('active-auctions')?.scrollIntoView({ behavior: 'smooth' })
-      }, 400)
-    }
-  }
-
-  const tabStyle = (active: boolean, gold?: boolean) =>
-    gold
-      ? { background: 'linear-gradient(135deg, rgba(255,228,77,0.12) 0%, rgba(255,215,0,0.08) 100%)', color: '#FFD700' }
-      : { color: active ? '#a78bfa' : '#6B7280' }
-
-  const barStyle = {
-    background: 'rgba(2,2,10,0.97)',
-    backdropFilter: 'blur(20px)',
-    WebkitBackdropFilter: 'blur(20px)',
-    borderTop: '1px solid rgba(124,58,237,0.2)',
-    paddingBottom: 'env(safe-area-inset-bottom)',
-  }
-
-  const liveActive = pathname === '/'
+  const active = (href: string) => pathname === href || pathname.startsWith(href + '/')
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex" style={barStyle}>
-
-      {/* Play */}
+    <div
+      className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex"
+      style={{
+        background: 'rgba(2,2,10,0.97)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderTop: '1px solid rgba(124,58,237,0.2)',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+      }}
+    >
+      {/* Play → Browse All */}
       <Link
         href="/browse"
         className="flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-all active:scale-95"
-        style={tabStyle(pathname === '/browse' || pathname.startsWith('/browse'))}
+        style={{ color: active('/browse') ? '#a78bfa' : '#6B7280' }}
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
@@ -53,11 +34,11 @@ export default function MobileBottomBar() {
         <span className="text-xs font-bold uppercase tracking-widest">Play</span>
       </Link>
 
-      {/* Live — scrolls to #active-auctions on homepage */}
-      <button
-        onClick={handleLiveClick}
+      {/* Live → /live */}
+      <Link
+        href="/live"
         className="flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-all active:scale-95"
-        style={tabStyle(liveActive)}
+        style={{ color: active('/live') ? '#a78bfa' : '#6B7280' }}
       >
         <div className="relative">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -69,20 +50,22 @@ export default function MobileBottomBar() {
           />
         </div>
         <span className="text-xs font-bold uppercase tracking-widest">Live</span>
-      </button>
+      </Link>
 
-      {/* Deposit */}
+      {/* Deposit → /profile */}
       <Link
         href="/profile"
         className="flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-all active:scale-95"
-        style={tabStyle(false, true)}
+        style={{
+          background: 'linear-gradient(135deg, rgba(255,228,77,0.12) 0%, rgba(255,215,0,0.08) 100%)',
+          color: '#FFD700',
+        }}
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
         </svg>
         <span className="text-xs font-bold uppercase tracking-widest">Deposit</span>
       </Link>
-
     </div>
   )
 }
