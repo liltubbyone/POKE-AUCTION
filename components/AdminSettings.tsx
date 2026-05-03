@@ -6,6 +6,7 @@ interface Settings {
   mysteryGiftName: string
   mysteryGiftImage: string | null
   winnerSpinNumber: number
+  dailySpinLimit: number
 }
 
 export default function AdminSettings() {
@@ -13,9 +14,11 @@ export default function AdminSettings() {
     mysteryGiftName: 'Perfect Order Booster Pack',
     mysteryGiftImage: null,
     winnerSpinNumber: 100,
+    dailySpinLimit: 1,
   })
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
+  const [imgError, setImgError] = useState(false)
 
   useEffect(() => {
     fetch('/api/admin/settings')
@@ -32,6 +35,7 @@ export default function AdminSettings() {
         mysteryGiftName: settings.mysteryGiftName,
         mysteryGiftImage: settings.mysteryGiftImage || null,
         winnerSpinNumber: settings.winnerSpinNumber,
+        dailySpinLimit: settings.dailySpinLimit,
       }),
     })
     setSaving(false)
@@ -58,24 +62,47 @@ export default function AdminSettings() {
           <input
             type="url"
             value={settings.mysteryGiftImage || ''}
-            onChange={(e) => setSettings((s) => ({ ...s, mysteryGiftImage: e.target.value }))}
+            onChange={(e) => { setSettings((s) => ({ ...s, mysteryGiftImage: e.target.value })); setImgError(false) }}
             className="input-field"
             placeholder="https://..."
           />
-          {settings.mysteryGiftImage && (
-            <img src={settings.mysteryGiftImage} alt="Gift preview" className="mt-2 w-20 h-20 object-contain rounded-lg border border-border" referrerPolicy="no-referrer" />
+          {settings.mysteryGiftImage && !imgError && (
+            <img
+              src={settings.mysteryGiftImage}
+              alt="Gift preview"
+              className="mt-2 w-20 h-20 object-contain rounded-lg border border-border"
+              referrerPolicy="no-referrer"
+              onError={() => setImgError(true)}
+            />
+          )}
+          {settings.mysteryGiftImage && imgError && (
+            <p className="text-red-400 text-xs mt-1">Image failed to load — check the URL.</p>
           )}
         </div>
-        <div>
-          <label className="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Winning Spin Number</label>
-          <input
-            type="number"
-            min={1}
-            value={settings.winnerSpinNumber}
-            onChange={(e) => setSettings((s) => ({ ...s, winnerSpinNumber: parseInt(e.target.value) }))}
-            className="input-field w-32"
-          />
-          <p className="text-gray-600 text-xs mt-1">The user whose spin lands on this number wins the mystery gift.</p>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Winning Spin Number</label>
+            <input
+              type="number"
+              min={1}
+              value={settings.winnerSpinNumber}
+              onChange={(e) => setSettings((s) => ({ ...s, winnerSpinNumber: parseInt(e.target.value) }))}
+              className="input-field"
+            />
+            <p className="text-gray-600 text-xs mt-1">The spin number that wins the gift.</p>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Free Spins Per Day</label>
+            <input
+              type="number"
+              min={1}
+              max={10}
+              value={settings.dailySpinLimit}
+              onChange={(e) => setSettings((s) => ({ ...s, dailySpinLimit: parseInt(e.target.value) }))}
+              className="input-field"
+            />
+            <p className="text-gray-600 text-xs mt-1">How many spins each user gets daily.</p>
+          </div>
         </div>
         <div className="flex items-center gap-3">
           <button onClick={handleSave} disabled={saving} className="btn-gold text-sm py-2 px-5 disabled:opacity-50">

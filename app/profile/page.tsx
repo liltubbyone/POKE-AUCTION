@@ -455,7 +455,7 @@ export default function ProfilePage() {
             {paymentInfo.preferred === 'venmo' && (
               <div>
                 <div className="bg-purple-950/30 border border-purple-500/30 rounded-xl p-3 mb-3">
-                  <p className="text-purple-300 text-sm">Send payment to <strong>@PokeAuction</strong> on Venmo with your spot number in the note. Admin confirms within 1 hour.</p>
+                  <p className="text-purple-300 text-sm">Send payment to <strong>@CosmicGrails</strong> on Venmo with your spot number in the note. Admin confirms within 1 hour.</p>
                 </div>
                 <label className="block text-sm font-semibold text-gray-400 mb-1.5 uppercase tracking-wider">Your Venmo Handle</label>
                 <input type="text" value={paymentInfo.venmoHandle} onChange={(e) => setPaymentInfo((p) => ({ ...p, venmoHandle: e.target.value }))} className="input-field" placeholder="@YourVenmo" />
@@ -464,7 +464,7 @@ export default function ProfilePage() {
             {paymentInfo.preferred === 'cashapp' && (
               <div>
                 <div className="bg-green-950/30 border border-green-500/30 rounded-xl p-3 mb-3">
-                  <p className="text-green-300 text-sm">Send payment to <strong>$PokeAuction</strong> with your spot number in the note. Admin confirms within 1 hour.</p>
+                  <p className="text-green-300 text-sm">Send payment to <strong>$CosmicGrails</strong> with your spot number in the note. Admin confirms within 1 hour.</p>
                 </div>
                 <label className="block text-sm font-semibold text-gray-400 mb-1.5 uppercase tracking-wider">Your $Cashtag</label>
                 <input type="text" value={paymentInfo.cashappTag} onChange={(e) => setPaymentInfo((p) => ({ ...p, cashappTag: e.target.value }))} className="input-field" placeholder="$YourCashtag" />

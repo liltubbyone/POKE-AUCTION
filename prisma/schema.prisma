@@ -73,7 +73,7 @@ model DailySpin {
   won        Boolean  @default(false)
   createdAt  DateTime @default(now())
 
-  @@unique([userId, spinDate])
+  @@index([userId, spinDate])
 }
 
 model SiteSettings {
@@ -81,6 +81,7 @@ model SiteSettings {
   mysteryGiftName  String   @default("Perfect Order Booster Pack")
   mysteryGiftImage String?
   winnerSpinNumber Int      @default(100)
+  dailySpinLimit   Int      @default(1)
   updatedAt        DateTime @updatedAt
 }
 

@@ -81,7 +81,7 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
                   border: `1px solid ${tier.border}`,
                 }}
               >
-                {ai.item.tier} — {ai.item.name}{ai.quantity > 1 ? ` ×${ai.quantity}` : ''}
+                {ai.item.name}{ai.quantity > 1 ? ` ×${ai.quantity}` : ''}
               </span>
             )
           })}

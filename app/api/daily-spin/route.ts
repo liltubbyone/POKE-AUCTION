@@ -24,24 +24,33 @@ async function getSettings() {
   })
 }
 
-// GET — check if user has already spun today and today's spin count
+// GET — check spin status for today
 export async function GET() {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const today = todayCentral()
-  const [existing, totalToday, settings] = await Promise.all([
-    prisma.dailySpin.findUnique({
-      where: { userId_spinDate: { userId: session.user.id, spinDate: today } },
+  const [userSpinsToday, totalToday, settings] = await Promise.all([
+    prisma.dailySpin.findMany({
+      where: { userId: session.user.id, spinDate: today },
+      orderBy: { createdAt: 'desc' },
     }),
     prisma.dailySpin.count({ where: { spinDate: today } }),
     getSettings(),
   ])
 
+  const spinsUsed = userSpinsToday.length
+  const limit = (settings as any).dailySpinLimit ?? 1
+  const hasSpunToday = spinsUsed >= limit
+  const won = userSpinsToday.some((s) => s.won)
+  const lastSpin = userSpinsToday[0]
+
   return NextResponse.json({
-    hasSpunToday: !!existing,
-    won: existing?.won ?? false,
-    spinNumber: existing?.spinNumber ?? null,
+    hasSpunToday,
+    spinsUsed,
+    spinsLimit: limit,
+    won,
+    spinNumber: lastSpin?.spinNumber ?? null,
     totalSpinsToday: totalToday,
     winnerSpinNumber: settings.winnerSpinNumber,
     mysteryGiftName: settings.mysteryGiftName,
@@ -49,56 +58,39 @@ export async function GET() {
   })
 }
 
-// POST — perform the daily spin
+// POST — perform a spin
 export async function POST() {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const today = todayCentral()
   const settings = await getSettings()
+  const limit = (settings as any).dailySpinLimit ?? 1
 
-  try {
-    const result = await prisma.$transaction(async (tx) => {
-      // Check if already spun
-      const existing = await tx.dailySpin.findUnique({
-        where: { userId_spinDate: { userId: session.user.id, spinDate: today } },
-      })
-      if (existing) {
-        return { alreadySpun: true, won: existing.won, spinNumber: existing.spinNumber }
-      }
+  const spinsUsed = await prisma.dailySpin.count({
+    where: { userId: session.user.id, spinDate: today },
+  })
 
-      // Count today's spins to get next number
-      const count = await tx.dailySpin.count({ where: { spinDate: today } })
-      const spinNumber = count + 1
-      const won = spinNumber === settings.winnerSpinNumber
-
-      await tx.dailySpin.create({
-        data: {
-          userId: session.user.id,
-          spinDate: today,
-          spinNumber,
-          won,
-        },
-      })
-
-      return { alreadySpun: false, won, spinNumber }
-    })
-
-    return NextResponse.json({
-      ...result,
-      mysteryGiftName: settings.mysteryGiftName,
-      mysteryGiftImage: settings.mysteryGiftImage,
-      winnerSpinNumber: settings.winnerSpinNumber,
-    })
-  } catch (err: any) {
-    // Unique constraint = already spun (race condition edge case)
-    if (err?.code === 'P2002') {
-      const existing = await prisma.dailySpin.findUnique({
-        where: { userId_spinDate: { userId: session.user.id, spinDate: today } },
-      })
-      return NextResponse.json({ alreadySpun: true, won: existing?.won ?? false, spinNumber: existing?.spinNumber ?? null })
-    }
-    console.error(err)
-    return NextResponse.json({ error: 'Spin failed' }, { status: 500 })
+  if (spinsUsed >= limit) {
+    return NextResponse.json({ alreadySpun: true, won: false, spinNumber: null })
   }
+
+  const count = await prisma.dailySpin.count({ where: { spinDate: today } })
+  const spinNumber = count + 1
+  const won = spinNumber === settings.winnerSpinNumber
+
+  await prisma.dailySpin.create({
+    data: { userId: session.user.id, spinDate: today, spinNumber, won },
+  })
+
+  return NextResponse.json({
+    alreadySpun: false,
+    won,
+    spinNumber,
+    spinsUsed: spinsUsed + 1,
+    spinsLimit: limit,
+    mysteryGiftName: settings.mysteryGiftName,
+    mysteryGiftImage: settings.mysteryGiftImage,
+    winnerSpinNumber: settings.winnerSpinNumber,
+  })
 }

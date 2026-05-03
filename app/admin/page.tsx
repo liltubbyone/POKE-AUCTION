@@ -156,6 +156,12 @@ export default async function AdminDashboard() {
                       >
                         View Results
                       </Link>
+                      <Link
+                        href={`/admin/auctions/${auction.id}/edit`}
+                        className="flex-1 text-center border border-violet-500/30 text-violet-400 hover:bg-violet-500/10 py-1.5 rounded text-xs font-semibold transition-colors"
+                      >
+                        Edit Items
+                      </Link>
                     </div>
                     <div className="mt-3 pt-3 border-t border-border space-y-2">
                       <div className="flex justify-between items-center">

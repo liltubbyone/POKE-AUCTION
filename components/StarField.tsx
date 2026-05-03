@@ -29,9 +29,10 @@ export default function StarField() {
       top: 3 + rng() * 48,
       left: 5 + rng() * 58,
       delay: i * 5 + rng() * 12,
-      duration: 20 + rng() * 16,   // 20–36s full cycle
-      length: 90 + Math.floor(rng() * 90), // 90–180px tail length
-      brightness: 0.7 + rng() * 0.3,       // slight brightness variation
+      duration: 20 + rng() * 16,
+      length: 90 + Math.floor(rng() * 90),
+      brightness: 0.7 + rng() * 0.3,
+      angle: 5 + rng() * 30,  // 5–35° tilt from vertical, each star different
     }))
   }, [])
 
@@ -92,10 +93,11 @@ export default function StarField() {
             left: `${s.left}%`,
             animation: `shooting-star-occ ${s.duration}s ease-in ${s.delay}s infinite`,
             opacity: 0,
+            willChange: 'transform, opacity',
           }}
         >
-          {/* Inner wrapper — slight natural tilt */}
-          <div style={{ transform: 'rotate(15deg)', transformOrigin: 'bottom center' }}>
+          {/* Inner wrapper — unique tilt per star */}
+          <div style={{ transform: `rotate(${s.angle}deg)`, transformOrigin: 'bottom center' }}>
             {/* Tail — vertical, transparent at top fading to bright at bottom (head) */}
             <div style={{
               width: '1.5px',

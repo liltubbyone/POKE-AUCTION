@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
   const auction = await getAuction(params.id)
   if (!auction) return { title: 'Auction Not Found' }
   return {
-    title: `${auction.name} — PokeAuction`,
+    title: `${auction.name} — Cosmic Grails`,
     description: auction.description || `${auction.totalSpots} spots at $${auction.spotPrice} each`,
   }
 }

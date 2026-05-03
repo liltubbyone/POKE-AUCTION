@@ -55,7 +55,7 @@ export async function POST(req: Request) {
         shippingRate: includeShipping ? shippingRate.toString() : '0',
         includeShipping: includeShipping.toString(),
       },
-      description: `PokeAuction spot${includeShipping ? ' + shipping' : ''} — ${auction.name}`,
+      description: `Cosmic Grails spot${includeShipping ? ' + shipping' : ''} — ${auction.name}`,
     })
 
     return NextResponse.json({

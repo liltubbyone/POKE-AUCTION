@@ -1,11 +1,11 @@
-'use client'
+'use client'''
 
-import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
-import { loadStripe } from '@stripe/stripe-js'
-import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
-import { formatCurrency } from '@/lib/utils'
+import { useState, useEffect } from 'react'''
+import { useSession } from 'next-auth/react'''
+import { useRouter } from 'next/navigation'''
+import { loadStripe } from '@stripe/stripe-js'''
+import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'''
+import { formatCurrency } from '@/lib/utils'''
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
@@ -318,10 +318,10 @@ export default function BuySpotModal({ auction, spotsLeft, onClose, onSuccess }:
                     className="rounded-xl p-3 text-left transition-all duration-200"
                     style={{
                       border: paymentMethod === method.id
-                        ? '1px solid rgba(255,215,0,0.5)'
+                        ? '1px solid rgba(255,215,0,0.5)'''
                         : '1px solid rgba(30,30,53,0.8)',
                       background: paymentMethod === method.id
-                        ? 'rgba(255,215,0,0.06)'
+                        ? 'rgba(255,215,0,0.06)'''
                         : 'rgba(255,255,255,0.02)',
                     }}
                   >
@@ -417,14 +417,14 @@ export default function BuySpotModal({ auction, spotsLeft, onClose, onSuccess }:
                 <li>
                   2. Send <strong className="text-gold">{formatCurrency(chargedTotal ?? auction.spotPrice)}</strong> to{' '}
                   <strong className="text-white">
-                    {paymentMethod === 'venmo'
-                      ? (process.env.NEXT_PUBLIC_VENMO_HANDLE || '@PokeAuction')
-                      : (process.env.NEXT_PUBLIC_CASHAPP_HANDLE || '$PokeAuction')}
+                    {paymentMethod === 'venmo'''
+                      ? (process.env.NEXT_PUBLIC_VENMO_HANDLE || '@CosmicGrails')
+                      : (process.env.NEXT_PUBLIC_CASHAPP_HANDLE || '$CosmicGrails')}
                   </strong>
                 </li>
                 <li>
                   3. In the note write:{' '}
-                  <strong className="text-white">PokeAuction — {session.user.email}</strong>
+                  <strong className="text-white">Cosmic Grails — {session.user.email}</strong>
                 </li>
                 <li>4. Click &quot;Reserve My Spot&quot; below — admin will confirm within a few hours.</li>
               </ol>

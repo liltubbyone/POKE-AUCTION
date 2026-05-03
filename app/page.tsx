@@ -190,7 +190,7 @@ export default async function HomePage() {
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="#active-auctions" className="btn-gold text-base px-8 py-3.5">
-              View Active Auctions
+              View Active Games
             </Link>
             <Link href="/inventory" className="btn-outline text-base px-8 py-3.5">
               Browse Inventory
@@ -201,12 +201,12 @@ export default async function HomePage() {
           <div className="mt-16 grid grid-cols-3 max-w-lg mx-auto gap-4">
             {[
               { value: '100%', label: 'Randomized' },
-              { value: '0', label: 'Manipulations' },
+              { value: '0', label: 'Manipulated' },
               { value: '24h', label: 'Avg. Ship Time' },
             ].map((s) => (
               <div key={s.label} className="stat-card">
                 <p className="text-2xl md:text-3xl font-heading text-gold leading-none mb-1">{s.value}</p>
-                <p className="text-xs text-gray-500 uppercase tracking-widest font-semibold">{s.label}</p>
+                <p className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-widest font-semibold leading-tight">{s.label}</p>
               </div>
             ))}
           </div>
@@ -306,8 +306,8 @@ export default async function HomePage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h3 className="text-2xl font-heading text-gray-400 mb-2">No Active Auctions</h3>
-              <p className="text-gray-600 text-sm">Check back soon — new auctions are added regularly.</p>
+              <h3 className="text-2xl font-heading text-gray-400 mb-2">No Active Games</h3>
+              <p className="text-gray-600 text-sm">Check back soon — new games drop regularly.</p>
             </div>
           )}
         </div>

@@ -315,33 +315,29 @@ a {
 }
 
 @keyframes shooting-star-occ {
-  /* Silent for ~88% of the cycle */
   0%, 87% {
     opacity: 0;
-    transform: translateY(0) translateX(0);
+    transform: translate3d(0, 0, 0);
   }
-  /* Flash in */
   88% {
     opacity: 0;
-    transform: translateY(5px) translateX(3px);
+    transform: translate3d(3px, 5px, 0);
   }
   89.5% {
     opacity: 1;
-    transform: translateY(22px) translateX(12px);
+    transform: translate3d(12px, 22px, 0);
   }
-  /* Fall down */
   94% {
     opacity: 0.9;
-    transform: translateY(200px) translateX(80px);
+    transform: translate3d(80px, 200px, 0);
   }
-  /* Fade out */
   97% {
     opacity: 0;
-    transform: translateY(320px) translateX(120px);
+    transform: translate3d(120px, 320px, 0);
   }
   100% {
     opacity: 0;
-    transform: translateY(340px) translateX(130px);
+    transform: translate3d(130px, 340px, 0);
   }
 }
 
