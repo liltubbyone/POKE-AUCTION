@@ -22,9 +22,9 @@ interface SpinStatus {
 
 const MYSTERY_THEMES: Record<string, { a: string; b: string; pointer: string; center: string }> = {
   cosmic:  { a: '124,58,237',  b: '6,182,212',   pointer: '#FFD700', center: '#1e0a4e' },
-  galaxy:  { a: '20,184,166',  b: '59,130,246',  pointer: '#2dd4bf', center: '#042f2e' },
-  solar:   { a: '249,115,22',  b: '234,179,8',   pointer: '#fb923c', center: '#431407' },
-  nebula:  { a: '236,72,153',  b: '139,92,246',  pointer: '#f472b6', center: '#2d1b4e' },
+  galaxy:  { a: '20,184,166',  b: '59,130,246',  pointer: '#FFD700', center: '#042f2e' },
+  solar:   { a: '249,115,22',  b: '234,179,8',   pointer: '#FFD700', center: '#431407' },
+  nebula:  { a: '236,72,153',  b: '139,92,246',  pointer: '#FFD700', center: '#2d1b4e' },
 }
 
 function hexToRgbStr(hex: string): string {
@@ -37,7 +37,7 @@ function hexToRgbStr(hex: string): string {
 function getMysteryTheme(theme: string, customColor: string) {
   if (theme === 'custom') {
     const a = hexToRgbStr(customColor || '#7C3AED')
-    return { a, b: '200,200,220', pointer: customColor, center: '#07050f' }
+    return { a, b: '200,200,220', pointer: '#FFD700', center: '#07050f' }
   }
   return MYSTERY_THEMES[theme] ?? MYSTERY_THEMES.cosmic
 }
@@ -64,7 +64,7 @@ function drawMysteryWheel(
   pokeballImg: HTMLImageElement | null,
 ) {
   const dpr = window.devicePixelRatio || 1
-  const cssSize = 320
+  const cssSize = 360
   canvas.width = cssSize * dpr
   canvas.height = cssSize * dpr
   canvas.style.width = `${cssSize}px`
@@ -73,16 +73,17 @@ function drawMysteryWheel(
 
   const cx = cssSize / 2
   const cy = cssSize / 2
-  const rimR = cssSize / 2 - 10
-  const radius = rimR - 2
+  const rimR = cssSize / 2 - 12
+  const radius = rimR - 4
   const n = 8
   const arc = (2 * Math.PI) / n
 
   ctx.clearRect(0, 0, cssSize, cssSize)
 
   // ── Deep space background ──
-  const bgGrad = ctx.createRadialGradient(cx, cy * 0.65, 0, cx, cy, rimR)
-  bgGrad.addColorStop(0, '#090920')
+  const bgGrad = ctx.createRadialGradient(cx, cy * 0.6, 0, cx, cy, rimR)
+  bgGrad.addColorStop(0, '#0d0921')
+  bgGrad.addColorStop(0.5, '#07061a')
   bgGrad.addColorStop(1, '#020208')
   ctx.beginPath()
   ctx.arc(cx, cy, rimR, 0, 2 * Math.PI)
@@ -95,10 +96,11 @@ function drawMysteryWheel(
     const end = start + arc
     const rgb = i % 2 === 0 ? t.a : t.b
 
-    const grad = ctx.createRadialGradient(cx, cy, radius * 0.1, cx, cy, radius)
-    grad.addColorStop(0,    `rgba(${rgb},0.05)`)
-    grad.addColorStop(0.45, `rgba(${rgb},0.15)`)
-    grad.addColorStop(1,    `rgba(${rgb},0.44)`)
+    const grad = ctx.createRadialGradient(cx, cy, radius * 0.08, cx, cy, radius)
+    grad.addColorStop(0,    `rgba(${rgb},0.04)`)
+    grad.addColorStop(0.40, `rgba(${rgb},0.14)`)
+    grad.addColorStop(0.80, `rgba(${rgb},0.40)`)
+    grad.addColorStop(1,    `rgba(${rgb},0.50)`)
 
     ctx.beginPath()
     ctx.moveTo(cx, cy)
@@ -106,6 +108,18 @@ function drawMysteryWheel(
     ctx.closePath()
     ctx.fillStyle = grad
     ctx.fill()
+
+    // Subtle star texture (deterministic)
+    for (let s = 0; s < 3; s++) {
+      const af = ((i * 7 + s * 13) % 89) / 89
+      const rf = 0.12 + ((i * 11 + s * 19) % 71) / 142
+      const sa = start + af * arc
+      const sr = radius * rf
+      ctx.beginPath()
+      ctx.arc(cx + sr * Math.cos(sa), cy + sr * Math.sin(sa), 0.7 + (s % 2) * 0.5, 0, 2 * Math.PI)
+      ctx.fillStyle = `rgba(255,255,255,${0.18 + (s % 3) * 0.10})`
+      ctx.fill()
+    }
 
     // Divider line
     ctx.beginPath()
@@ -115,30 +129,20 @@ function drawMysteryWheel(
     ctx.lineWidth = 1
     ctx.stroke()
 
-    // White dot near outer rim
-    const midAngle = start + arc / 2
-    const dotDist = radius - 12
-    ctx.beginPath()
-    ctx.arc(cx + dotDist * Math.cos(midAngle), cy + dotDist * Math.sin(midAngle), 3, 0, 2 * Math.PI)
-    ctx.fillStyle = 'rgba(255,255,255,0.65)'
-    ctx.shadowColor = 'rgba(255,255,255,0.4)'
-    ctx.shadowBlur = 5
-    ctx.fill()
-    ctx.shadowBlur = 0
-
     // Icon (emoji or pokeball image)
-    const iconDist = radius * 0.67
+    const iconDist = radius * 0.65
+    const midAngle = start + arc / 2
     const ix = cx + iconDist * Math.cos(midAngle)
     const iy = cy + iconDist * Math.sin(midAngle)
-    const iconR = 19
+    const iconR = 22
 
     ctx.save()
-    // Icon backing circle
+    // Icon backing circle with glow
     ctx.beginPath()
     ctx.arc(ix, iy, iconR, 0, 2 * Math.PI)
-    ctx.fillStyle = 'rgba(5,4,14,0.6)'
-    ctx.shadowColor = `rgba(${rgb},0.5)`
-    ctx.shadowBlur = 8
+    ctx.fillStyle = 'rgba(5,4,14,0.65)'
+    ctx.shadowColor = `rgba(${rgb},0.6)`
+    ctx.shadowBlur = 10
     ctx.fill()
     ctx.shadowBlur = 0
 
@@ -148,7 +152,7 @@ function drawMysteryWheel(
       ctx.clip()
       ctx.drawImage(pokeballImg, ix - iconR, iy - iconR, iconR * 2, iconR * 2)
     } else {
-      ctx.font = `${Math.round(iconR * 1.25)}px serif`
+      ctx.font = `${Math.round(iconR * 1.2)}px serif`
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
       ctx.fillText(segments[i] || '⭐', ix, iy + 1)
@@ -156,15 +160,31 @@ function drawMysteryWheel(
     ctx.restore()
   }
 
-  // ── Neon rim glow (4 layered passes) ──
-  for (const { lw, alpha } of [
-    { lw: 22, alpha: 0.04 },
-    { lw: 14, alpha: 0.09 },
-    { lw: 8,  alpha: 0.18 },
-    { lw: 4,  alpha: 0.32 },
+  // ── Evenly-spaced glow dots around wheel edge (36 dots) ──
+  const dotCount = 36
+  for (let d = 0; d < dotCount; d++) {
+    const angle = (d / dotCount) * 2 * Math.PI
+    const dx = cx + (rimR - 6) * Math.cos(angle)
+    const dy = cy + (rimR - 6) * Math.sin(angle)
+    const isBright = d % 4 === 0
+    ctx.beginPath()
+    ctx.arc(dx, dy, isBright ? 3 : 1.8, 0, 2 * Math.PI)
+    ctx.fillStyle = isBright ? `rgba(${t.a},1)` : `rgba(${t.a},0.50)`
+    ctx.shadowColor = `rgba(${t.a},1)`
+    ctx.shadowBlur = isBright ? 10 : 4
+    ctx.fill()
+    ctx.shadowBlur = 0
+  }
+
+  // ── Neon rim glow ──
+  for (const { r, lw, alpha } of [
+    { r: rimR + 8, lw: 34, alpha: 0.03 },
+    { r: rimR,     lw: 22, alpha: 0.06 },
+    { r: rimR,     lw: 12, alpha: 0.14 },
+    { r: rimR,     lw: 6,  alpha: 0.28 },
   ]) {
     ctx.beginPath()
-    ctx.arc(cx, cy, rimR, 0, 2 * Math.PI)
+    ctx.arc(cx, cy, r, 0, 2 * Math.PI)
     ctx.strokeStyle = `rgba(${t.a},${alpha})`
     ctx.lineWidth = lw
     ctx.stroke()
@@ -172,20 +192,20 @@ function drawMysteryWheel(
   // Bright rim line
   ctx.beginPath()
   ctx.arc(cx, cy, rimR, 0, 2 * Math.PI)
-  ctx.strokeStyle = `rgba(${t.a},0.9)`
+  ctx.strokeStyle = `rgba(${t.a},0.92)`
   ctx.lineWidth = 2.5
-  ctx.shadowColor = `rgba(${t.a},0.8)`
-  ctx.shadowBlur = 18
+  ctx.shadowColor = `rgba(${t.a},0.9)`
+  ctx.shadowBlur = 20
   ctx.stroke()
   ctx.shadowBlur = 0
 
-  // ── Pokeball center ──
-  const cr = 28
+  // ── Pokéball center ──
+  const cr = 30
   ctx.beginPath()
   ctx.arc(cx, cy, cr, 0, 2 * Math.PI)
   ctx.fillStyle = '#FFFFFF'
-  ctx.shadowColor = 'rgba(0,0,0,0.5)'
-  ctx.shadowBlur = 6
+  ctx.shadowColor = 'rgba(0,0,0,0.7)'
+  ctx.shadowBlur = 10
   ctx.fill()
   ctx.shadowBlur = 0
   ctx.beginPath()
@@ -193,38 +213,63 @@ function drawMysteryWheel(
   ctx.fillStyle = '#CC0000'
   ctx.fill()
   ctx.fillStyle = '#111111'
-  ctx.fillRect(cx - cr, cy - 3, cr * 2, 6)
+  ctx.fillRect(cx - cr, cy - 4, cr * 2, 8)
   ctx.beginPath()
   ctx.arc(cx, cy, cr, 0, 2 * Math.PI)
   ctx.strokeStyle = '#111111'
-  ctx.lineWidth = 2.5
+  ctx.lineWidth = 3
   ctx.stroke()
   ctx.beginPath()
-  ctx.arc(cx, cy, Math.round(cr * 0.32), 0, 2 * Math.PI)
+  ctx.arc(cx, cy, Math.round(cr * 0.33), 0, 2 * Math.PI)
   ctx.fillStyle = '#FFFFFF'
   ctx.fill()
   ctx.strokeStyle = '#111111'
   ctx.lineWidth = 2
   ctx.stroke()
+  // Glossy highlight
+  const gloss = ctx.createRadialGradient(cx + cr * 0.22, cy - cr * 0.48, 0, cx, cy, cr * 1.05)
+  gloss.addColorStop(0,   'rgba(255,255,255,0.42)')
+  gloss.addColorStop(0.4, 'rgba(255,255,255,0.08)')
+  gloss.addColorStop(1,   'rgba(0,0,0,0)')
   ctx.beginPath()
-  ctx.arc(cx + 3, cy - 7, 3, 0, 2 * Math.PI)
+  ctx.arc(cx, cy, cr, 0, 2 * Math.PI)
+  ctx.fillStyle = gloss
+  ctx.fill()
+  ctx.beginPath()
+  ctx.arc(cx + 3.5, cy - 8, 3.5, 0, 2 * Math.PI)
   ctx.fillStyle = 'rgba(255,255,255,0.55)'
   ctx.fill()
 
   // ── Gold pointer triangle ──
+  ctx.save()
   ctx.beginPath()
-  ctx.moveTo(cx - 13, 3)
-  ctx.lineTo(cx + 13, 3)
-  ctx.lineTo(cx, 26)
+  ctx.moveTo(cx - 18, 0)
+  ctx.lineTo(cx + 18, 0)
+  ctx.lineTo(cx, 38)
   ctx.closePath()
   ctx.fillStyle = t.pointer
   ctx.shadowColor = t.pointer
-  ctx.shadowBlur = 12
+  ctx.shadowBlur = 22
   ctx.fill()
   ctx.shadowBlur = 0
-  ctx.strokeStyle = 'rgba(0,0,0,0.5)'
-  ctx.lineWidth = 1.2
+  // Inner lighter triangle for depth
+  ctx.beginPath()
+  ctx.moveTo(cx - 10, 4)
+  ctx.lineTo(cx + 10, 4)
+  ctx.lineTo(cx, 22)
+  ctx.closePath()
+  ctx.fillStyle = 'rgba(255,255,255,0.30)'
+  ctx.fill()
+  // Outline
+  ctx.beginPath()
+  ctx.moveTo(cx - 18, 0)
+  ctx.lineTo(cx + 18, 0)
+  ctx.lineTo(cx, 38)
+  ctx.closePath()
+  ctx.strokeStyle = 'rgba(0,0,0,0.40)'
+  ctx.lineWidth = 1.5
   ctx.stroke()
+  ctx.restore()
 }
 
 export default function DailySpinPage() {
@@ -239,7 +284,6 @@ export default function DailySpinPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const pokeballImgRef = useRef<HTMLImageElement | null>(null)
 
-  // Preload the pokeball logo image
   useEffect(() => {
     const img = new Image()
     img.src = '/logo.png'
@@ -262,7 +306,6 @@ export default function DailySpinPage() {
       .then((d) => { setSpinStatus(d); setLoading(false) })
   }, [session, authStatus])
 
-  // Redraw wheel when status (segments / theme) changes
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -274,14 +317,12 @@ export default function DailySpinPage() {
     drawMysteryWheel(canvas, ctx, wheelRef.current, segs, currentT, pokeballImgRef.current)
   }, [spinStatus])
 
-  // Live countdown
   useEffect(() => {
     setResetTimer(timeUntilReset())
     const id = setInterval(() => setResetTimer(timeUntilReset()), 30000)
     return () => clearInterval(id)
   }, [])
 
-  // Spin animation — canvas-based
   useEffect(() => {
     if (!spinning) return
     const currentT = getMysteryTheme(spinStatus?.mysteryWheelTheme ?? 'cosmic', spinStatus?.customMysteryColor ?? '#7C3AED')
@@ -325,7 +366,7 @@ export default function DailySpinPage() {
 
   if (authStatus === 'loading' || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#020208' }}>
         <div className="text-violet-400 text-2xl font-heading animate-pulse">LOADING...</div>
       </div>
     )
@@ -335,150 +376,230 @@ export default function DailySpinPage() {
   const t = getMysteryTheme(spinStatus?.mysteryWheelTheme ?? 'cosmic', spinStatus?.customMysteryColor ?? '#7C3AED')
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12 relative overflow-hidden">
-      {/* Space photo bg */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          backgroundImage: 'url(https://images.unsplash.com/photo-1502134249126-9f3755a50d78?auto=format&fit=crop&w=1920&q=80)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          opacity: 0.12,
-        }}
-      />
-      {/* Radial glow behind wheel */}
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12 relative overflow-hidden"
+      style={{ background: '#020208' }}>
+
+      {/* ── Nebula clouds ── */}
+      <div className="absolute inset-0 pointer-events-none" style={{
+        background: `
+          radial-gradient(ellipse 90% 70% at 10% 15%, rgba(139,92,246,0.18) 0%, transparent 55%),
+          radial-gradient(ellipse 80% 60% at 90% 80%, rgba(236,72,153,0.14) 0%, transparent 55%),
+          radial-gradient(ellipse 70% 80% at 80% 10%, rgba(6,182,212,0.10) 0%, transparent 55%),
+          radial-gradient(ellipse 60% 50% at 20% 85%, rgba(79,70,229,0.12) 0%, transparent 55%)
+        `,
+      }} />
+
+      {/* ── Star field overlay ── */}
+      <div className="absolute inset-0 pointer-events-none" style={{
+        backgroundImage: `
+          radial-gradient(1.5px 1.5px at 8% 18%, rgba(255,255,255,0.7) 0%, transparent 100%),
+          radial-gradient(1px 1px at 15% 42%, rgba(255,255,255,0.5) 0%, transparent 100%),
+          radial-gradient(1.5px 1.5px at 22% 7%, rgba(255,255,255,0.6) 0%, transparent 100%),
+          radial-gradient(1px 1px at 30% 65%, rgba(255,255,255,0.4) 0%, transparent 100%),
+          radial-gradient(1.5px 1.5px at 38% 30%, rgba(255,255,255,0.6) 0%, transparent 100%),
+          radial-gradient(1px 1px at 45% 80%, rgba(255,255,255,0.5) 0%, transparent 100%),
+          radial-gradient(1.5px 1.5px at 55% 12%, rgba(255,255,255,0.7) 0%, transparent 100%),
+          radial-gradient(1px 1px at 62% 55%, rgba(255,255,255,0.4) 0%, transparent 100%),
+          radial-gradient(1.5px 1.5px at 70% 35%, rgba(255,255,255,0.6) 0%, transparent 100%),
+          radial-gradient(1px 1px at 78% 70%, rgba(255,255,255,0.5) 0%, transparent 100%),
+          radial-gradient(1.5px 1.5px at 85% 22%, rgba(255,255,255,0.7) 0%, transparent 100%),
+          radial-gradient(1px 1px at 92% 48%, rgba(255,255,255,0.4) 0%, transparent 100%),
+          radial-gradient(1px 1px at 5% 60%, rgba(255,255,255,0.35) 0%, transparent 100%),
+          radial-gradient(1px 1px at 50% 50%, rgba(255,255,255,0.3) 0%, transparent 100%),
+          radial-gradient(1.5px 1.5px at 68% 88%, rgba(255,255,255,0.55) 0%, transparent 100%),
+          radial-gradient(1px 1px at 25% 95%, rgba(255,255,255,0.4) 0%, transparent 100%),
+          radial-gradient(1px 1px at 88% 5%, rgba(255,255,255,0.5) 0%, transparent 100%),
+          radial-gradient(1.5px 1.5px at 42% 15%, rgba(255,255,255,0.6) 0%, transparent 100%)
+        `,
+      }} />
+
+      {/* ── Radial glow behind wheel ── */}
       <div
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
         style={{
-          width: '600px', height: '600px',
+          width: '700px', height: '700px',
           borderRadius: '50%',
           background: spinning
-            ? `radial-gradient(circle, rgba(${t.a},0.25) 0%, transparent 65%)`
-            : `radial-gradient(circle, rgba(${t.a},0.10) 0%, transparent 65%)`,
+            ? `radial-gradient(circle, rgba(${t.a},0.28) 0%, rgba(${t.a},0.06) 45%, transparent 65%)`
+            : `radial-gradient(circle, rgba(${t.a},0.12) 0%, transparent 55%)`,
           transition: 'background 0.5s ease',
         }}
       />
 
-      {/* Header */}
-      <div className="relative text-center mb-8">
-        <p className="text-xs font-bold uppercase tracking-widest text-gold mb-2">Free Daily</p>
+      {/* ── Header ── */}
+      <div className="relative text-center mb-8 z-10">
+        <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: '#FFD700', letterSpacing: '0.25em' }}>
+          Free Daily
+        </p>
         <h1 className="text-5xl md:text-6xl font-heading text-white mb-3">
           COSMIC <span className="cosmic-gradient-text">SPIN</span>
         </h1>
-        <p className="text-gray-400 max-w-md mx-auto text-sm">
-          One free spin per day. One lucky spin wins the mystery gift. Resets at midnight Central.
+        <p className="text-gray-400 max-w-sm mx-auto text-sm leading-relaxed">
+          One free spin per day. One lucky spin wins the mystery gift.<br />Resets at midnight Central.
         </p>
       </div>
 
-      {/* Stats */}
+      {/* ── Stats (glassmorphism) ── */}
       {spinStatus && (
-        <div className="relative flex items-center gap-6 mb-8">
-          <div className="text-center">
+        <div className="relative z-10 flex items-center gap-3 mb-8">
+          <div
+            className="text-center px-6 py-3 rounded-xl"
+            style={{
+              background: 'rgba(255,255,255,0.04)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              border: '1px solid rgba(255,255,255,0.10)',
+              boxShadow: `0 0 20px rgba(${t.a},0.08)`,
+            }}
+          >
             <p className="text-3xl font-heading text-white">
               {Math.max(0, (spinStatus.spinsLimit ?? 1) - (spinStatus.spinsUsed ?? 0))}
             </p>
-            <p className="text-gray-500 text-xs uppercase tracking-wider">Spins Left</p>
+            <p className="text-gray-500 text-xs uppercase tracking-wider mt-0.5">Spins Left</p>
           </div>
-          <div className="h-10 w-px" style={{ background: `rgba(${t.a},0.4)` }} />
-          <div className="text-center">
-            <p className="text-3xl font-heading text-violet-400">{resetTimer}</p>
-            <p className="text-gray-500 text-xs uppercase tracking-wider">Until Reset</p>
+
+          <div className="h-10 w-px" style={{ background: `rgba(${t.a},0.35)` }} />
+
+          <div
+            className="text-center px-6 py-3 rounded-xl"
+            style={{
+              background: 'rgba(255,255,255,0.04)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              border: '1px solid rgba(255,255,255,0.10)',
+              boxShadow: `0 0 20px rgba(${t.a},0.08)`,
+            }}
+          >
+            <p className="text-3xl font-heading" style={{ color: `rgba(${t.a},1)` }}>{resetTimer}</p>
+            <p className="text-gray-500 text-xs uppercase tracking-wider mt-0.5">Until Reset</p>
           </div>
         </div>
       )}
 
       {/* ── Wheel (canvas) ── */}
       <div
-        className="relative mb-10"
+        className="relative z-10 mb-10"
         style={{
           filter: spinning
-            ? `drop-shadow(0 0 32px rgba(${t.a},0.8)) drop-shadow(0 0 14px rgba(${t.a},0.5))`
-            : `drop-shadow(0 0 10px rgba(${t.a},0.3))`,
+            ? `drop-shadow(0 0 40px rgba(${t.a},0.9)) drop-shadow(0 0 18px rgba(${t.a},0.6))`
+            : `drop-shadow(0 0 14px rgba(${t.a},0.35))`,
           transition: 'filter 0.5s ease',
         }}
       >
         <canvas
           ref={canvasRef}
-          style={{ width: '320px', height: '320px', maxWidth: '90vw', display: 'block', borderRadius: '50%' }}
+          style={{ width: '360px', height: '360px', maxWidth: '92vw', display: 'block', borderRadius: '50%' }}
         />
       </div>
 
-      {/* Action area */}
-      {!session?.user ? (
-        <div className="relative text-center space-y-4">
-          <p className="text-gray-400">Sign in to get your free daily spin.</p>
-          <button onClick={() => signIn()} className="btn-gold px-8 py-3">Sign In to Spin</button>
-        </div>
-      ) : result ? (
-        <div
-          className="relative rounded-2xl p-7 text-center max-w-sm w-full"
-          style={{
-            background: result.won ? 'rgba(124,58,237,0.08)' : 'rgba(10,10,24,0.85)',
-            border: `1px solid ${result.won ? 'rgba(167,139,250,0.4)' : 'rgba(124,58,237,0.2)'}`,
-            boxShadow: result.won ? '0 0 40px rgba(124,58,237,0.2)' : 'none',
-          }}
-        >
-          {result.won ? (
-            <>
-              <div className="text-6xl mb-4" style={{ filter: 'drop-shadow(0 0 12px rgba(255,215,0,0.8))' }}>🌟</div>
-              <p className="font-heading text-3xl mb-2 gold-gradient-text">YOU WON!</p>
-              <p className="text-gray-300 text-sm mb-5">A cosmic event just occurred — you were today&apos;s lucky spin!</p>
-              <div className="rounded-xl p-4 mb-4" style={{ background: 'rgba(255,215,0,0.06)', border: '1px solid rgba(255,215,0,0.2)' }}>
-                <p className="text-xs text-gray-400 uppercase tracking-wider mb-2">Your Mystery Gift</p>
+      {/* ── Action area ── */}
+      <div className="relative z-10 w-full max-w-sm flex flex-col items-center">
+        {!session?.user ? (
+          <div className="text-center space-y-4">
+            <p className="text-gray-400 text-sm">Sign in to get your free daily spin.</p>
+            <button onClick={() => signIn()} className="btn-gold px-10 py-3 text-base">
+              Sign In to Spin
+            </button>
+          </div>
+        ) : result ? (
+          <div
+            className="rounded-2xl p-7 text-center w-full"
+            style={{
+              background: result.won ? 'rgba(124,58,237,0.08)' : 'rgba(8,5,20,0.80)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: `1px solid ${result.won ? 'rgba(167,139,250,0.4)' : 'rgba(255,255,255,0.08)'}`,
+              boxShadow: result.won ? '0 0 50px rgba(124,58,237,0.25)' : '0 8px 32px rgba(0,0,0,0.5)',
+            }}
+          >
+            {result.won ? (
+              <>
+                <div className="text-6xl mb-4" style={{ filter: 'drop-shadow(0 0 16px rgba(255,215,0,0.9))' }}>🌟</div>
+                <p className="font-heading text-3xl mb-2 gold-gradient-text">YOU WON!</p>
+                <p className="text-gray-300 text-sm mb-5">A cosmic event just occurred — you were today&apos;s lucky spin!</p>
+                <div
+                  className="rounded-xl p-4 mb-4"
+                  style={{ background: 'rgba(255,215,0,0.06)', border: '1px solid rgba(255,215,0,0.22)' }}
+                >
+                  <p className="text-xs text-gray-400 uppercase tracking-wider mb-2">Your Mystery Gift</p>
+                  {spinStatus?.mysteryGiftImage && (
+                    <img src={spinStatus.mysteryGiftImage} alt="Mystery Gift" className="w-32 h-32 object-contain mx-auto mb-3 rounded-lg" referrerPolicy="no-referrer" />
+                  )}
+                  <p className="text-gold font-heading text-xl">{spinStatus?.mysteryGiftName}</p>
+                </div>
+                <p className="text-gray-500 text-xs">We&apos;ll reach out to ship your prize!</p>
+              </>
+            ) : (
+              <>
+                <div className="text-6xl mb-4" style={{ filter: `drop-shadow(0 0 10px rgba(${t.a},0.6))` }}>🪐</div>
+                <p className="font-heading text-2xl text-white mb-2">NOT THIS TIME</p>
+                <p className="text-gray-400 text-sm mb-5">The cosmos wasn&apos;t aligned today. Come back tomorrow!</p>
+                <div
+                  className="rounded-xl px-4 py-3"
+                  style={{ background: `rgba(${t.a},0.06)`, border: `1px solid rgba(${t.a},0.20)` }}
+                >
+                  <p className="text-gray-500 text-xs">Resets in <span className="font-semibold" style={{ color: `rgba(${t.a},1)` }}>{resetTimer}</span></p>
+                </div>
+              </>
+            )}
+          </div>
+        ) : alreadySpun ? (
+          <div
+            className="rounded-2xl p-7 text-center w-full"
+            style={{
+              background: 'rgba(8,5,20,0.80)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: `1px solid rgba(${t.a},0.22)`,
+              boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+            }}
+          >
+            {spinStatus?.won ? (
+              <>
+                <div className="text-6xl mb-3" style={{ filter: 'drop-shadow(0 0 14px rgba(255,215,0,0.9))' }}>🌟</div>
+                <p className="font-heading text-2xl gold-gradient-text mb-2">YOU WON TODAY!</p>
                 {spinStatus?.mysteryGiftImage && (
-                  <img src={spinStatus.mysteryGiftImage} alt="Mystery Gift" className="w-32 h-32 object-contain mx-auto mb-3 rounded-lg" referrerPolicy="no-referrer" />
+                  <img src={spinStatus.mysteryGiftImage} alt="Mystery Gift" className="w-24 h-24 object-contain mx-auto mb-3 rounded-lg" referrerPolicy="no-referrer" />
                 )}
-                <p className="text-gold font-heading text-xl">{spinStatus?.mysteryGiftName}</p>
-              </div>
-              <p className="text-gray-500 text-xs">We&apos;ll reach out to ship your prize!</p>
-            </>
-          ) : (
-            <>
-              <div className="text-6xl mb-4" style={{ filter: 'drop-shadow(0 0 8px rgba(124,58,237,0.5))' }}>🪐</div>
-              <p className="font-heading text-2xl text-white mb-2">NOT THIS TIME</p>
-              <p className="text-gray-400 text-sm mb-5">The cosmos wasn&apos;t aligned today. Come back tomorrow!</p>
-              <div className="rounded-xl px-4 py-3" style={{ background: 'rgba(124,58,237,0.06)', border: '1px solid rgba(124,58,237,0.2)' }}>
-                <p className="text-gray-500 text-xs">Resets in <span className="text-violet-300 font-semibold">{resetTimer}</span></p>
-              </div>
-            </>
-          )}
-        </div>
-      ) : alreadySpun ? (
-        <div
-          className="relative rounded-2xl p-7 text-center max-w-sm w-full"
-          style={{ background: 'rgba(10,10,24,0.85)', border: '1px solid rgba(124,58,237,0.2)' }}
-        >
-          {spinStatus?.won ? (
-            <>
-              <div className="text-6xl mb-3" style={{ filter: 'drop-shadow(0 0 12px rgba(255,215,0,0.8))' }}>🌟</div>
-              <p className="font-heading text-2xl gold-gradient-text mb-2">YOU WON TODAY!</p>
-              {spinStatus?.mysteryGiftImage && (
-                <img src={spinStatus.mysteryGiftImage} alt="Mystery Gift" className="w-24 h-24 object-contain mx-auto mb-3 rounded-lg" referrerPolicy="no-referrer" />
-              )}
-              <p className="text-gold font-semibold">{spinStatus?.mysteryGiftName}</p>
-            </>
-          ) : (
-            <>
-              <div className="text-5xl mb-3" style={{ filter: 'drop-shadow(0 0 8px rgba(124,58,237,0.5))' }}>🪐</div>
-              <p className="font-heading text-xl text-white mb-2">ALREADY SPUN TODAY</p>
-              <p className="text-gray-400 text-sm mb-3">Come back tomorrow — the cosmos resets at midnight Central.</p>
-              <p className="text-gray-500 text-xs">Resets in <span className="text-violet-300 font-semibold">{resetTimer}</span></p>
-            </>
-          )}
-        </div>
-      ) : (
-        <button
-          onClick={handleSpin}
-          disabled={spinning}
-          className="relative btn-gold text-lg px-12 py-4 disabled:opacity-60 disabled:cursor-not-allowed"
-          style={{ boxShadow: spinning ? '0 0 40px rgba(255,215,0,0.5), 0 0 80px rgba(124,58,237,0.3)' : undefined }}
-        >
-          {spinning ? '✨ SPINNING...' : '🪐 SPIN THE COSMOS'}
-        </button>
-      )}
+                <p className="text-gold font-semibold">{spinStatus?.mysteryGiftName}</p>
+              </>
+            ) : (
+              <>
+                <div className="text-5xl mb-3" style={{ filter: `drop-shadow(0 0 10px rgba(${t.a},0.6))` }}>🪐</div>
+                <p className="font-heading text-xl text-white mb-2">ALREADY SPUN TODAY</p>
+                <p className="text-gray-400 text-sm mb-3">Come back tomorrow — the cosmos resets at midnight Central.</p>
+                <p className="text-gray-500 text-xs">
+                  Resets in <span className="font-semibold" style={{ color: `rgba(${t.a},1)` }}>{resetTimer}</span>
+                </p>
+              </>
+            )}
+          </div>
+        ) : (
+          <button
+            onClick={handleSpin}
+            disabled={spinning}
+            className="w-full rounded-2xl py-5 font-heading text-xl tracking-widest disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-300"
+            style={{
+              background: spinning
+                ? `rgba(${t.a},0.15)`
+                : `linear-gradient(135deg, rgba(${t.a},0.25) 0%, rgba(${t.a},0.10) 100%)`,
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              border: `1px solid rgba(${t.a},0.45)`,
+              color: '#FFD700',
+              boxShadow: spinning
+                ? `0 0 50px rgba(${t.a},0.4), 0 0 100px rgba(${t.a},0.15)`
+                : `0 0 24px rgba(${t.a},0.20), 0 4px 16px rgba(0,0,0,0.4)`,
+              textShadow: '0 0 16px rgba(255,215,0,0.8)',
+            }}
+          >
+            {spinning ? '✨ SPINNING...' : '🪐 SPIN THE COSMOS'}
+          </button>
+        )}
+      </div>
 
       {spinStatus && !result && !alreadySpun && (
-        <div className="relative mt-8 text-center">
+        <div className="relative z-10 mt-8 text-center">
           <p className="text-gray-600 text-xs uppercase tracking-widest mb-1">Today&apos;s Mystery Gift</p>
           <p className="text-gray-500 text-sm">??? — Revealed to the winner only</p>
         </div>
