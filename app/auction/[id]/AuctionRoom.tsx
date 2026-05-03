@@ -64,11 +64,34 @@ const WHEEL_THEME_OPTIONS = [
   { id: 'custom', label: 'Custom',  rim: '#FFFFFF' },
 ]
 
+const DEFAULT_CUSTOM = { rim: '#FFD700', outer: '#0d0d1a', tierS: '#FF4500', tierA: '#FFD700', tierB: '#4488FF', tierC: '#44CC77' }
+
+function hexDarken(hex: string, f: number) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16)
+  const to = (v: number) => Math.max(0,Math.round(v*f)).toString(16).padStart(2,'0')
+  return `#${to(r)}${to(g)}${to(b)}`
+}
+function isLight(hex: string) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16)
+  return (r*299+g*587+b*114)/1000 > 128
+}
+function buildPalette(c: typeof DEFAULT_CUSTOM) {
+  const tier = (h: string) => ({ bg: h, alt: hexDarken(h,0.78), text: isLight(h)?'#1a1a1a':'#FFFFFF' })
+  return JSON.stringify({ rim:c.rim, outer:c.outer, pointer:c.rim, tiers:{ S:tier(c.tierS), A:tier(c.tierA), B:tier(c.tierB), C:tier(c.tierC), EXCLUDE:{bg:'#555577',alt:'#333355',text:'#AAAACC'} } })
+}
+function parsePalette(json: string): typeof DEFAULT_CUSTOM {
+  try { const p = JSON.parse(json); if (p.tiers) return { rim:p.rim??'#FFD700', outer:p.outer??'#0d0d1a', tierS:p.tiers.S?.bg??'#FF4500', tierA:p.tiers.A?.bg??'#FFD700', tierB:p.tiers.B?.bg??'#4488FF', tierC:p.tiers.C?.bg??'#44CC77' } } catch {}
+  return DEFAULT_CUSTOM
+}
+
 export default function AuctionRoom({ initialAuction, customWheelTheme = '{}' }: { initialAuction: AuctionData; customWheelTheme?: string }) {
   const { data: session } = useSession()
   const router = useRouter()
   const [auction, setAuction] = useState<AuctionData>(initialAuction)
   const [wheelThemeOverride, setWheelThemeOverride] = useState<string | null>(null)
+  const [customColors, setCustomColors] = useState(() => parsePalette(customWheelTheme))
+  const [liveCustomPalette, setLiveCustomPalette] = useState(customWheelTheme)
+  const [customSaving, setCustomSaving] = useState(false)
   const [showBuyModal, setShowBuyModal] = useState(false)
   const [spinning, setSpinning] = useState(false)
   const [myWin, setMyWin] = useState<WinResult | null>(null)
@@ -199,6 +222,22 @@ export default function AuctionRoom({ initialAuction, customWheelTheme = '{}' }:
     })
   }
 
+  const handleColorChange = (key: string, value: string) => {
+    const next = { ...customColors, [key]: value }
+    setCustomColors(next)
+    setLiveCustomPalette(buildPalette(next))
+  }
+
+  const saveCustomColors = async () => {
+    setCustomSaving(true)
+    await fetch('/api/admin/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ customWheelTheme: liveCustomPalette }),
+    })
+    setCustomSaving(false)
+  }
+
   const activeTheme = wheelThemeOverride ?? auction.wheelTheme ?? 'cosmic'
 
   // Find item by auctionItem id
@@ -269,7 +308,7 @@ export default function AuctionRoom({ initialAuction, customWheelTheme = '{}' }:
               spinning={spinning}
               winnerLabel={winnerLabel}
               theme={activeTheme}
-              customPalette={activeTheme === 'custom' ? customWheelTheme : undefined}
+              customPalette={activeTheme === 'custom' ? liveCustomPalette : undefined}
               onSpinComplete={() => setSpinning(false)}
             />
 
@@ -297,6 +336,41 @@ export default function AuctionRoom({ initialAuction, customWheelTheme = '{}' }:
                     </button>
                   ))}
                 </div>
+
+                {/* Custom color pickers — shown when Custom is active */}
+                {activeTheme === 'custom' && (
+                  <div className="mt-3 rounded-xl p-3 space-y-3" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(30,30,53,0.8)' }}>
+                    <p className="text-[10px] text-gray-500 uppercase tracking-wider">Custom Colors</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {([
+                        ['Rim', 'rim'],
+                        ['Outer', 'outer'],
+                        ['Tier S', 'tierS'],
+                        ['Tier A', 'tierA'],
+                        ['Tier B', 'tierB'],
+                        ['Tier C', 'tierC'],
+                      ] as [string, string][]).map(([label, key]) => (
+                        <div key={key} className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={customColors[key as keyof typeof customColors]}
+                            onChange={(e) => handleColorChange(key, e.target.value)}
+                            className="w-8 h-7 rounded cursor-pointer border-0 bg-transparent flex-shrink-0"
+                          />
+                          <span className="text-[10px] text-gray-400">{label}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      onClick={saveCustomColors}
+                      disabled={customSaving}
+                      className="w-full text-[11px] py-1.5 rounded-lg font-semibold disabled:opacity-50 transition-colors"
+                      style={{ background: 'rgba(124,58,237,0.2)', border: '1px solid rgba(124,58,237,0.4)', color: '#c4b5fd' }}
+                    >
+                      {customSaving ? 'Saving…' : 'Save Custom Colors'}
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
