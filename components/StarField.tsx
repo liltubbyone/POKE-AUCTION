@@ -82,7 +82,7 @@ export default function StarField() {
         />
       ))}
 
-      {/* Shooting stars — occasional, realistic comet style */}
+      {/* Shooting stars — occasional, vertical comet style */}
       {shootingStars.map((s, i) => (
         <div
           key={`ss-${i}`}
@@ -94,48 +94,51 @@ export default function StarField() {
             opacity: 0,
           }}
         >
-          {/* Tail — fades from transparent to bright at the head */}
-          <div style={{
-            width: `${s.length}px`,
-            height: '1.5px',
-            background: `linear-gradient(to right,
-              transparent 0%,
-              rgba(200,215,255,0.04) 15%,
-              rgba(200,215,255,0.2) 40%,
-              rgba(220,230,255,${0.55 * s.brightness}) 65%,
-              rgba(255,255,255,${0.85 * s.brightness}) 85%,
-              rgba(255,255,255,${s.brightness}) 100%
-            )`,
-          }} />
-          {/* Soft glow layer behind the tail */}
-          <div style={{
-            position: 'absolute',
-            top: '-2px',
-            left: '30%',
-            right: 0,
-            height: '5px',
-            background: `linear-gradient(to right,
-              transparent,
-              rgba(180,200,255,${0.12 * s.brightness}) 50%,
-              rgba(200,220,255,${0.3 * s.brightness}) 100%
-            )`,
-            filter: 'blur(2px)',
-          }} />
-          {/* Bright head — glowing dot at the leading tip */}
-          <div style={{
-            position: 'absolute',
-            right: '-3px',
-            top: '-3px',
-            width: '7px',
-            height: '7px',
-            borderRadius: '50%',
-            background: `radial-gradient(circle, rgba(255,255,255,${s.brightness}) 15%, rgba(200,220,255,0.7) 55%, transparent 100%)`,
-            boxShadow: `
-              0 0 4px 1px rgba(220,230,255,${0.8 * s.brightness}),
-              0 0 10px 3px rgba(180,200,255,${0.5 * s.brightness}),
-              0 0 20px 6px rgba(160,180,255,${0.2 * s.brightness})
-            `,
-          }} />
+          {/* Inner wrapper — slight natural tilt */}
+          <div style={{ transform: 'rotate(15deg)', transformOrigin: 'bottom center' }}>
+            {/* Tail — vertical, transparent at top fading to bright at bottom (head) */}
+            <div style={{
+              width: '1.5px',
+              height: `${s.length}px`,
+              background: `linear-gradient(to bottom,
+                transparent 0%,
+                rgba(200,215,255,0.04) 15%,
+                rgba(200,215,255,0.2) 40%,
+                rgba(220,230,255,${0.55 * s.brightness}) 65%,
+                rgba(255,255,255,${0.85 * s.brightness}) 85%,
+                rgba(255,255,255,${s.brightness}) 100%
+              )`,
+            }} />
+            {/* Soft glow along tail */}
+            <div style={{
+              position: 'absolute',
+              top: '30%',
+              bottom: 0,
+              left: '-2px',
+              width: '5px',
+              background: `linear-gradient(to bottom,
+                transparent,
+                rgba(180,200,255,${0.12 * s.brightness}) 50%,
+                rgba(200,220,255,${0.3 * s.brightness}) 100%
+              )`,
+              filter: 'blur(2px)',
+            }} />
+            {/* Bright head — glowing dot at the leading tip (bottom) */}
+            <div style={{
+              position: 'absolute',
+              bottom: '-4px',
+              left: '-3px',
+              width: '7px',
+              height: '7px',
+              borderRadius: '50%',
+              background: `radial-gradient(circle, rgba(255,255,255,${s.brightness}) 15%, rgba(200,220,255,0.7) 55%, transparent 100%)`,
+              boxShadow: `
+                0 0 4px 1px rgba(220,230,255,${0.8 * s.brightness}),
+                0 0 10px 3px rgba(180,200,255,${0.5 * s.brightness}),
+                0 0 20px 6px rgba(160,180,255,${0.2 * s.brightness})
+              `,
+            }} />
+          </div>
         </div>
       ))}
     </div>

@@ -318,30 +318,30 @@ a {
   /* Silent for ~88% of the cycle */
   0%, 87% {
     opacity: 0;
-    transform: translateX(0) translateY(0) rotate(-38deg);
+    transform: translateY(0) translateX(0);
   }
-  /* Quick bright flash as it enters */
+  /* Flash in */
   88% {
     opacity: 0;
-    transform: translateX(5px) translateY(3px) rotate(-38deg);
+    transform: translateY(5px) translateX(3px);
   }
   89.5% {
     opacity: 1;
-    transform: translateX(20px) translateY(12px) rotate(-38deg);
+    transform: translateY(22px) translateX(12px);
   }
-  /* Travel across at speed */
+  /* Fall down */
   94% {
     opacity: 0.9;
-    transform: translateX(220px) translateY(130px) rotate(-38deg);
+    transform: translateY(200px) translateX(80px);
   }
-  /* Fade out as it exits */
+  /* Fade out */
   97% {
     opacity: 0;
-    transform: translateX(340px) translateY(200px) rotate(-38deg);
+    transform: translateY(320px) translateX(120px);
   }
   100% {
     opacity: 0;
-    transform: translateX(360px) translateY(210px) rotate(-38deg);
+    transform: translateY(340px) translateX(130px);
   }
 }
 
