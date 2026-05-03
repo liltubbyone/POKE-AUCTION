@@ -274,7 +274,7 @@ export default function AuctionRoom({ initialAuction, customWheelTheme = '{}' }:
             />
 
             {/* Admin: live theme switcher */}
-            {session?.user.isAdmin && (
+            {session?.user?.isAdmin && (
               <div className="mt-3 w-full">
                 <p className="text-[10px] text-gray-600 uppercase tracking-widest mb-1.5 text-center">Wheel Theme</p>
                 <div className="flex gap-1.5 justify-center flex-wrap">
