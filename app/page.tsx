@@ -6,9 +6,9 @@ import AuctionCard from '@/components/AuctionCard'
 import TrustBanner from '@/components/TrustBanner'
 import RecentWinnerFeed from '@/components/RecentWinnerFeed'
 
-async function getActiveAuctions() {
+async function getActiveByCategory(category: string) {
   return prisma.auction.findMany({
-    where: { status: { in: ['active', 'spinning'] }, category: { not: 'game' } },
+    where: { status: { in: ['active', 'spinning'] }, category },
     include: {
       items: { include: { item: true } },
       spots: { where: { paid: true } },
@@ -103,7 +103,12 @@ const trustItems = [
 ]
 
 export default async function HomePage() {
-  const [auctions, completedAuctions] = await Promise.all([getActiveAuctions(), getCompletedAuctions()])
+  const [games, raffles, giveaways, completedAuctions] = await Promise.all([
+    getActiveByCategory('game'),
+    getActiveByCategory('raffle'),
+    getActiveByCategory('giveaway'),
+    getCompletedAuctions(),
+  ])
 
   return (
     <div>
@@ -263,55 +268,108 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── Active Auctions ── */}
-      <section id="active-auctions" className="py-20" style={{ background: 'rgba(13,13,26,0.4)' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-end justify-between mb-10">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-gold mb-2">Live Now</p>
-              <h2 className="section-title">Active Games</h2>
-              <p className="text-gray-500 mt-1 text-sm">Secure your spot before they sell out.</p>
-            </div>
-            {auctions.length > 0 && (
-              <div
-                className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide"
-                style={{
-                  color: '#4ade80',
-                  background: 'rgba(74,222,128,0.08)',
-                  border: '1px solid rgba(74,222,128,0.2)',
-                }}
-              >
-                <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-                {auctions.length} Live
+      {/* ── Active Games ── */}
+      {games.length > 0 && (
+        <section id="active-games" className="py-20" style={{ background: 'rgba(13,13,26,0.4)' }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-end justify-between mb-10">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: '#06B6D4' }}>Active Now</p>
+                <h2 className="section-title">Games</h2>
+                <p className="text-gray-500 mt-1 text-sm">Join a live game before spots fill up.</p>
               </div>
-            )}
-          </div>
-
-          {auctions.length > 0 ? (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide"
+                style={{ color: '#06B6D4', background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.2)' }}>
+                <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#06B6D4' }} />
+                {games.length} Live
+              </div>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {auctions.map((auction) => (
+              {games.map((auction) => (
                 <AuctionCard key={auction.id} auction={auction} />
               ))}
             </div>
-          ) : (
-            <div
-              className="rounded-2xl py-20 text-center"
-              style={{ background: 'rgba(13,13,26,0.8)', border: '1px solid rgba(30,30,53,0.8)' }}
-            >
-              <div
-                className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5"
-                style={{ background: 'rgba(255,215,0,0.07)', border: '1px solid rgba(255,215,0,0.12)' }}
-              >
+            <div className="mt-8 text-center">
+              <Link href="/games" className="btn-outline text-sm px-6 py-2.5">View All Games →</Link>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── Active Raffles ── */}
+      {raffles.length > 0 && (
+        <section id="active-raffles" className="py-20" style={{ background: 'rgba(10,10,20,0.5)' }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-end justify-between mb-10">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: '#a78bfa' }}>Active Now</p>
+                <h2 className="section-title">Raffles</h2>
+                <p className="text-gray-500 mt-1 text-sm">Buy a spot — wheel spins when all are filled.</p>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide"
+                style={{ color: '#a78bfa', background: 'rgba(124,58,237,0.08)', border: '1px solid rgba(124,58,237,0.2)' }}>
+                <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#a78bfa' }} />
+                {raffles.length} Live
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {raffles.map((auction) => (
+                <AuctionCard key={auction.id} auction={auction} />
+              ))}
+            </div>
+            <div className="mt-8 text-center">
+              <Link href="/auctions" className="btn-outline text-sm px-6 py-2.5">View All Raffles →</Link>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── Active Giveaways ── */}
+      {giveaways.length > 0 && (
+        <section id="active-giveaways" className="py-20" style={{ background: 'rgba(13,13,26,0.4)' }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-end justify-between mb-10">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: '#FFD700' }}>Active Now</p>
+                <h2 className="section-title">Giveaways</h2>
+                <p className="text-gray-500 mt-1 text-sm">Free entry — just show up and claim.</p>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide"
+                style={{ color: '#FFD700', background: 'rgba(255,215,0,0.08)', border: '1px solid rgba(255,215,0,0.2)' }}>
+                <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#FFD700' }} />
+                {giveaways.length} Live
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {giveaways.map((auction) => (
+                <AuctionCard key={auction.id} auction={auction} />
+              ))}
+            </div>
+            <div className="mt-8 text-center">
+              <Link href="/giveaways" className="btn-outline text-sm px-6 py-2.5">View All Giveaways →</Link>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Empty state — shown only when nothing is active */}
+      {games.length === 0 && raffles.length === 0 && giveaways.length === 0 && (
+        <section id="active-auctions" className="py-20" style={{ background: 'rgba(13,13,26,0.4)' }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="rounded-2xl py-20 text-center"
+              style={{ background: 'rgba(13,13,26,0.8)', border: '1px solid rgba(30,30,53,0.8)' }}>
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5"
+                style={{ background: 'rgba(255,215,0,0.07)', border: '1px solid rgba(255,215,0,0.12)' }}>
                 <svg className="w-8 h-8 text-gold opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h3 className="text-2xl font-heading text-gray-400 mb-2">No Active Games</h3>
-              <p className="text-gray-600 text-sm">Check back soon — new games drop regularly.</p>
+              <h3 className="text-2xl font-heading text-gray-400 mb-2">Nothing Active Right Now</h3>
+              <p className="text-gray-600 text-sm">Check back soon — new drops happen regularly.</p>
             </div>
-          )}
-        </div>
-      </section>
+          </div>
+        </section>
+      )}
 
       <div className="glow-line" />
 
