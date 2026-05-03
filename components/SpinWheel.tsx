@@ -19,55 +19,69 @@ interface SpinWheelProps {
 
 type TierPalette = Record<string, { bg: string; alt: string; text: string }>
 
+// Space/galaxy aesthetic — segments use radial gradients, rim glows neon
 const THEMES: Record<string, { rim: string; outer: string; pointer: string; tiers: TierPalette }> = {
   cosmic: {
-    rim: '#FFD700',
-    outer: '#0d0d1a',
+    rim: '#8B5CF6',
+    outer: '#03030F',
     pointer: '#FFD700',
     tiers: {
-      S: { bg: '#FF4500', alt: '#FF6B35', text: '#FFFFFF' },
-      A: { bg: '#FFD700', alt: '#FFC200', text: '#1a1a00' },
-      B: { bg: '#4488FF', alt: '#2266DD', text: '#FFFFFF' },
-      C: { bg: '#44CC77', alt: '#229955', text: '#FFFFFF' },
-      EXCLUDE: { bg: '#555577', alt: '#333355', text: '#AAAACC' },
+      S: { bg: '#C88A0A', alt: '#7A5205', text: '#FFFFFF' },
+      A: { bg: '#1A4D72', alt: '#0F3050', text: '#FFFFFF' },
+      B: { bg: '#0E3B55', alt: '#092839', text: '#FFFFFF' },
+      C: { bg: '#0C2D46', alt: '#081E30', text: '#FFFFFF' },
+      EXCLUDE: { bg: '#1A1A3A', alt: '#101028', text: '#666688' },
     },
   },
   galaxy: {
     rim: '#A855F7',
-    outer: '#0a0018',
+    outer: '#02020E',
     pointer: '#A855F7',
     tiers: {
-      S: { bg: '#7C3AED', alt: '#5B21B6', text: '#FFFFFF' },
-      A: { bg: '#06B6D4', alt: '#0891B2', text: '#FFFFFF' },
-      B: { bg: '#3B82F6', alt: '#2563EB', text: '#FFFFFF' },
-      C: { bg: '#8B5CF6', alt: '#6D28D9', text: '#FFFFFF' },
-      EXCLUDE: { bg: '#2d1a4a', alt: '#1a0f30', text: '#8877AA' },
+      S: { bg: '#7C3AED', alt: '#4C1D95', text: '#FFFFFF' },
+      A: { bg: '#1E3A8A', alt: '#122060', text: '#FFFFFF' },
+      B: { bg: '#1D4ED8', alt: '#1034A8', text: '#FFFFFF' },
+      C: { bg: '#0C2780', alt: '#081860', text: '#FFFFFF' },
+      EXCLUDE: { bg: '#1E1B4B', alt: '#141233', text: '#8877AA' },
     },
   },
   solar: {
     rim: '#F97316',
-    outer: '#150700',
+    outer: '#0A0300',
     pointer: '#F97316',
     tiers: {
-      S: { bg: '#DC2626', alt: '#B91C1C', text: '#FFFFFF' },
-      A: { bg: '#F97316', alt: '#EA580C', text: '#FFFFFF' },
-      B: { bg: '#EAB308', alt: '#CA8A04', text: '#1a1400' },
-      C: { bg: '#FB923C', alt: '#F97316', text: '#FFFFFF' },
-      EXCLUDE: { bg: '#4a2a10', alt: '#30190a', text: '#AA8855' },
+      S: { bg: '#DC2626', alt: '#7F1D1D', text: '#FFFFFF' },
+      A: { bg: '#C2410C', alt: '#7C2D12', text: '#FFFFFF' },
+      B: { bg: '#B45309', alt: '#6B2E0B', text: '#FFFFFF' },
+      C: { bg: '#92400E', alt: '#4D2106', text: '#FFFFFF' },
+      EXCLUDE: { bg: '#2C1810', alt: '#1A0F08', text: '#AA8855' },
     },
   },
   nebula: {
     rim: '#22D3EE',
-    outer: '#000d1a',
+    outer: '#02080A',
     pointer: '#22D3EE',
     tiers: {
-      S: { bg: '#EC4899', alt: '#DB2777', text: '#FFFFFF' },
-      A: { bg: '#10B981', alt: '#059669', text: '#FFFFFF' },
-      B: { bg: '#3B82F6', alt: '#2563EB', text: '#FFFFFF' },
-      C: { bg: '#06B6D4', alt: '#0891B2', text: '#FFFFFF' },
-      EXCLUDE: { bg: '#1a2040', alt: '#0d1428', text: '#6688BB' },
+      S: { bg: '#BE185D', alt: '#6D1040', text: '#FFFFFF' },
+      A: { bg: '#0F766E', alt: '#084040', text: '#FFFFFF' },
+      B: { bg: '#1D4ED8', alt: '#0F2880', text: '#FFFFFF' },
+      C: { bg: '#0C4A6E', alt: '#06253A', text: '#FFFFFF' },
+      EXCLUDE: { bg: '#0A1A22', alt: '#050E14', text: '#6688BB' },
     },
   },
+}
+
+function hexDarken(hex: string, factor: number): string {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  const to = (v: number) => Math.max(0, Math.round(v * factor)).toString(16).padStart(2, '0')
+  return `#${to(r)}${to(g)}${to(b)}`
+}
+
+function hexToRgb(hex: string): string {
+  const h = hex.replace('#', '')
+  return `${parseInt(h.slice(0, 2), 16)},${parseInt(h.slice(2, 4), 16)},${parseInt(h.slice(4, 6), 16)}`
 }
 
 function getTheme(theme?: string, customPalette?: string) {
@@ -101,12 +115,10 @@ export default function SpinWheel({ segments, spinning, onSpinComplete, winnerLa
     if (!ctx) return
 
     const palette = getTheme(theme, customPalette)
+    const rimRgb = hexToRgb(palette.rim)
 
     const dpr = window.devicePixelRatio || 1
     const cssSize = 400
-
-    // Always resize to physical pixels and reset the transform.
-    // React's width/height props reset the canvas on re-render, wiping the scale.
     canvas.width = cssSize * dpr
     canvas.height = cssSize * dpr
     canvas.style.width = `${cssSize}px`
@@ -116,78 +128,116 @@ export default function SpinWheel({ segments, spinning, onSpinComplete, winnerLa
     const size = cssSize
     const cx = size / 2
     const cy = size / 2
-    const radius = size / 2 - 16
+    const rimR = size / 2 - 10   // where the neon rim sits
+    const radius = rimR - 3      // segment outer edge (just inside rim)
     const n = expanded.length
     const arc = (2 * Math.PI) / n
 
     ctx.clearRect(0, 0, size, size)
 
-    // Outer dark ring
+    // ── 1. Deep space background ──
+    const bgGrad = ctx.createRadialGradient(cx, cy * 0.7, 0, cx, cy, rimR)
+    bgGrad.addColorStop(0, '#0a0a20')
+    bgGrad.addColorStop(1, palette.outer)
     ctx.beginPath()
-    ctx.arc(cx, cy, radius + 14, 0, 2 * Math.PI)
-    ctx.fillStyle = palette.outer
+    ctx.arc(cx, cy, rimR, 0, 2 * Math.PI)
+    ctx.fillStyle = bgGrad
     ctx.fill()
 
-    // Themed rim
-    ctx.beginPath()
-    ctx.arc(cx, cy, radius + 14, 0, 2 * Math.PI)
-    ctx.strokeStyle = palette.rim
-    ctx.lineWidth = 4
-    ctx.stroke()
-
-    // Segments
+    // ── 2. Segments with galaxy radial gradient ──
     for (let i = 0; i < n; i++) {
       const start = rotation + i * arc
       const end = start + arc
       const seg = expanded[i]
       const pal = getPalette(seg.tier, palette.tiers)
-      const fill = i % 2 === 0 ? pal.bg : pal.alt
+      const baseColor = i % 2 === 0 ? pal.bg : pal.alt
+
+      // Radial gradient: very dark at center → vivid color at outer rim
+      const grad = ctx.createRadialGradient(cx, cy, radius * 0.1, cx, cy, radius)
+      grad.addColorStop(0,    hexDarken(baseColor, 0.35))
+      grad.addColorStop(0.45, hexDarken(baseColor, 0.60))
+      grad.addColorStop(1,    baseColor)
 
       ctx.beginPath()
       ctx.moveTo(cx, cy)
       ctx.arc(cx, cy, radius, start, end)
       ctx.closePath()
-      ctx.fillStyle = fill
+      ctx.fillStyle = grad
       ctx.fill()
 
-      // Divider
+      // Divider line (soft white)
       ctx.beginPath()
       ctx.moveTo(cx, cy)
       ctx.lineTo(cx + radius * Math.cos(start), cy + radius * Math.sin(start))
-      ctx.strokeStyle = 'rgba(0,0,0,0.55)'
-      ctx.lineWidth = 1.5
+      ctx.strokeStyle = 'rgba(255,255,255,0.20)'
+      ctx.lineWidth = 1
       ctx.stroke()
 
-      // Rim dot
-      const dotAngle = start + arc / 2
-      const dotDist = radius - 11
+      // White dot near outer edge of each segment
+      const midAngle = start + arc / 2
+      const dotDist = radius - 13
       ctx.beginPath()
-      ctx.arc(cx + dotDist * Math.cos(dotAngle), cy + dotDist * Math.sin(dotAngle), 4, 0, 2 * Math.PI)
-      ctx.fillStyle = 'rgba(255,255,255,0.22)'
+      ctx.arc(
+        cx + dotDist * Math.cos(midAngle),
+        cy + dotDist * Math.sin(midAngle),
+        3.5, 0, 2 * Math.PI
+      )
+      ctx.fillStyle = 'rgba(255,255,255,0.65)'
+      ctx.shadowColor = 'rgba(255,255,255,0.5)'
+      ctx.shadowBlur = 5
       ctx.fill()
+      ctx.shadowBlur = 0
 
       // Label
       ctx.save()
       ctx.translate(cx, cy)
       ctx.rotate(start + arc / 2)
       ctx.textAlign = 'right'
-      const fs = Math.max(9, Math.min(14, 320 / n))
+      const fs = Math.max(8, Math.min(13, 290 / n))
       ctx.font = `700 ${fs}px Arial, sans-serif`
-      ctx.fillStyle = pal.text
-      ctx.shadowColor = 'transparent'
-      ctx.shadowBlur = 0
+      ctx.fillStyle = '#FFFFFF'
+      ctx.shadowColor = 'rgba(0,0,0,0.9)'
+      ctx.shadowBlur = 5
       const label = seg.label.length > 13 ? seg.label.slice(0, 12) + '\u2026' : seg.label
       ctx.fillText(label, radius - 18, fs / 3)
+      ctx.shadowBlur = 0
       ctx.restore()
     }
 
-    // Pokeball center
+    // ── 3. Neon glowing rim (multiple glow passes) ──
+    const glowLayers = [
+      { lw: 24, alpha: 0.04 },
+      { lw: 16, alpha: 0.08 },
+      { lw: 10, alpha: 0.16 },
+      { lw: 5,  alpha: 0.30 },
+    ]
+    for (const { lw, alpha } of glowLayers) {
+      ctx.beginPath()
+      ctx.arc(cx, cy, rimR, 0, 2 * Math.PI)
+      ctx.strokeStyle = `rgba(${rimRgb},${alpha})`
+      ctx.lineWidth = lw
+      ctx.stroke()
+    }
+    // Bright rim line
+    ctx.beginPath()
+    ctx.arc(cx, cy, rimR, 0, 2 * Math.PI)
+    ctx.strokeStyle = palette.rim
+    ctx.lineWidth = 2.5
+    ctx.shadowColor = palette.rim
+    ctx.shadowBlur = 16
+    ctx.stroke()
+    ctx.shadowBlur = 0
+
+    // ── 4. Pokeball center ──
     const cr = 34
     // White base
     ctx.beginPath()
     ctx.arc(cx, cy, cr, 0, 2 * Math.PI)
     ctx.fillStyle = '#FFFFFF'
+    ctx.shadowColor = 'rgba(0,0,0,0.6)'
+    ctx.shadowBlur = 8
     ctx.fill()
+    ctx.shadowBlur = 0
     // Red top half
     ctx.beginPath()
     ctx.arc(cx, cy, cr, Math.PI, 2 * Math.PI)
@@ -213,21 +263,21 @@ export default function SpinWheel({ segments, spinning, onSpinComplete, winnerLa
     // Shine
     ctx.beginPath()
     ctx.arc(cx + 4, cy - 9, 4, 0, 2 * Math.PI)
-    ctx.fillStyle = 'rgba(255,255,255,0.5)'
+    ctx.fillStyle = 'rgba(255,255,255,0.55)'
     ctx.fill()
 
-    // Arrow pointer at top
+    // ── 5. Gold pointer triangle ──
     ctx.beginPath()
-    ctx.moveTo(cx - 14, 1)
-    ctx.lineTo(cx + 14, 1)
-    ctx.lineTo(cx, 30)
+    ctx.moveTo(cx - 15, 4)
+    ctx.lineTo(cx + 15, 4)
+    ctx.lineTo(cx, 32)
     ctx.closePath()
     ctx.fillStyle = palette.pointer
     ctx.shadowColor = palette.pointer
     ctx.shadowBlur = 14
     ctx.fill()
     ctx.shadowBlur = 0
-    ctx.strokeStyle = '#000000'
+    ctx.strokeStyle = 'rgba(0,0,0,0.55)'
     ctx.lineWidth = 1.5
     ctx.stroke()
   }
@@ -244,10 +294,8 @@ export default function SpinWheel({ segments, spinning, onSpinComplete, winnerLa
     const arc = (2 * Math.PI) / n
     const startRot = rotationRef.current
 
-    // Find which segment the server actually picked so the wheel lands on it
     let totalRot: number
     if (winnerLabel && n > 0) {
-      // Find all indices matching the winner (item may appear multiple times)
       const matchingIndices = expanded
         .map((seg, i) => (seg.label === winnerLabel ? i : -1))
         .filter((i) => i >= 0)
@@ -256,14 +304,9 @@ export default function SpinWheel({ segments, spinning, onSpinComplete, winnerLa
           ? matchingIndices[Math.floor(Math.random() * matchingIndices.length)]
           : Math.floor(Math.random() * n)
 
-      // Pointer is at the top of canvas = angle -π/2 in canvas coords.
-      // Center of segment i is at: rotation + i*arc + arc/2
-      // We need: finalRotation + targetIndex*arc + arc/2 ≡ -π/2 (mod 2π)
       const pointerAngle = -Math.PI / 2
       const targetFinalRot = pointerAngle - targetIndex * arc - arc / 2
-      // How much extra rotation needed from startRot to reach targetFinalRot
       const delta = ((targetFinalRot - startRot) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI)
-      // Add at least 10 full rotations so it looks like a real spin
       totalRot = delta + Math.PI * 2 * 10
     } else {
       totalRot = Math.PI * 2 * 10 + Math.random() * Math.PI * 2
@@ -299,12 +342,14 @@ export default function SpinWheel({ segments, spinning, onSpinComplete, winnerLa
     )
   }
 
+  const palette = getTheme(theme, customPalette)
+
   return (
     <div className="flex flex-col items-center">
       <div style={{
         filter: spinning
-          ? 'drop-shadow(0 0 28px #FFD700) drop-shadow(0 0 8px #FF4500)'
-          : 'drop-shadow(0 0 8px rgba(255,215,0,0.25))',
+          ? `drop-shadow(0 0 32px ${palette.rim}) drop-shadow(0 0 14px ${palette.rim})`
+          : `drop-shadow(0 0 10px ${palette.rim}55)`,
         transition: 'filter 0.4s ease',
       }}>
         <canvas
