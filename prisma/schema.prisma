@@ -46,6 +46,7 @@ model Auction {
   spotPrice   Float
   totalSpots  Int
   spinSeed     String?
+  wheelTheme   String        @default("cosmic")
   shippingRate Float         @default(8.0)
   createdAt    DateTime      @default(now())
   completedAt  DateTime?

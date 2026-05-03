@@ -43,6 +43,7 @@ interface AuctionData {
   totalSpots: number
   shippingRate: number
   spinSeed: string | null
+  wheelTheme: string | null
   createdAt: string
   completedAt: string | null
   items: AuctionItem[]
@@ -247,6 +248,7 @@ export default function AuctionRoom({ initialAuction }: { initialAuction: Auctio
               segments={wheelSegments}
               spinning={spinning}
               winnerLabel={winnerLabel}
+              theme={auction.wheelTheme ?? 'cosmic'}
               onSpinComplete={() => {
                 setSpinning(false)
               }}

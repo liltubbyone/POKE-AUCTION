@@ -33,6 +33,7 @@ export default function CreateAuctionPage() {
   const [expiresInDays, setExpiresInDays] = useState<number | null>(7)
   const [selectedItems, setSelectedItems] = useState<AuctionItemEntry[]>([])
   const [category, setCategory] = useState('raffle')
+  const [wheelTheme, setWheelTheme] = useState('cosmic')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -97,6 +98,7 @@ export default function CreateAuctionPage() {
         name,
         description,
         category,
+        wheelTheme,
         spotPrice,
         shippingRate,
         totalSpots,
@@ -171,6 +173,43 @@ export default function CreateAuctionPage() {
                     <option value="game">Game</option>
                     <option value="giveaway">Giveaway</option>
                   </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wider font-semibold">
+                    Spin Wheel Theme
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { id: 'cosmic',  label: 'Cosmic',          desc: 'Gold & classic tier colors',    rim: '#FFD700' },
+                      { id: 'galaxy',  label: 'Galaxy Explorer', desc: 'Deep purples & electric blues', rim: '#A855F7' },
+                      { id: 'solar',   label: 'Solar System',    desc: 'Warm oranges, reds & amber',    rim: '#F97316' },
+                      { id: 'nebula',  label: 'Nebula Storm',    desc: 'Cyan, pink & electric hues',    rim: '#22D3EE' },
+                    ].map((t) => (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => setWheelTheme(t.id)}
+                        className="rounded-xl p-3 text-left transition-all duration-200"
+                        style={{
+                          background: wheelTheme === t.id ? 'rgba(124,58,237,0.12)' : 'rgba(255,255,255,0.02)',
+                          border: wheelTheme === t.id ? '1px solid rgba(124,58,237,0.5)' : '1px solid rgba(30,30,53,0.8)',
+                        }}
+                      >
+                        <div className="flex items-center gap-2 mb-1">
+                          <span
+                            className="w-3 h-3 rounded-full flex-shrink-0"
+                            style={{ background: t.rim, boxShadow: `0 0 6px ${t.rim}` }}
+                          />
+                          <span className="text-sm text-white font-semibold">{t.label}</span>
+                          {wheelTheme === t.id && (
+                            <span className="ml-auto text-[10px] font-bold text-violet-400">Active</span>
+                          )}
+                        </div>
+                        <p className="text-gray-500 text-xs">{t.desc}</p>
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <div>

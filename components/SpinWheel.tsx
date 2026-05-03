@@ -13,21 +13,71 @@ interface SpinWheelProps {
   spinning: boolean
   onSpinComplete?: () => void
   winnerLabel?: string | null
+  theme?: string
 }
 
-const TIER_COLORS: Record<string, { bg: string; alt: string; text: string }> = {
-  S: { bg: '#FF4500', alt: '#FF6B35', text: '#FFFFFF' },
-  A: { bg: '#FFD700', alt: '#FFC200', text: '#1a1a00' },
-  B: { bg: '#4488FF', alt: '#2266DD', text: '#FFFFFF' },
-  C: { bg: '#44CC77', alt: '#229955', text: '#FFFFFF' },
-  EXCLUDE: { bg: '#555577', alt: '#333355', text: '#AAAACC' },
+type TierPalette = Record<string, { bg: string; alt: string; text: string }>
+
+const THEMES: Record<string, { rim: string; outer: string; pointer: string; tiers: TierPalette }> = {
+  cosmic: {
+    rim: '#FFD700',
+    outer: '#0d0d1a',
+    pointer: '#FFD700',
+    tiers: {
+      S: { bg: '#FF4500', alt: '#FF6B35', text: '#FFFFFF' },
+      A: { bg: '#FFD700', alt: '#FFC200', text: '#1a1a00' },
+      B: { bg: '#4488FF', alt: '#2266DD', text: '#FFFFFF' },
+      C: { bg: '#44CC77', alt: '#229955', text: '#FFFFFF' },
+      EXCLUDE: { bg: '#555577', alt: '#333355', text: '#AAAACC' },
+    },
+  },
+  galaxy: {
+    rim: '#A855F7',
+    outer: '#0a0018',
+    pointer: '#A855F7',
+    tiers: {
+      S: { bg: '#7C3AED', alt: '#5B21B6', text: '#FFFFFF' },
+      A: { bg: '#06B6D4', alt: '#0891B2', text: '#FFFFFF' },
+      B: { bg: '#3B82F6', alt: '#2563EB', text: '#FFFFFF' },
+      C: { bg: '#8B5CF6', alt: '#6D28D9', text: '#FFFFFF' },
+      EXCLUDE: { bg: '#2d1a4a', alt: '#1a0f30', text: '#8877AA' },
+    },
+  },
+  solar: {
+    rim: '#F97316',
+    outer: '#150700',
+    pointer: '#F97316',
+    tiers: {
+      S: { bg: '#DC2626', alt: '#B91C1C', text: '#FFFFFF' },
+      A: { bg: '#F97316', alt: '#EA580C', text: '#FFFFFF' },
+      B: { bg: '#EAB308', alt: '#CA8A04', text: '#1a1400' },
+      C: { bg: '#FB923C', alt: '#F97316', text: '#FFFFFF' },
+      EXCLUDE: { bg: '#4a2a10', alt: '#30190a', text: '#AA8855' },
+    },
+  },
+  nebula: {
+    rim: '#22D3EE',
+    outer: '#000d1a',
+    pointer: '#22D3EE',
+    tiers: {
+      S: { bg: '#EC4899', alt: '#DB2777', text: '#FFFFFF' },
+      A: { bg: '#10B981', alt: '#059669', text: '#FFFFFF' },
+      B: { bg: '#3B82F6', alt: '#2563EB', text: '#FFFFFF' },
+      C: { bg: '#06B6D4', alt: '#0891B2', text: '#FFFFFF' },
+      EXCLUDE: { bg: '#1a2040', alt: '#0d1428', text: '#6688BB' },
+    },
+  },
 }
 
-function getPalette(tier: string) {
-  return TIER_COLORS[tier] || TIER_COLORS.C
+function getTheme(theme?: string) {
+  return THEMES[theme ?? 'cosmic'] ?? THEMES.cosmic
 }
 
-export default function SpinWheel({ segments, spinning, onSpinComplete, winnerLabel }: SpinWheelProps) {
+function getPalette(tier: string, tiers: TierPalette) {
+  return tiers[tier] || tiers.C
+}
+
+export default function SpinWheel({ segments, spinning, onSpinComplete, winnerLabel, theme }: SpinWheelProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const rotationRef = useRef(0)
   const animFrameRef = useRef<number>(0)
@@ -42,6 +92,8 @@ export default function SpinWheel({ segments, spinning, onSpinComplete, winnerLa
     if (!canvas || expanded.length === 0) return
     const ctx = canvas.getContext('2d')
     if (!ctx) return
+
+    const palette = getTheme(theme)
 
     const dpr = window.devicePixelRatio || 1
     const cssSize = 400
@@ -66,13 +118,13 @@ export default function SpinWheel({ segments, spinning, onSpinComplete, winnerLa
     // Outer dark ring
     ctx.beginPath()
     ctx.arc(cx, cy, radius + 14, 0, 2 * Math.PI)
-    ctx.fillStyle = '#0d0d1a'
+    ctx.fillStyle = palette.outer
     ctx.fill()
 
-    // Gold rim
+    // Themed rim
     ctx.beginPath()
     ctx.arc(cx, cy, radius + 14, 0, 2 * Math.PI)
-    ctx.strokeStyle = '#FFD700'
+    ctx.strokeStyle = palette.rim
     ctx.lineWidth = 4
     ctx.stroke()
 
@@ -81,7 +133,7 @@ export default function SpinWheel({ segments, spinning, onSpinComplete, winnerLa
       const start = rotation + i * arc
       const end = start + arc
       const seg = expanded[i]
-      const pal = getPalette(seg.tier)
+      const pal = getPalette(seg.tier, palette.tiers)
       const fill = i % 2 === 0 ? pal.bg : pal.alt
 
       ctx.beginPath()
@@ -163,8 +215,8 @@ export default function SpinWheel({ segments, spinning, onSpinComplete, winnerLa
     ctx.lineTo(cx + 14, 1)
     ctx.lineTo(cx, 30)
     ctx.closePath()
-    ctx.fillStyle = '#FFD700'
-    ctx.shadowColor = '#FFD700'
+    ctx.fillStyle = palette.pointer
+    ctx.shadowColor = palette.pointer
     ctx.shadowBlur = 14
     ctx.fill()
     ctx.shadowBlur = 0
