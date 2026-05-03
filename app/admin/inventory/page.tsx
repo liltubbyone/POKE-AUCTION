@@ -6,6 +6,28 @@ import { useRouter } from 'next/navigation'
 import { formatCurrency } from '@/lib/utils'
 import Link from 'next/link'
 
+function compressImage(file: File, maxPx = 800, quality = 0.82): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onerror = reject
+    reader.onload = (e) => {
+      const img = new Image()
+      img.onerror = reject
+      img.onload = () => {
+        const scale = Math.min(1, maxPx / Math.max(img.width, img.height))
+        const canvas = document.createElement('canvas')
+        canvas.width = Math.round(img.width * scale)
+        canvas.height = Math.round(img.height * scale)
+        const ctx = canvas.getContext('2d')!
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+        resolve(canvas.toDataURL('image/jpeg', quality))
+      }
+      img.src = e.target!.result as string
+    }
+    reader.readAsDataURL(file)
+  })
+}
+
 function ImageUploader({
   value,
   onChange,
@@ -19,13 +41,14 @@ function ImageUploader({
 
   const upload = async (file: File) => {
     setUploading(true)
-    const fd = new FormData()
-    fd.append('file', file)
-    const res = await fetch('/api/upload', { method: 'POST', body: fd })
-    const data = await res.json()
-    setUploading(false)
-    if (res.ok) onChange(data.url)
-    else alert(data.error || 'Upload failed')
+    try {
+      const dataUrl = await compressImage(file)
+      onChange(dataUrl)
+    } catch {
+      alert('Failed to process image — try another file.')
+    } finally {
+      setUploading(false)
+    }
   }
 
   const onDrop = (e: React.DragEvent) => {
