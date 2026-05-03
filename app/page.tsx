@@ -8,7 +8,7 @@ import RecentWinnerFeed from '@/components/RecentWinnerFeed'
 
 async function getActiveAuctions() {
   return prisma.auction.findMany({
-    where: { status: { in: ['active', 'spinning'] } },
+    where: { status: { in: ['active', 'spinning'] }, category: { not: 'game' } },
     include: {
       items: { include: { item: true } },
       spots: { where: { paid: true } },
