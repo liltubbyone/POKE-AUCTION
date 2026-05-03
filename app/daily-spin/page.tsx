@@ -9,6 +9,8 @@ interface SpinStatus {
   hasSpunToday: boolean
   won: boolean
   spinNumber: number | null
+  spinsUsed: number
+  spinsLimit: number
   totalSpinsToday: number
   winnerSpinNumber: number
   mysteryGiftName: string
@@ -187,8 +189,8 @@ export default function DailySpinPage() {
       {spinStatus && (
         <div className="relative flex items-center gap-6 mb-8">
           <div className="text-center">
-            <p className="text-3xl font-heading text-white">{spinStatus.totalSpinsToday}</p>
-            <p className="text-gray-500 text-xs uppercase tracking-wider">Spins Today</p>
+            <p className="text-3xl font-heading text-white">{Math.max(0, (spinStatus.spinsLimit ?? 1) - (spinStatus.spinsUsed ?? 0))}</p>
+            <p className="text-gray-500 text-xs uppercase tracking-wider">Spins Left</p>
           </div>
           <div className="h-10 w-px" style={{ background: `rgba(${t.a},0.4)` }} />
           <div className="text-center">
