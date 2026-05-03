@@ -20,47 +20,56 @@ interface AuctionCardProps {
   }
 }
 
-const categoryThemes: Record<string, { accent: string; glow: string; badge: string; label: string }> = {
-  raffle:   { accent: 'rgba(124,58,237,0.5)',  glow: 'rgba(124,58,237,0.12)', badge: 'rgba(124,58,237,0.15)', label: 'RAFFLE'   },
-  game:     { accent: 'rgba(6,182,212,0.5)',   glow: 'rgba(6,182,212,0.1)',   badge: 'rgba(6,182,212,0.12)',  label: 'GAME'     },
-  giveaway: { accent: 'rgba(255,215,0,0.45)',  glow: 'rgba(255,215,0,0.08)',  badge: 'rgba(255,215,0,0.12)',  label: 'GIVEAWAY' },
+const categoryThemes: Record<string, { accent: string; rgb: string; label: string; topLine: string }> = {
+  raffle:   { accent: '#a78bfa', rgb: '124,58,237',   label: 'RAFFLE',   topLine: 'rgba(124,58,237,0.8)' },
+  game:     { accent: '#38bdf8', rgb: '56,189,248',   label: 'GAME',     topLine: 'rgba(56,189,248,0.8)'  },
+  giveaway: { accent: '#FFD700', rgb: '255,215,0',    label: 'GIVEAWAY', topLine: 'rgba(255,215,0,0.8)'   },
 }
 
-const statusColors: Record<string, { text: string; bg: string; border: string }> = {
-  active:    { text: '#4ade80', bg: 'rgba(74,222,128,0.08)',  border: 'rgba(74,222,128,0.25)'  },
-  spinning:  { text: '#FFD700', bg: 'rgba(255,215,0,0.08)',   border: 'rgba(255,215,0,0.3)'    },
-  completed: { text: '#9ca3af', bg: 'rgba(156,163,175,0.08)', border: 'rgba(156,163,175,0.2)'  },
-  cancelled: { text: '#f87171', bg: 'rgba(248,113,113,0.08)', border: 'rgba(248,113,113,0.25)' },
+const statusDot: Record<string, { text: string; bg: string; border: string; dot: string }> = {
+  active:    { text: '#4ade80', bg: 'rgba(74,222,128,0.07)',  border: 'rgba(74,222,128,0.22)',  dot: '#4ade80' },
+  spinning:  { text: '#FFD700', bg: 'rgba(255,215,0,0.07)',   border: 'rgba(255,215,0,0.28)',   dot: '#FFD700' },
+  completed: { text: '#94a3b8', bg: 'rgba(148,163,184,0.06)', border: 'rgba(148,163,184,0.18)', dot: '#64748b' },
+  cancelled: { text: '#f87171', bg: 'rgba(248,113,113,0.07)', border: 'rgba(248,113,113,0.22)', dot: '#f87171' },
 }
 
-const tierColors: Record<string, { text: string; bg: string; border: string }> = {
-  S: { text: '#fca5a5', bg: 'rgba(248,113,113,0.12)', border: 'rgba(248,113,113,0.3)' },
-  A: { text: '#fdba74', bg: 'rgba(251,146,60,0.12)',  border: 'rgba(251,146,60,0.3)'  },
-  B: { text: '#93c5fd', bg: 'rgba(96,165,250,0.12)',  border: 'rgba(96,165,250,0.3)'  },
-  C: { text: '#9ca3af', bg: 'rgba(156,163,175,0.1)',  border: 'rgba(156,163,175,0.2)' },
+const tierStyle: Record<string, { text: string; bg: string; border: string }> = {
+  S: { text: '#fca5a5', bg: 'rgba(248,113,113,0.10)', border: 'rgba(248,113,113,0.28)' },
+  A: { text: '#fdba74', bg: 'rgba(251,146,60,0.10)',  border: 'rgba(251,146,60,0.28)'  },
+  B: { text: '#93c5fd', bg: 'rgba(96,165,250,0.10)',  border: 'rgba(96,165,250,0.28)'  },
+  C: { text: '#94a3b8', bg: 'rgba(148,163,184,0.08)', border: 'rgba(148,163,184,0.18)' },
 }
 
 export default function AuctionCard({ auction }: AuctionCardProps) {
-  const soldSpots = auction.spots.filter((s) => s.paid).length
-  const pctFilled = Math.round((soldSpots / auction.totalSpots) * 100)
-  const spotsLeft = auction.totalSpots - soldSpots
-  const status = statusColors[auction.status] ?? statusColors.active
-  const cat = categoryThemes[auction.category ?? 'raffle'] ?? categoryThemes.raffle
+  const soldSpots  = auction.spots.filter((s) => s.paid).length
+  const pctFilled  = Math.round((soldSpots / auction.totalSpots) * 100)
+  const spotsLeft  = auction.totalSpots - soldSpots
+  const isFull     = spotsLeft === 0
+  const status     = statusDot[auction.status] ?? statusDot.active
+  const cat        = categoryThemes[auction.category ?? 'raffle'] ?? categoryThemes.raffle
 
   return (
     <div
-      className="auction-card relative rounded-2xl p-6 flex flex-col gap-4 group active-glow"
-      style={{
-        borderColor: cat.accent,
-        boxShadow: `0 4px 24px rgba(0,0,0,0.5), 0 0 20px ${cat.glow}`,
-      }}
+      className="auction-card active-glow relative rounded-2xl p-5 flex flex-col gap-4 group"
+      style={{ '--cat-rgb': cat.rgb } as React.CSSProperties}
     >
-      {/* Header */}
-      <div className="flex items-start justify-between gap-3">
+      {/* Top neon edge line (always visible, brightens on hover via CSS ::before) */}
+      <div
+        className="absolute top-0 left-8 right-8 h-px pointer-events-none transition-opacity duration-300"
+        style={{ background: `linear-gradient(90deg, transparent, ${cat.topLine}, transparent)`, opacity: 0.55 }}
+      />
+
+      {/* ── Header ── */}
+      <div className="flex items-start justify-between gap-3 pt-1">
         <div className="flex items-center gap-2 min-w-0">
+          {/* Category pill */}
           <span
-            className="flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-widest"
-            style={{ background: cat.badge, color: cat.accent.replace('0.5', '1').replace('0.45', '1') }}
+            className="flex-shrink-0 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-widest"
+            style={{
+              color: cat.accent,
+              background: `rgba(${cat.rgb},0.10)`,
+              border: `1px solid rgba(${cat.rgb},0.28)`,
+            }}
           >
             {cat.label}
           </span>
@@ -68,99 +77,100 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
             {auction.name}
           </h3>
         </div>
+        {/* Status pill */}
         <span
-          className="flex-shrink-0 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider"
-          style={{
-            color: status.text,
-            background: status.bg,
-            border: `1px solid ${status.border}`,
-          }}
+          className="flex-shrink-0 inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider"
+          style={{ color: status.text, background: status.bg, border: `1px solid ${status.border}` }}
         >
+          <span
+            className="w-1.5 h-1.5 rounded-full"
+            style={{
+              background: status.dot,
+              boxShadow: `0 0 5px ${status.dot}`,
+              animation: auction.status === 'active' ? 'pulse 2s ease-in-out infinite' : undefined,
+            }}
+          />
           {auction.status}
         </span>
       </div>
 
-      {/* Description */}
+      {/* ── Description ── */}
       {auction.description && (
-        <p className="text-gray-500 text-sm leading-relaxed line-clamp-2 -mt-1">
+        <p className="text-slate-500 text-sm leading-relaxed line-clamp-2 -mt-1">
           {auction.description}
         </p>
       )}
 
-      {/* Items preview */}
+      {/* ── Items in Pool ── */}
       <div>
-        <p className="text-xs text-gray-600 uppercase tracking-widest mb-2 font-semibold">Items in Pool</p>
+        <p className="text-[10px] text-slate-600 uppercase tracking-widest mb-2 font-bold">Items in Pool</p>
         <div className="flex flex-wrap gap-1.5">
           {auction.items.slice(0, 4).map((ai, i) => {
-            const tier = tierColors[ai.item.tier] ?? tierColors.C
+            const tier = tierStyle[ai.item.tier] ?? tierStyle.C
             return (
               <span
                 key={i}
                 className="text-xs font-bold px-2.5 py-1 rounded-lg font-body tracking-wide"
-                style={{
-                  color: tier.text,
-                  background: tier.bg,
-                  border: `1px solid ${tier.border}`,
-                }}
+                style={{ color: tier.text, background: tier.bg, border: `1px solid ${tier.border}` }}
               >
                 {ai.item.name}{ai.quantity > 1 ? ` ×${ai.quantity}` : ''}
               </span>
             )
           })}
           {auction.items.length > 4 && (
-            <span className="text-xs text-gray-600 px-2 py-1">+{auction.items.length - 4} more</span>
+            <span className="text-xs text-slate-600 px-2 py-1">+{auction.items.length - 4} more</span>
           )}
         </div>
       </div>
 
-      {/* Progress */}
+      {/* ── Fill progress ── */}
       <div>
         <div className="flex justify-between text-xs mb-2">
-          <span className="text-gray-500">
+          <span className="text-slate-500">
             <span className="text-white font-bold text-sm">{soldSpots}</span>
-            <span className="text-gray-600"> / {auction.totalSpots} spots filled</span>
+            <span className="text-slate-600"> / {auction.totalSpots} spots filled</span>
           </span>
           <span
-            className="font-bold"
-            style={{ color: spotsLeft === 0 ? '#FFD700' : '#6b7280' }}
+            className="font-bold text-[11px] uppercase tracking-wider"
+            style={{ color: isFull ? '#FFD700' : '#64748b' }}
           >
-            {spotsLeft === 0 ? 'READY TO SPIN' : `${spotsLeft} left`}
+            {isFull ? '🌀 READY TO SPIN' : `${spotsLeft} left`}
           </span>
         </div>
-        <div
-          className="w-full rounded-full h-2 overflow-hidden"
-          style={{ background: 'rgba(255,255,255,0.05)' }}
-        >
+        {/* Track */}
+        <div className="relative w-full rounded-full h-2 overflow-hidden" style={{ background: 'rgba(255,255,255,0.04)' }}>
           <div
             className="h-full rounded-full transition-all duration-700"
             style={{
               width: `${pctFilled}%`,
-              background: pctFilled === 100
-                ? 'linear-gradient(90deg, #FFD700, #FFE44D)'
-                : 'linear-gradient(90deg, #7C3AED, #a78bfa)',
+              background: isFull
+                ? 'linear-gradient(90deg, #fde68a, #FFD700, #fde68a)'
+                : `linear-gradient(90deg, rgba(${cat.rgb},0.7), rgba(${cat.rgb},1))`,
               boxShadow: pctFilled > 0
-                ? pctFilled === 100 ? '0 0 8px rgba(255,215,0,0.5)' : '0 0 8px rgba(124,58,237,0.5)'
+                ? isFull ? '0 0 10px rgba(255,215,0,0.55)' : `0 0 8px rgba(${cat.rgb},0.55)`
                 : 'none',
             }}
           />
         </div>
+        {/* Percentage tick */}
+        <p className="text-[10px] text-slate-600 mt-1 text-right font-semibold">{pctFilled}%</p>
       </div>
 
-      {/* Footer */}
-      <div className="flex items-center justify-between pt-1">
+      {/* ── Footer ── */}
+      <div className="flex items-center justify-between pt-1 mt-auto">
         <div>
-          <p className="text-xs text-gray-600 uppercase tracking-widest mb-0.5">Per Spot</p>
-          <p className="text-2xl font-heading" style={{ color: '#FFD700' }}>
+          <p className="text-[10px] text-slate-600 uppercase tracking-widest mb-0.5 font-bold">Per Spot</p>
+          <p className="text-2xl font-heading leading-none" style={{ color: '#FFD700', textShadow: '0 0 16px rgba(255,215,0,0.35)' }}>
             {formatCurrency(auction.spotPrice)}
           </p>
         </div>
         <Link
           href={auction.status === 'completed' ? `/auction/${auction.id}/results` : `/auction/${auction.id}`}
-          className="btn-gold text-sm py-2.5 px-5"
+          className="btn-gold text-sm py-2.5 px-5 rounded-xl"
         >
           {auction.status === 'active' ? 'Claim Spot' : 'View Results'}
-          <svg className="w-4 h-4 ml-1.5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          <svg className="w-3.5 h-3.5 ml-1.5 inline -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
           </svg>
         </Link>
       </div>
