@@ -158,7 +158,7 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
           href={auction.status === 'completed' ? `/auction/${auction.id}/results` : `/auction/${auction.id}`}
           className="btn-gold text-sm py-2.5 px-5"
         >
-          {auction.status === 'active' ? 'Join Now' : 'View Results'}
+          {auction.status === 'active' ? 'Claim Spot' : 'View Results'}
           <svg className="w-4 h-4 ml-1.5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
