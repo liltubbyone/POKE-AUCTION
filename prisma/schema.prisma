@@ -82,6 +82,7 @@ model SiteSettings {
   mysteryGiftImage String?
   winnerSpinNumber Int      @default(100)
   dailySpinLimit   Int      @default(1)
+  wheelSegments    String   @default("[]")
   updatedAt        DateTime @updatedAt
 }
 

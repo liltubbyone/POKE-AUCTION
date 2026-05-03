@@ -55,6 +55,7 @@ export async function GET() {
     winnerSpinNumber: settings.winnerSpinNumber,
     mysteryGiftName: settings.mysteryGiftName,
     mysteryGiftImage: settings.mysteryGiftImage,
+    wheelSegments: (settings as any).wheelSegments ?? '[]',
   })
 }
 

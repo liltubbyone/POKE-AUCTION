@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { useSession, signIn } from 'next-auth/react'
 
+const DEFAULT_SEGMENTS = ['pokeball', '🚀', '⭐', '🌙', '☄️', '🌌', '🪐', '💫']
+
 interface SpinStatus {
   hasSpunToday: boolean
   won: boolean
@@ -11,6 +13,7 @@ interface SpinStatus {
   winnerSpinNumber: number
   mysteryGiftName: string
   mysteryGiftImage: string | null
+  wheelSegments: string
 }
 
 // Time until midnight America/Chicago
@@ -251,8 +254,13 @@ export default function DailySpinPage() {
             />
           ))}
 
-          {/* Icons in each segment — 1 pokeball + 7 space symbols */}
-          {[null, '🚀', '⭐', '🌙', '☄️', '🌌', '🪐', '💫'].map((symbol, i) => {
+          {/* Icons in each segment */}
+          {(() => {
+            try {
+              const saved = JSON.parse(spinStatus?.wheelSegments ?? '[]')
+              return saved.length === 8 ? saved : DEFAULT_SEGMENTS
+            } catch { return DEFAULT_SEGMENTS }
+          })().map((symbol: string, i: number) => {
             const angle = (i / 8) * Math.PI * 2 + Math.PI / 8 - Math.PI / 2
             const r = 95
             return (
@@ -274,7 +282,7 @@ export default function DailySpinPage() {
                   justifyContent: 'center',
                 }}
               >
-                {symbol === null ? (
+                {symbol === 'pokeball' ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src="/logo.png"

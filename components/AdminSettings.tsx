@@ -7,6 +7,47 @@ interface Settings {
   mysteryGiftImage: string | null
   winnerSpinNumber: number
   dailySpinLimit: number
+  wheelSegments: string
+}
+
+// Slot 0 is always pokeball — these are the 7 custom slots
+const PRESETS: { name: string; emoji: string; desc: string; slots: string[] }[] = [
+  {
+    name: 'Cosmic',
+    emoji: '🌌',
+    desc: 'Rockets, planets & shooting stars',
+    slots: ['🚀', '⭐', '🌙', '☄️', '🌌', '🪐', '💫'],
+  },
+  {
+    name: 'Galaxy Explorer',
+    emoji: '🛸',
+    desc: 'UFOs, supernovas & deep space',
+    slots: ['🛸', '🌠', '🔭', '🌟', '💥', '🌀', '✨'],
+  },
+  {
+    name: 'Solar System',
+    emoji: '☀️',
+    desc: 'Planets, sun & satellites',
+    slots: ['☀️', '🌍', '🌕', '🪐', '☄️', '🛰️', '🌟'],
+  },
+  {
+    name: 'Nebula Storm',
+    emoji: '⚡',
+    desc: 'Cosmic energy & mystical forces',
+    slots: ['⚡', '🔥', '💎', '🌊', '❄️', '🌪️', '🔮'],
+  },
+]
+
+function segmentsToSlots(json: string): string[] {
+  try {
+    const arr = JSON.parse(json)
+    if (arr.length === 8) return arr.slice(1) // skip pokeball at index 0
+  } catch {}
+  return PRESETS[0].slots
+}
+
+function slotsToSegments(slots: string[]): string {
+  return JSON.stringify(['pokeball', ...slots])
 }
 
 export default function AdminSettings() {
@@ -15,16 +56,30 @@ export default function AdminSettings() {
     mysteryGiftImage: null,
     winnerSpinNumber: 100,
     dailySpinLimit: 1,
+    wheelSegments: '[]',
   })
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [imgError, setImgError] = useState(false)
+  const [customSlots, setCustomSlots] = useState<string[]>(PRESETS[0].slots)
+  const [activePreset, setActivePreset] = useState<number | null>(0)
 
   useEffect(() => {
     fetch('/api/admin/settings')
       .then((r) => r.json())
-      .then((d) => setSettings(d))
+      .then((d) => {
+        setSettings(d)
+        const slots = segmentsToSlots(d.wheelSegments ?? '[]')
+        setCustomSlots(slots)
+        const match = PRESETS.findIndex((p) => JSON.stringify(p.slots) === JSON.stringify(slots))
+        setActivePreset(match >= 0 ? match : null)
+      })
   }, [])
+
+  const applyPreset = (idx: number) => {
+    setActivePreset(idx)
+    setCustomSlots(PRESETS[idx].slots)
+  }
 
   const handleSave = async () => {
     setSaving(true)
@@ -36,6 +91,7 @@ export default function AdminSettings() {
         mysteryGiftImage: settings.mysteryGiftImage || null,
         winnerSpinNumber: settings.winnerSpinNumber,
         dailySpinLimit: settings.dailySpinLimit,
+        wheelSegments: slotsToSegments(customSlots),
       }),
     })
     setSaving(false)
@@ -104,6 +160,73 @@ export default function AdminSettings() {
             <p className="text-gray-600 text-xs mt-1">How many spins each user gets daily.</p>
           </div>
         </div>
+        {/* Wheel Theme */}
+        <div>
+          <label className="block text-xs text-gray-400 mb-3 uppercase tracking-wider">Spin Wheel Theme</label>
+
+          {/* Preset grid */}
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            {PRESETS.map((preset, idx) => (
+              <button
+                key={preset.name}
+                onClick={() => applyPreset(idx)}
+                className="rounded-xl p-3 text-left transition-all duration-200"
+                style={{
+                  background: activePreset === idx ? 'rgba(124,58,237,0.12)' : 'rgba(255,255,255,0.02)',
+                  border: activePreset === idx ? '1px solid rgba(124,58,237,0.5)' : '1px solid rgba(30,30,53,0.8)',
+                }}
+              >
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="text-xl">{preset.emoji}</span>
+                  <span className="font-heading text-sm text-white">{preset.name}</span>
+                  {activePreset === idx && (
+                    <span className="ml-auto text-xs font-bold text-violet-400">Active</span>
+                  )}
+                </div>
+                <p className="text-gray-500 text-xs mb-2">{preset.desc}</p>
+                {/* Slot preview */}
+                <div className="flex gap-1 flex-wrap">
+                  <span className="text-sm" title="Pokeball (always slot 1)">🔴</span>
+                  {preset.slots.map((s, i) => (
+                    <span key={i} className="text-sm">{s}</span>
+                  ))}
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {/* Custom slot editor */}
+          <div
+            className="rounded-xl p-4"
+            style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(30,30,53,0.8)' }}
+          >
+            <p className="text-xs text-gray-500 mb-3 uppercase tracking-wider">
+              Custom — Edit Slots (slot 1 is always the pokeball)
+            </p>
+            <div className="grid grid-cols-7 gap-2">
+              {customSlots.map((slot, i) => (
+                <div key={i} className="flex flex-col items-center gap-1">
+                  <span className="text-xs text-gray-600">S{i + 2}</span>
+                  <input
+                    type="text"
+                    value={slot}
+                    maxLength={4}
+                    onChange={(e) => {
+                      setActivePreset(null)
+                      const next = [...customSlots]
+                      next[i] = e.target.value
+                      setCustomSlots(next)
+                    }}
+                    className="w-full text-center rounded-lg py-2 text-lg"
+                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(30,30,53,0.8)', color: '#fff' }}
+                  />
+                </div>
+              ))}
+            </div>
+            <p className="text-gray-600 text-xs mt-2">Paste any emoji into each slot. Slot 1 (pokeball) is locked.</p>
+          </div>
+        </div>
+
         <div className="flex items-center gap-3">
           <button onClick={handleSave} disabled={saving} className="btn-gold text-sm py-2 px-5 disabled:opacity-50">
             {saving ? 'Saving...' : 'Save Settings'}
