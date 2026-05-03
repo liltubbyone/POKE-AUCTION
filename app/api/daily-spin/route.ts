@@ -56,6 +56,8 @@ export async function GET() {
     mysteryGiftName: settings.mysteryGiftName,
     mysteryGiftImage: settings.mysteryGiftImage,
     wheelSegments: (settings as any).wheelSegments ?? '[]',
+    mysteryWheelTheme: (settings as any).mysteryWheelTheme ?? 'cosmic',
+    customMysteryColor: (settings as any).customMysteryColor ?? '#7C3AED',
   })
 }
 

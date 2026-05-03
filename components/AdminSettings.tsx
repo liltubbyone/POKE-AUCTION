@@ -8,6 +8,62 @@ interface Settings {
   winnerSpinNumber: number
   dailySpinLimit: number
   wheelSegments: string
+  mysteryWheelTheme: string
+  customMysteryColor: string
+  customWheelTheme: string
+}
+
+const MYSTERY_WHEEL_PRESETS = [
+  { id: 'cosmic',  label: 'Cosmic',  desc: 'Purple & cyan',       color: '#7C3AED' },
+  { id: 'galaxy',  label: 'Galaxy',  desc: 'Teal & electric blue', color: '#14B8A6' },
+  { id: 'solar',   label: 'Solar',   desc: 'Orange & amber',       color: '#F97316' },
+  { id: 'nebula',  label: 'Nebula',  desc: 'Pink & violet',        color: '#EC4899' },
+  { id: 'custom',  label: 'Custom',  desc: 'Pick your own color',  color: '' },
+]
+
+const WHEEL_THEME_PRESETS = [
+  { id: 'cosmic',  label: 'Cosmic',          rim: '#FFD700', desc: 'Gold & classic tier colors'    },
+  { id: 'galaxy',  label: 'Galaxy Explorer', rim: '#A855F7', desc: 'Deep purples & electric blues' },
+  { id: 'solar',   label: 'Solar System',    rim: '#F97316', desc: 'Warm oranges, reds & amber'    },
+  { id: 'nebula',  label: 'Nebula Storm',    rim: '#22D3EE', desc: 'Cyan, pink & electric hues'    },
+]
+
+// Preset custom palette defaults (matches Cosmic)
+const DEFAULT_CUSTOM_COLORS = { rim: '#FFD700', outer: '#0d0d1a', tierS: '#FF4500', tierA: '#FFD700', tierB: '#4488FF', tierC: '#44CC77' }
+
+function hexDarken(hex: string, factor: number): string {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  const to = (v: number) => Math.max(0, Math.round(v * factor)).toString(16).padStart(2, '0')
+  return `#${to(r)}${to(g)}${to(b)}`
+}
+function isLight(hex: string): boolean {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return (r * 299 + g * 587 + b * 114) / 1000 > 128
+}
+function buildCustomPalette(c: typeof DEFAULT_CUSTOM_COLORS): string {
+  const tier = (hex: string) => ({ bg: hex, alt: hexDarken(hex, 0.78), text: isLight(hex) ? '#1a1a1a' : '#FFFFFF' })
+  return JSON.stringify({
+    rim: c.rim, outer: c.outer, pointer: c.rim,
+    tiers: {
+      S: tier(c.tierS), A: tier(c.tierA), B: tier(c.tierB), C: tier(c.tierC),
+      EXCLUDE: { bg: '#555577', alt: '#333355', text: '#AAAACC' },
+    },
+  })
+}
+function parseCustomPalette(json: string): typeof DEFAULT_CUSTOM_COLORS {
+  try {
+    const p = JSON.parse(json)
+    if (p.tiers) return {
+      rim: p.rim ?? '#FFD700', outer: p.outer ?? '#0d0d1a',
+      tierS: p.tiers.S?.bg ?? '#FF4500', tierA: p.tiers.A?.bg ?? '#FFD700',
+      tierB: p.tiers.B?.bg ?? '#4488FF', tierC: p.tiers.C?.bg ?? '#44CC77',
+    }
+  } catch {}
+  return DEFAULT_CUSTOM_COLORS
 }
 
 // All 8 slots — 'pokeball' renders the logo image, anything else is an emoji
@@ -57,12 +113,16 @@ export default function AdminSettings() {
     winnerSpinNumber: 100,
     dailySpinLimit: 1,
     wheelSegments: '[]',
+    mysteryWheelTheme: 'cosmic',
+    customMysteryColor: '#7C3AED',
+    customWheelTheme: '{}',
   })
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [imgError, setImgError] = useState(false)
   const [customSlots, setCustomSlots] = useState<string[]>(PRESETS[0].slots)
   const [activePreset, setActivePreset] = useState<number | null>(0)
+  const [customColors, setCustomColors] = useState(DEFAULT_CUSTOM_COLORS)
 
   useEffect(() => {
     fetch('/api/admin/settings')
@@ -73,6 +133,7 @@ export default function AdminSettings() {
         setCustomSlots(slots)
         const match = PRESETS.findIndex((p) => JSON.stringify(p.slots) === JSON.stringify(slots))
         setActivePreset(match >= 0 ? match : null)
+        setCustomColors(parseCustomPalette(d.customWheelTheme ?? '{}'))
       })
   }, [])
 
@@ -92,6 +153,9 @@ export default function AdminSettings() {
         winnerSpinNumber: settings.winnerSpinNumber,
         dailySpinLimit: settings.dailySpinLimit,
         wheelSegments: slotsToSegments(customSlots),
+        mysteryWheelTheme: settings.mysteryWheelTheme,
+        customMysteryColor: settings.customMysteryColor,
+        customWheelTheme: buildCustomPalette(customColors),
       }),
     })
     setSaving(false)
@@ -254,6 +318,115 @@ export default function AdminSettings() {
               ))}
             </div>
             <p className="text-gray-600 text-xs mt-3">Type any emoji per slot. Click <span className="text-violet-400">pokeball</span> to restore the logo, or <span className="text-violet-400">change</span> to replace it with an emoji.</p>
+          </div>
+        </div>
+
+        {/* Mystery Wheel Visual Theme */}
+        <div>
+          <label className="block text-xs text-gray-400 mb-3 uppercase tracking-wider">Mystery Wheel Visual Theme</label>
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            {MYSTERY_WHEEL_PRESETS.map((p) => (
+              <button
+                key={p.id}
+                onClick={() => setSettings((s) => ({ ...s, mysteryWheelTheme: p.id }))}
+                className="rounded-xl p-3 text-left transition-all duration-200"
+                style={{
+                  background: settings.mysteryWheelTheme === p.id ? 'rgba(124,58,237,0.12)' : 'rgba(255,255,255,0.02)',
+                  border: settings.mysteryWheelTheme === p.id ? '1px solid rgba(124,58,237,0.5)' : '1px solid rgba(30,30,53,0.8)',
+                }}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  {p.color ? (
+                    <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: p.color, boxShadow: `0 0 6px ${p.color}` }} />
+                  ) : (
+                    <span className="w-3 h-3 rounded-full flex-shrink-0 border border-gray-500" style={{ background: 'conic-gradient(red, yellow, green, blue, red)' }} />
+                  )}
+                  <span className="text-sm text-white font-semibold">{p.label}</span>
+                  {settings.mysteryWheelTheme === p.id && <span className="ml-auto text-[10px] font-bold text-violet-400">Active</span>}
+                </div>
+                <p className="text-gray-500 text-xs">{p.desc}</p>
+              </button>
+            ))}
+          </div>
+          {settings.mysteryWheelTheme === 'custom' && (
+            <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(30,30,53,0.8)' }}>
+              <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">Custom Accent Color</p>
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  value={settings.customMysteryColor}
+                  onChange={(e) => setSettings((s) => ({ ...s, customMysteryColor: e.target.value }))}
+                  className="w-12 h-10 rounded cursor-pointer border-0 bg-transparent"
+                />
+                <div>
+                  <p className="text-white text-sm font-semibold">{settings.customMysteryColor}</p>
+                  <p className="text-gray-600 text-xs">Controls wheel glow, rings, pointer & segment tints</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Custom Auction Wheel Theme */}
+        <div>
+          <label className="block text-xs text-gray-400 mb-3 uppercase tracking-wider">Custom Auction Wheel Theme</label>
+          <div
+            className="rounded-xl p-4 space-y-4"
+            style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(30,30,53,0.8)' }}
+          >
+            <p className="text-gray-500 text-xs">Set these colors then pick <span className="text-violet-400">Custom</span> as the theme when creating an auction.</p>
+
+            {/* Rim / Pointer */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-gray-500 mb-1.5">Rim &amp; Pointer Color</label>
+                <div className="flex items-center gap-2">
+                  <input type="color" value={customColors.rim}
+                    onChange={(e) => setCustomColors((c) => ({ ...c, rim: e.target.value }))}
+                    className="w-10 h-9 rounded cursor-pointer border-0 bg-transparent flex-shrink-0" />
+                  <span className="text-white text-xs font-mono">{customColors.rim}</span>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1.5">Outer Ring Color</label>
+                <div className="flex items-center gap-2">
+                  <input type="color" value={customColors.outer}
+                    onChange={(e) => setCustomColors((c) => ({ ...c, outer: e.target.value }))}
+                    className="w-10 h-9 rounded cursor-pointer border-0 bg-transparent flex-shrink-0" />
+                  <span className="text-white text-xs font-mono">{customColors.outer}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Tier colors */}
+            <div>
+              <p className="text-xs text-gray-500 mb-2">Segment Colors by Tier</p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {([['S', 'tierS'], ['A', 'tierA'], ['B', 'tierB'], ['C', 'tierC']] as const).map(([tier, key]) => (
+                  <div key={tier}>
+                    <label className="block text-xs text-gray-500 mb-1.5">Tier {tier}</label>
+                    <div className="flex items-center gap-2">
+                      <input type="color" value={customColors[key]}
+                        onChange={(e) => setCustomColors((c) => ({ ...c, [key]: e.target.value }))}
+                        className="w-10 h-9 rounded cursor-pointer border-0 bg-transparent flex-shrink-0" />
+                      <span className="text-white text-xs font-mono">{customColors[key]}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Live preview swatches */}
+            <div>
+              <p className="text-xs text-gray-500 mb-2">Preview</p>
+              <div className="flex gap-2 items-center">
+                <span className="w-5 h-5 rounded-full flex-shrink-0" style={{ background: customColors.rim, boxShadow: `0 0 8px ${customColors.rim}` }} title="Rim" />
+                {(['tierS','tierA','tierB','tierC'] as const).map((k) => (
+                  <span key={k} className="w-5 h-5 rounded flex-shrink-0" style={{ background: customColors[k] }} title={k} />
+                ))}
+                <span className="text-gray-600 text-xs ml-1">Rim · S · A · B · C</span>
+              </div>
+            </div>
           </div>
         </div>
 

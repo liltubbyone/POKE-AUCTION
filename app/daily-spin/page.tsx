@@ -14,6 +14,40 @@ interface SpinStatus {
   mysteryGiftName: string
   mysteryGiftImage: string | null
   wheelSegments: string
+  mysteryWheelTheme: string
+  customMysteryColor: string
+}
+
+// Mystery wheel visual themes — a/b are comma-separated RGB values
+const MYSTERY_THEMES: Record<string, { a: string; b: string; pointer: string; center: string }> = {
+  cosmic:  { a: '124,58,237',  b: '6,182,212',   pointer: '#a78bfa', center: '#1e0a4e' },
+  galaxy:  { a: '20,184,166',  b: '59,130,246',  pointer: '#2dd4bf', center: '#042f2e' },
+  solar:   { a: '249,115,22',  b: '234,179,8',   pointer: '#fb923c', center: '#431407' },
+  nebula:  { a: '236,72,153',  b: '139,92,246',  pointer: '#f472b6', center: '#2d1b4e' },
+}
+
+function hexToRgbStr(hex: string): string {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return `${r},${g},${b}`
+}
+
+function getMysteryTheme(theme: string, customColor: string) {
+  if (theme === 'custom') {
+    const a = hexToRgbStr(customColor || '#7C3AED')
+    return { a, b: '200,200,220', pointer: customColor, center: '#07050f' }
+  }
+  return MYSTERY_THEMES[theme] ?? MYSTERY_THEMES.cosmic
+}
+
+function getSegmentColors(a: string, b: string): string[] {
+  return [
+    `rgba(${a},0.18)`, `rgba(${b},0.10)`,
+    `rgba(${a},0.20)`, `rgba(${b},0.12)`,
+    `rgba(${a},0.15)`, `rgba(${b},0.08)`,
+    `rgba(${a},0.22)`, `rgba(${b},0.10)`,
+  ]
 }
 
 // Time until midnight America/Chicago
@@ -34,17 +68,6 @@ function timeUntilReset() {
   const mLeft = Math.floor((secsLeft % 3600) / 60)
   return `${hLeft}h ${mLeft}m`
 }
-
-const SEGMENT_COLORS = [
-  'rgba(124,58,237,0.18)',
-  'rgba(6,182,212,0.10)',
-  'rgba(88,28,235,0.20)',
-  'rgba(3,105,161,0.12)',
-  'rgba(139,92,246,0.15)',
-  'rgba(6,182,212,0.08)',
-  'rgba(59,7,100,0.22)',
-  'rgba(0,180,216,0.10)',
-]
 
 export default function DailySpinPage() {
   const { data: session, status: authStatus } = useSession()
@@ -119,6 +142,8 @@ export default function DailySpinPage() {
   }
 
   const alreadySpun = spinStatus?.hasSpunToday && !spinning && result === null
+  const t = getMysteryTheme(spinStatus?.mysteryWheelTheme ?? 'cosmic', spinStatus?.customMysteryColor ?? '#7C3AED')
+  const segColors = getSegmentColors(t.a, t.b)
 
   return (
     <div
@@ -141,8 +166,8 @@ export default function DailySpinPage() {
           width: '600px', height: '600px',
           borderRadius: '50%',
           background: spinning
-            ? 'radial-gradient(circle, rgba(124,58,237,0.25) 0%, transparent 65%)'
-            : 'radial-gradient(circle, rgba(124,58,237,0.1) 0%, transparent 65%)',
+            ? `radial-gradient(circle, rgba(${t.a},0.25) 0%, transparent 65%)`
+            : `radial-gradient(circle, rgba(${t.a},0.1) 0%, transparent 65%)`,
           transition: 'background 0.5s ease',
         }}
       />
@@ -165,7 +190,7 @@ export default function DailySpinPage() {
             <p className="text-3xl font-heading text-white">{spinStatus.totalSpinsToday}</p>
             <p className="text-gray-500 text-xs uppercase tracking-wider">Spins Today</p>
           </div>
-          <div className="h-10 w-px" style={{ background: 'rgba(124,58,237,0.4)' }} />
+          <div className="h-10 w-px" style={{ background: `rgba(${t.a},0.4)` }} />
           <div className="text-center">
             <p className="text-3xl font-heading text-violet-400">{resetTimer}</p>
             <p className="text-gray-500 text-xs uppercase tracking-wider">Until Reset</p>
@@ -182,10 +207,10 @@ export default function DailySpinPage() {
           style={{
             inset: '-18px',
             borderRadius: '50%',
-            border: '1px solid rgba(124,58,237,0.35)',
+            border: `1px solid rgba(${t.a},0.35)`,
             boxShadow: spinning
-              ? '0 0 30px rgba(124,58,237,0.5), inset 0 0 30px rgba(124,58,237,0.08)'
-              : '0 0 10px rgba(124,58,237,0.15)',
+              ? `0 0 30px rgba(${t.a},0.5), inset 0 0 30px rgba(${t.a},0.08)`
+              : `0 0 10px rgba(${t.a},0.15)`,
             animation: spinning ? 'cosmic-spin 3s linear infinite' : undefined,
             transition: 'box-shadow 0.5s ease',
           }}
@@ -196,8 +221,8 @@ export default function DailySpinPage() {
           style={{
             inset: '-8px',
             borderRadius: '50%',
-            border: '1px solid rgba(6,182,212,0.2)',
-            boxShadow: spinning ? '0 0 15px rgba(6,182,212,0.3)' : 'none',
+            border: `1px solid rgba(${t.b},0.2)`,
+            boxShadow: spinning ? `0 0 15px rgba(${t.b},0.3)` : 'none',
             animation: spinning ? 'cosmic-spin 5s linear infinite reverse' : undefined,
             transition: 'box-shadow 0.5s ease',
           }}
@@ -209,8 +234,8 @@ export default function DailySpinPage() {
             width: 0, height: 0,
             borderLeft: '11px solid transparent',
             borderRight: '11px solid transparent',
-            borderTop: '26px solid #a78bfa',
-            filter: 'drop-shadow(0 0 8px rgba(167,139,250,0.9)) drop-shadow(0 0 16px rgba(124,58,237,0.6))',
+            borderTop: `26px solid ${t.pointer}`,
+            filter: `drop-shadow(0 0 8px ${t.pointer}) drop-shadow(0 0 16px rgba(${t.a},0.6))`,
           }} />
         </div>
 
@@ -218,13 +243,13 @@ export default function DailySpinPage() {
         <div
           className="w-full h-full rounded-full relative overflow-hidden"
           style={{
-            background: 'radial-gradient(circle at 35% 35%, #120a2e 0%, #07050f 60%, #020208 100%)',
+            background: `radial-gradient(circle at 35% 35%, ${t.center} 0%, #07050f 60%, #020208 100%)`,
             border: '3px solid',
-            borderColor: spinning ? 'rgba(167,139,250,0.7)' : 'rgba(124,58,237,0.35)',
+            borderColor: spinning ? `rgba(${t.a},0.7)` : `rgba(${t.a},0.35)`,
             transform: `rotate(${wheelAngle}rad)`,
             boxShadow: spinning
-              ? '0 0 60px rgba(124,58,237,0.6), 0 0 120px rgba(124,58,237,0.2), inset 0 0 40px rgba(88,28,235,0.15)'
-              : '0 0 25px rgba(124,58,237,0.2), inset 0 0 20px rgba(88,28,235,0.05)',
+              ? `0 0 60px rgba(${t.a},0.6), 0 0 120px rgba(${t.a},0.2), inset 0 0 40px rgba(${t.a},0.15)`
+              : `0 0 25px rgba(${t.a},0.2), inset 0 0 20px rgba(${t.a},0.05)`,
             transition: spinning ? 'none' : 'box-shadow 0.6s ease, border-color 0.6s ease',
           }}
         >
@@ -234,7 +259,7 @@ export default function DailySpinPage() {
               key={i}
               className="absolute inset-0"
               style={{
-                background: `conic-gradient(from ${(i / 8) * 360}deg, ${SEGMENT_COLORS[i]} 0deg, transparent 45deg)`,
+                background: `conic-gradient(from ${(i / 8) * 360}deg, ${segColors[i]} 0deg, transparent 45deg)`,
               }}
             />
           ))}
@@ -247,7 +272,7 @@ export default function DailySpinPage() {
               style={{
                 top: '50%', left: '50%',
                 width: '50%', height: '1px',
-                background: 'linear-gradient(to right, transparent, rgba(124,58,237,0.3))',
+                background: `linear-gradient(to right, transparent, rgba(${t.a},0.3))`,
                 transformOrigin: 'left center',
                 transform: `rotate(${(i / 8) * 360}deg)`,
               }}
@@ -276,7 +301,7 @@ export default function DailySpinPage() {
                   borderRadius: '50%',
                   overflow: 'hidden',
                   background: 'rgba(7,5,15,0.6)',
-                  boxShadow: '0 0 8px rgba(124,58,237,0.4)',
+                  boxShadow: `0 0 8px rgba(${t.a},0.4)`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -302,9 +327,9 @@ export default function DailySpinPage() {
             style={{
               width: '72px', height: '72px',
               borderRadius: '50%',
-              background: 'radial-gradient(circle at 35% 35%, #1e0a4e, #07050f)',
-              border: '2px solid rgba(124,58,237,0.5)',
-              boxShadow: '0 0 20px rgba(124,58,237,0.4), inset 0 0 15px rgba(88,28,235,0.3)',
+              background: `radial-gradient(circle at 35% 35%, ${t.center}, #07050f)`,
+              border: `2px solid rgba(${t.a},0.5)`,
+              boxShadow: `0 0 20px rgba(${t.a},0.4), inset 0 0 15px rgba(${t.a},0.3)`,
               fontSize: '28px',
             }}
           >

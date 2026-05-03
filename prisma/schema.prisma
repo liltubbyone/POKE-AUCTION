@@ -83,8 +83,11 @@ model SiteSettings {
   mysteryGiftImage String?
   winnerSpinNumber Int      @default(100)
   dailySpinLimit   Int      @default(1)
-  wheelSegments    String   @default("[]")
-  updatedAt        DateTime @updatedAt
+  wheelSegments      String   @default("[]")
+  mysteryWheelTheme  String   @default("cosmic")
+  customWheelTheme   String   @default("{}")
+  customMysteryColor String   @default("#7C3AED")
+  updatedAt          DateTime @updatedAt
 }
 
 model SupportMessage {

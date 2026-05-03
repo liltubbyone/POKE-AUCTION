@@ -56,10 +56,19 @@ interface WinResult {
   spotNumber: number
 }
 
-export default function AuctionRoom({ initialAuction }: { initialAuction: AuctionData }) {
+const WHEEL_THEME_OPTIONS = [
+  { id: 'cosmic', label: 'Cosmic',  rim: '#FFD700' },
+  { id: 'galaxy', label: 'Galaxy',  rim: '#A855F7' },
+  { id: 'solar',  label: 'Solar',   rim: '#F97316' },
+  { id: 'nebula', label: 'Nebula',  rim: '#22D3EE' },
+  { id: 'custom', label: 'Custom',  rim: '#FFFFFF' },
+]
+
+export default function AuctionRoom({ initialAuction, customWheelTheme = '{}' }: { initialAuction: AuctionData; customWheelTheme?: string }) {
   const { data: session } = useSession()
   const router = useRouter()
   const [auction, setAuction] = useState<AuctionData>(initialAuction)
+  const [wheelThemeOverride, setWheelThemeOverride] = useState<string | null>(null)
   const [showBuyModal, setShowBuyModal] = useState(false)
   const [spinning, setSpinning] = useState(false)
   const [myWin, setMyWin] = useState<WinResult | null>(null)
@@ -181,6 +190,17 @@ export default function AuctionRoom({ initialAuction }: { initialAuction: Auctio
     }
   }
 
+  const handleThemeChange = async (theme: string) => {
+    setWheelThemeOverride(theme)
+    await fetch(`/api/auctions/${auction.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ wheelTheme: theme }),
+    })
+  }
+
+  const activeTheme = wheelThemeOverride ?? auction.wheelTheme ?? 'cosmic'
+
   // Find item by auctionItem id
   const getItemByAuctionItemId = (id: string | null) => {
     if (!id) return null
@@ -248,11 +268,37 @@ export default function AuctionRoom({ initialAuction }: { initialAuction: Auctio
               segments={wheelSegments}
               spinning={spinning}
               winnerLabel={winnerLabel}
-              theme={auction.wheelTheme ?? 'cosmic'}
-              onSpinComplete={() => {
-                setSpinning(false)
-              }}
+              theme={activeTheme}
+              customPalette={activeTheme === 'custom' ? customWheelTheme : undefined}
+              onSpinComplete={() => setSpinning(false)}
             />
+
+            {/* Admin: live theme switcher */}
+            {session?.user.isAdmin && (
+              <div className="mt-3 w-full">
+                <p className="text-[10px] text-gray-600 uppercase tracking-widest mb-1.5 text-center">Wheel Theme</p>
+                <div className="flex gap-1.5 justify-center flex-wrap">
+                  {WHEEL_THEME_OPTIONS.map((t) => (
+                    <button
+                      key={t.id}
+                      onClick={() => handleThemeChange(t.id)}
+                      title={t.label}
+                      className="flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-lg transition-all"
+                      style={{
+                        background: activeTheme === t.id ? 'rgba(124,58,237,0.15)' : 'rgba(255,255,255,0.02)',
+                        border: activeTheme === t.id ? '1px solid rgba(124,58,237,0.5)' : '1px solid rgba(30,30,53,0.6)',
+                      }}
+                    >
+                      <span
+                        className="w-2.5 h-2.5 rounded-full"
+                        style={{ background: t.rim, boxShadow: `0 0 5px ${t.rim}` }}
+                      />
+                      <span className="text-[9px] text-gray-500">{t.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Spot purchase section */}
             {auction.status === 'active' && (

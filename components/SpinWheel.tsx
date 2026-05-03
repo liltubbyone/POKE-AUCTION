@@ -14,6 +14,7 @@ interface SpinWheelProps {
   onSpinComplete?: () => void
   winnerLabel?: string | null
   theme?: string
+  customPalette?: string
 }
 
 type TierPalette = Record<string, { bg: string; alt: string; text: string }>
@@ -69,7 +70,13 @@ const THEMES: Record<string, { rim: string; outer: string; pointer: string; tier
   },
 }
 
-function getTheme(theme?: string) {
+function getTheme(theme?: string, customPalette?: string) {
+  if (theme === 'custom' && customPalette) {
+    try {
+      const p = JSON.parse(customPalette)
+      if (p.rim && p.tiers) return p
+    } catch {}
+  }
   return THEMES[theme ?? 'cosmic'] ?? THEMES.cosmic
 }
 
@@ -77,7 +84,7 @@ function getPalette(tier: string, tiers: TierPalette) {
   return tiers[tier] || tiers.C
 }
 
-export default function SpinWheel({ segments, spinning, onSpinComplete, winnerLabel, theme }: SpinWheelProps) {
+export default function SpinWheel({ segments, spinning, onSpinComplete, winnerLabel, theme, customPalette }: SpinWheelProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const rotationRef = useRef(0)
   const animFrameRef = useRef<number>(0)
@@ -93,7 +100,7 @@ export default function SpinWheel({ segments, spinning, onSpinComplete, winnerLa
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    const palette = getTheme(theme)
+    const palette = getTheme(theme, customPalette)
 
     const dpr = window.devicePixelRatio || 1
     const cssSize = 400
@@ -227,7 +234,7 @@ export default function SpinWheel({ segments, spinning, onSpinComplete, winnerLa
 
   useEffect(() => {
     draw(rotationRef.current)
-  }, [segments]) // eslint-disable-line
+  }, [segments, theme, customPalette]) // eslint-disable-line
 
   useEffect(() => {
     if (!spinning) return

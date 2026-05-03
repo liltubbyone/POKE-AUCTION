@@ -27,12 +27,15 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
 }
 
 export default async function AuctionPage({ params }: { params: { id: string } }) {
-  const auction = await getAuction(params.id)
+  const [auction, settings] = await Promise.all([
+    getAuction(params.id),
+    prisma.siteSettings.findUnique({ where: { id: 'main' } }),
+  ])
 
   if (!auction) {
     notFound()
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return <AuctionRoom initialAuction={auction as any} />
+  return <AuctionRoom initialAuction={auction as any} customWheelTheme={(settings as any)?.customWheelTheme ?? '{}'} />
 }
