@@ -31,10 +31,10 @@ export default async function LivePage() {
           </span>
         </div>
         <h1 className="text-5xl md:text-6xl font-heading text-white mb-3">
-          LIVE <span className="gold-gradient-text">RAFFLES</span>
+          LIVE <span className="gold-gradient-text">EVENTS</span>
         </h1>
         <p className="text-gray-400 max-w-xl leading-relaxed">
-          These raffles are open right now. Buy a spot before they fill up.
+          These events are open right now. Buy a spot before they fill up.
         </p>
       </div>
 
@@ -57,7 +57,7 @@ export default async function LivePage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <h3 className="text-2xl font-heading text-gray-400 mb-2">No Live Raffles Right Now</h3>
+          <h3 className="text-2xl font-heading text-gray-400 mb-2">No Live Events Right Now</h3>
           <p className="text-gray-600 text-sm mb-6">Check back soon — new drops happen regularly.</p>
           <Link href="/results" className="btn-outline text-sm py-2 px-6">View Past Results</Link>
         </div>
