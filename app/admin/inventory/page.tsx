@@ -1,10 +1,91 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { formatCurrency } from '@/lib/utils'
 import Link from 'next/link'
+
+function ImageUploader({
+  value,
+  onChange,
+}: {
+  value: string
+  onChange: (url: string) => void
+}) {
+  const [uploading, setUploading] = useState(false)
+  const [dragOver, setDragOver] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const upload = async (file: File) => {
+    setUploading(true)
+    const fd = new FormData()
+    fd.append('file', file)
+    const res = await fetch('/api/upload', { method: 'POST', body: fd })
+    const data = await res.json()
+    setUploading(false)
+    if (res.ok) onChange(data.url)
+    else alert(data.error || 'Upload failed')
+  }
+
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setDragOver(false)
+    const file = e.dataTransfer.files[0]
+    if (file) upload(file)
+  }
+
+  return (
+    <div className="space-y-2">
+      {/* Drop zone */}
+      <div
+        onClick={() => inputRef.current?.click()}
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={onDrop}
+        className="relative flex flex-col items-center justify-center gap-1 rounded-xl cursor-pointer transition-all"
+        style={{
+          minHeight: '80px',
+          border: `2px dashed ${dragOver ? 'rgba(255,215,0,0.7)' : 'rgba(124,58,237,0.4)'}`,
+          background: dragOver ? 'rgba(255,215,0,0.04)' : 'rgba(124,58,237,0.04)',
+        }}
+      >
+        {uploading ? (
+          <p className="text-violet-400 text-xs animate-pulse">Uploading…</p>
+        ) : value ? (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={value} alt="" className="h-16 w-16 object-contain rounded" />
+            <p className="text-[10px] text-gray-500">Click or drop to replace</p>
+          </>
+        ) : (
+          <>
+            <svg className="w-6 h-6 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <p className="text-xs text-gray-500">Drop image or click to upload</p>
+            <p className="text-[10px] text-gray-600">JPEG / PNG / WebP · max 5 MB</p>
+          </>
+        )}
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/jpeg,image/jpg,image/png,image/webp"
+          className="hidden"
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f) }}
+        />
+      </div>
+      {/* URL fallback */}
+      <input
+        type="url"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="input-field text-xs py-1"
+        placeholder="Or paste image URL…"
+      />
+    </div>
+  )
+}
 
 interface InventoryItem {
   id: string
@@ -227,13 +308,10 @@ export default function AdminInventoryPage() {
               />
             </div>
             <div className="col-span-4">
-              <label className="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Image URL</label>
-              <input
-                type="url"
+              <label className="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Image</label>
+              <ImageUploader
                 value={newItem.imageUrl || ''}
-                onChange={(e) => setNewItem((n) => ({ ...n, imageUrl: e.target.value }))}
-                className="input-field"
-                placeholder="https://..."
+                onChange={(url) => setNewItem((n) => ({ ...n, imageUrl: url }))}
               />
             </div>
           </div>
@@ -319,13 +397,10 @@ export default function AdminInventoryPage() {
                         placeholder="Note"
                       />
                     </td>
-                    <td className="py-2 pr-4">
-                      <input
-                        type="url"
+                    <td className="py-2 pr-4 w-48">
+                      <ImageUploader
                         value={editValues.imageUrl || ''}
-                        onChange={(e) => setEditValues((v) => ({ ...v, imageUrl: e.target.value }))}
-                        className="input-field py-1 text-sm w-48"
-                        placeholder="https://..."
+                        onChange={(url) => setEditValues((v) => ({ ...v, imageUrl: url }))}
                       />
                     </td>
                     <td className="py-2 text-right">
