@@ -60,11 +60,11 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
       />
 
       {/* ── Header ── */}
-      <div className="flex items-start justify-between gap-3 pt-1">
-        <div className="flex-1 overflow-hidden">
-          {/* Category pill */}
+      <div className="pt-1">
+        {/* Category pill + Status pill on same row */}
+        <div className="flex items-center justify-between gap-2 mb-2">
           <span
-            className="inline-flex mb-1.5 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-widest"
+            className="text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-widest"
             style={{
               color: cat.accent,
               background: `rgba(${cat.rgb},0.10)`,
@@ -73,25 +73,25 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
           >
             {cat.label}
           </span>
-          <h3 className="text-xl font-heading text-white leading-tight group-hover:text-violet-300 transition-colors duration-200 break-words">
-            {auction.name}
-          </h3>
-        </div>
-        {/* Status pill */}
-        <span
-          className="flex-shrink-0 inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider"
-          style={{ color: status.text, background: status.bg, border: `1px solid ${status.border}` }}
-        >
           <span
-            className="w-1.5 h-1.5 rounded-full"
-            style={{
-              background: status.dot,
-              boxShadow: `0 0 5px ${status.dot}`,
-              animation: auction.status === 'active' ? 'pulse 2s ease-in-out infinite' : undefined,
-            }}
-          />
-          {auction.status}
-        </span>
+            className="inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider"
+            style={{ color: status.text, background: status.bg, border: `1px solid ${status.border}` }}
+          >
+            <span
+              className="w-1.5 h-1.5 rounded-full"
+              style={{
+                background: status.dot,
+                boxShadow: `0 0 5px ${status.dot}`,
+                animation: auction.status === 'active' ? 'pulse 2s ease-in-out infinite' : undefined,
+              }}
+            />
+            {auction.status}
+          </span>
+        </div>
+        {/* Name gets full width */}
+        <h3 className="text-xl font-heading text-white leading-tight group-hover:text-violet-300 transition-colors duration-200">
+          {auction.name}
+        </h3>
       </div>
 
       {/* ── Description ── */}
