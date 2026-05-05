@@ -73,7 +73,7 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
           >
             {cat.label}
           </span>
-          <h3 className="text-xl font-heading text-white leading-tight group-hover:text-violet-300 transition-colors duration-200 truncate">
+          <h3 className="text-xl font-heading text-white leading-tight group-hover:text-violet-300 transition-colors duration-200">
             {auction.name}
           </h3>
         </div>
