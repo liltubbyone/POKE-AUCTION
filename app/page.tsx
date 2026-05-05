@@ -29,7 +29,7 @@ async function getCompletedAuctions() {
 const steps = [
   {
     num: '01',
-    title: 'Browse Auctions',
+    title: 'Browse Games',
     desc: 'View every item in the pool before you buy. Full transparency — no hidden prizes.',
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#FFD700' }}>
@@ -79,7 +79,7 @@ const trustItems = [
       </svg>
     ),
     title: '100% Transparent',
-    desc: 'All items are listed publicly before any auction starts. No hidden items, no last-minute swaps. Ever.',
+    desc: 'All items are listed publicly before any game starts. No hidden items, no last-minute swaps. Ever.',
   },
   {
     color: '#7c3aed',
@@ -175,7 +175,7 @@ export default async function HomePage() {
           </h1>
 
           <p className="text-lg md:text-xl text-slate-400 mb-10 font-body max-w-lg mx-auto leading-relaxed">
-            Buy a spot. Fill the raffle. Spin the wheel. Rare trading cards and collectibles —{' '}
+            Sign in. Buy a spot. Spin the wheel. Rare trading cards and collectibles —{' '}
             <span className="text-white font-semibold">100% randomized</span>, published publicly.
           </p>
 

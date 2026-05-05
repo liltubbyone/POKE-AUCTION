@@ -20,7 +20,7 @@ export default async function InventoryPage() {
           INVENTORY <span className="gold-gradient-text">CATALOG</span>
         </h1>
         <p className="text-gray-400 max-w-2xl leading-relaxed">
-          All items available for current and future raffles.
+          All items available for current and future games.
           Items marked <strong className="text-red-400">SOLD OUT</strong> have zero quantity remaining.
         </p>
       </div>

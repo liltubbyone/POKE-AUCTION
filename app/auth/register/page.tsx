@@ -157,7 +157,7 @@ export default function RegisterPage() {
                 <span className="text-sm text-gray-300 leading-relaxed">
                   I understand and agree that:{' '}
                   <strong className="text-red-400">ALL SALES ARE FINAL — NO REFUNDS.</strong>{' '}
-                  All auctions are 100% randomized. I am responsible for shipping costs.
+                  All games are 100% randomized. I am responsible for shipping costs.
                   The wheel result is determined by a provably fair cryptographic algorithm
                   and cannot be manipulated.
                 </span>

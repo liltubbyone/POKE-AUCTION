@@ -83,7 +83,7 @@ export default async function AdminDashboard() {
             Manage Inventory
           </Link>
           <Link href="/admin/auctions/new" className="btn-gold text-sm py-2 px-4">
-            + Create Raffle
+            + Create Game
           </Link>
         </div>
       </div>
