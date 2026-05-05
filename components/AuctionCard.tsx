@@ -61,10 +61,10 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
 
       {/* ── Header ── */}
       <div className="flex items-start justify-between gap-3 pt-1">
-        <div className="flex items-start gap-2 min-w-0 flex-1">
+        <div className="min-w-0 flex-1">
           {/* Category pill */}
           <span
-            className="flex-shrink-0 mt-1 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-widest"
+            className="inline-flex mb-1.5 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-widest"
             style={{
               color: cat.accent,
               background: `rgba(${cat.rgb},0.10)`,
