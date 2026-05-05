@@ -61,7 +61,7 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
 
       {/* ── Header ── */}
       <div className="flex items-start justify-between gap-3 pt-1">
-        <div className="min-w-0 flex-1">
+        <div className="flex-1 overflow-hidden">
           {/* Category pill */}
           <span
             className="inline-flex mb-1.5 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-widest"
@@ -73,7 +73,7 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
           >
             {cat.label}
           </span>
-          <h3 className="text-xl font-heading text-white leading-tight group-hover:text-violet-300 transition-colors duration-200">
+          <h3 className="text-xl font-heading text-white leading-tight group-hover:text-violet-300 transition-colors duration-200 break-words">
             {auction.name}
           </h3>
         </div>
