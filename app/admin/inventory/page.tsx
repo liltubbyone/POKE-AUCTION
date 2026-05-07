@@ -196,11 +196,12 @@ export default function AdminInventoryPage() {
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`Delete "${name}"? This cannot be undone.`)) return
     const res = await fetch(`/api/inventory/${id}`, { method: 'DELETE' })
+    const data = await res.json()
     if (res.ok) {
       fetchItems()
       setMessage({ type: 'success', text: 'Item deleted.' })
     } else {
-      setMessage({ type: 'error', text: 'Failed to delete item.' })
+      setMessage({ type: 'error', text: data.error || 'Failed to delete item.' })
     }
   }
 

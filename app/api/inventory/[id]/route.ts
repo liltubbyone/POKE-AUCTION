@@ -29,6 +29,15 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
   }
 
   try {
+    // Check if this item is referenced by any auction
+    const inUse = await prisma.auctionItem.findFirst({ where: { itemId: params.id } })
+    if (inUse) {
+      return NextResponse.json(
+        { error: 'This item is used in one or more auctions and cannot be deleted.' },
+        { status: 409 }
+      )
+    }
+
     await prisma.inventoryItem.delete({ where: { id: params.id } })
     return NextResponse.json({ success: true })
   } catch (err) {
