@@ -25,8 +25,7 @@ export default async function EditAuctionItemsPage({ params }: { params: { id: s
 
   if (!auction) redirect('/admin')
 
-  const assignedItemIds = new Set(auction.items.map((ai) => ai.itemId))
-  const available = inventory.filter((i) => !assignedItemIds.has(i.id))
+  const available = inventory
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -45,30 +44,71 @@ export default async function EditAuctionItemsPage({ params }: { params: { id: s
           ) : (
             <div className="space-y-2">
               {auction.items.map((ai) => (
-                <div key={ai.id} className="flex items-center justify-between bg-background border border-border rounded-lg p-3">
-                  <div>
-                    <p className="text-white text-sm font-semibold">{ai.item.name}</p>
-                    <p className="text-gray-500 text-xs">Qty: {ai.quantity} · Tier: {ai.item.tier}</p>
+                <div key={ai.id} className="bg-background border border-border rounded-lg p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white text-sm font-semibold truncate">{ai.item.name}</p>
+                      <p className="text-gray-500 text-xs">Tier: {ai.item.tier}</p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {/* Quantity editor */}
+                      <form
+                        action={async (formData: FormData) => {
+                          'use server'
+                          const newQty = Math.max(1, parseInt(formData.get('qty') as string) || 1)
+                          const diff = newQty - ai.quantity
+                          await prisma.auctionItem.update({
+                            where: { id: ai.id },
+                            data: { quantity: newQty },
+                          })
+                          if (diff !== 0) {
+                            await prisma.inventoryItem.update({
+                              where: { id: ai.itemId },
+                              data: { qty: { decrement: diff } },
+                            })
+                          }
+                          revalidatePath(`/admin/auctions/${params.id}/edit`)
+                          revalidatePath('/admin')
+                        }}
+                        className="flex items-center gap-1"
+                      >
+                        <span className="text-gray-400 text-xs">Qty:</span>
+                        <input
+                          type="number"
+                          name="qty"
+                          defaultValue={ai.quantity}
+                          min={1}
+                          className="w-14 bg-card border border-border rounded px-2 py-0.5 text-white text-xs text-center focus:outline-none focus:border-gold"
+                        />
+                        <button
+                          type="submit"
+                          className="text-xs text-green-400 hover:text-green-300 border border-green-500/30 bg-green-900/20 hover:bg-green-900/40 px-2 py-1 rounded font-semibold transition-colors"
+                        >
+                          Save
+                        </button>
+                      </form>
+                      {/* Remove */}
+                      <form
+                        action={async () => {
+                          'use server'
+                          await prisma.auctionItem.delete({ where: { id: ai.id } })
+                          await prisma.inventoryItem.update({
+                            where: { id: ai.itemId },
+                            data: { qty: { increment: ai.quantity } },
+                          })
+                          revalidatePath(`/admin/auctions/${params.id}/edit`)
+                          revalidatePath('/admin')
+                        }}
+                      >
+                        <button
+                          type="submit"
+                          className="text-xs text-red-400 hover:text-red-300 border border-red-500/30 bg-red-900/20 hover:bg-red-900/40 px-3 py-1 rounded font-semibold transition-colors"
+                        >
+                          Remove
+                        </button>
+                      </form>
+                    </div>
                   </div>
-                  <form
-                    action={async () => {
-                      'use server'
-                      await prisma.auctionItem.delete({ where: { id: ai.id } })
-                      await prisma.inventoryItem.update({
-                        where: { id: ai.itemId },
-                        data: { qty: { increment: ai.quantity } },
-                      })
-                      revalidatePath(`/admin/auctions/${params.id}/edit`)
-                      revalidatePath('/admin')
-                    }}
-                  >
-                    <button
-                      type="submit"
-                      className="text-xs text-red-400 hover:text-red-300 border border-red-500/30 bg-red-900/20 hover:bg-red-900/40 px-3 py-1 rounded font-semibold transition-colors"
-                    >
-                      Remove
-                    </button>
-                  </form>
                 </div>
               ))}
             </div>
@@ -87,9 +127,19 @@ export default async function EditAuctionItemsPage({ params }: { params: { id: s
                   key={item.id}
                   action={async () => {
                     'use server'
-                    await prisma.auctionItem.create({
-                      data: { auctionId: params.id, itemId: item.id, quantity: 1 },
+                    const existing = await prisma.auctionItem.findFirst({
+                      where: { auctionId: params.id, itemId: item.id },
                     })
+                    if (existing) {
+                      await prisma.auctionItem.update({
+                        where: { id: existing.id },
+                        data: { quantity: { increment: 1 } },
+                      })
+                    } else {
+                      await prisma.auctionItem.create({
+                        data: { auctionId: params.id, itemId: item.id, quantity: 1 },
+                      })
+                    }
                     await prisma.inventoryItem.update({
                       where: { id: item.id },
                       data: { qty: { decrement: 1 } },
@@ -101,7 +151,7 @@ export default async function EditAuctionItemsPage({ params }: { params: { id: s
                 >
                   <div>
                     <p className="text-white text-sm">{item.name}</p>
-                    <p className="text-gray-500 text-xs">{item.tier} · x{item.qty} · {formatCurrency(item.resellMin)}+</p>
+                    <p className="text-gray-500 text-xs">{item.tier} · x{item.qty} in stock · {formatCurrency(item.resellMin)}+</p>
                   </div>
                   <button
                     type="submit"
