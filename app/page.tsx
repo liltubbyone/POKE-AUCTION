@@ -26,6 +26,14 @@ async function getCompletedAuctions() {
   })
 }
 
+async function getSiteStats() {
+  const [totalSold, totalCompleted] = await Promise.all([
+    prisma.auctionSpot.count({ where: { paid: true } }),
+    prisma.auction.count({ where: { status: 'completed' } }),
+  ])
+  return { totalSold, totalCompleted }
+}
+
 const steps = [
   {
     num: '01',
@@ -103,19 +111,20 @@ const trustItems = [
   },
 ]
 
-const stats = [
-  { value: '100%', label: 'Randomized', color: '#a78bfa' },
-  { value: '0',    label: 'Manipulated', color: '#4ade80' },
-  { value: '24h',  label: 'Avg Ship',    color: '#38bdf8' },
-]
-
 export default async function HomePage() {
-  const [games, raffles, giveaways, completedAuctions] = await Promise.all([
+  const [games, raffles, giveaways, completedAuctions, siteStats] = await Promise.all([
     getActiveByCategory('game'),
     getActiveByCategory('raffle'),
     getActiveByCategory('giveaway'),
     getCompletedAuctions(),
+    getSiteStats(),
   ])
+
+  const stats = [
+    { value: siteStats.totalSold > 0 ? `${siteStats.totalSold}+` : '100%', label: siteStats.totalSold > 0 ? 'Spots Sold'  : 'Randomized', color: '#a78bfa' },
+    { value: siteStats.totalCompleted > 0 ? `${siteStats.totalCompleted}` : '0',   label: siteStats.totalCompleted > 0 ? 'Completed'   : 'Manipulated', color: '#FFD700' },
+    { value: '24h', label: 'Avg Ship', color: '#4ade80' },
+  ]
 
   const totalActive = games.length + raffles.length + giveaways.length
 
@@ -205,7 +214,7 @@ export default async function HomePage() {
           HOW IT WORKS
       ══════════════════════════════════════ */}
       <section className="relative py-32" style={{ background: 'rgba(10,14,28,0.70)' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-20">
             <p className="section-eyebrow">Process</p>
             <h2 className="section-title">How the Wheel Works</h2>
@@ -251,15 +260,15 @@ export default async function HomePage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-end justify-between mb-14">
               <div>
-                <p className="section-eyebrow" style={{ color: '#38bdf8' }}>Active Now</p>
+                <p className="section-eyebrow" style={{ color: '#a78bfa' }}>Active Now</p>
                 <h2 className="section-title">Games</h2>
                 <p className="text-slate-500 mt-1 text-sm">Join a live game before spots fill up.</p>
               </div>
               <div
                 className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider"
-                style={{ color: '#38bdf8', background: 'rgba(56,189,248,0.07)', border: '1px solid rgba(56,189,248,0.20)' }}
+                style={{ color: '#a78bfa', background: 'rgba(124,58,237,0.07)', border: '1px solid rgba(124,58,237,0.20)' }}
               >
-                <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#38bdf8' }} />
+                <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#a78bfa' }} />
                 {games.length} Live
               </div>
             </div>
@@ -367,7 +376,7 @@ export default async function HomePage() {
           className="absolute inset-0 pointer-events-none"
           style={{ background: 'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(56,189,248,0.05) 0%, transparent 60%)' }}
         />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-20">
             <p className="section-eyebrow">Trust</p>
             <h2 className="section-title">
@@ -410,7 +419,7 @@ export default async function HomePage() {
         className="relative py-32"
         style={{ background: 'rgba(10,14,28,0.65)', borderTop: '1px solid rgba(30,41,59,0.6)' }}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-20">
             <p className="section-eyebrow">Reviews</p>
             <h2 className="section-title">What Buyers Say</h2>

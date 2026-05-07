@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Orbitron, Rajdhani } from 'next/font/google'
+import { Orbitron, Inter } from 'next/font/google'
 import './globals.css'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
@@ -16,10 +16,10 @@ const orbitron = Orbitron({
   display: 'swap',
 })
 
-const rajdhani = Rajdhani({
+const inter = Inter({
   weight: ['300', '400', '500', '600', '700'],
   subsets: ['latin'],
-  variable: '--font-rajdhani',
+  variable: '--font-inter',
   display: 'swap',
 })
 
@@ -43,7 +43,7 @@ export default async function RootLayout({
   const session = await getServerSession(authOptions)
 
   return (
-    <html lang="en" className={`${orbitron.variable} ${rajdhani.variable}`}>
+    <html lang="en" className={`${orbitron.variable} ${inter.variable}`}>
       <body className="bg-background text-white font-body antialiased min-h-screen flex flex-col">
         <SessionProvider session={session}>
           <StarField />

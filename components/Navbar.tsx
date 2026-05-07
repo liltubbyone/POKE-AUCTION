@@ -57,7 +57,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
 
           {/* Logo */}
-          <Link href="/" className="flex items-center group flex-shrink-0">
+          <Link href="/" className="flex items-center gap-2.5 group flex-shrink-0">
             <Image
               src="/logo.png"
               alt="Cosmic Grails"
@@ -67,6 +67,10 @@ export default function Navbar() {
               style={{ objectFit: 'contain' }}
               priority
             />
+            <div className="hidden sm:flex flex-col leading-none">
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: '#a78bfa' }}>Cosmic Grails</span>
+              <span className="text-[9px] font-medium uppercase tracking-widest" style={{ color: '#334155' }}>Est. 2024</span>
+            </div>
           </Link>
 
           {/* Desktop Nav */}

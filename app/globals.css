@@ -30,16 +30,28 @@ body {
   overflow-x: hidden;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
   font-weight: 400;
+  -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: 'Orbitron', sans-serif;
-  letter-spacing: 0.06em;
+  letter-spacing: -0.015em;
+}
+
+/* Focus rings — accessible and clean */
+:focus-visible {
+  outline: 2px solid rgba(124,58,237,0.65);
+  outline-offset: 3px;
+  border-radius: 6px;
 }
 
 a {
@@ -193,7 +205,8 @@ a {
 ───────────────────────────────────────────── */
 
   .section-title {
-    @apply text-4xl md:text-5xl font-heading text-white tracking-wider;
+    @apply text-4xl md:text-5xl font-heading text-white;
+    letter-spacing: -0.02em;
   }
 
   .section-eyebrow {
@@ -246,8 +259,8 @@ a {
 ───────────────────────────────────────────── */
 @layer utilities {
   .text-balance { text-wrap: balance; }
-  .font-heading { font-family: 'Orbitron', sans-serif; letter-spacing: 0.06em; }
-  .font-body    { font-family: 'Rajdhani', sans-serif; }
+  .font-heading { font-family: 'Orbitron', sans-serif; letter-spacing: -0.015em; }
+  .font-body    { font-family: var(--font-inter), system-ui, sans-serif; }
   .float-element { animation: float 6s ease-in-out infinite; }
 }
 
@@ -269,7 +282,7 @@ a {
   background: linear-gradient(90deg,
     transparent 0%,
     rgba(124,58,237,0.30) 25%,
-    rgba(56,189,248,0.20) 50%,
+    rgba(167,139,250,0.20) 50%,
     rgba(124,58,237,0.30) 75%,
     transparent 100%);
 }
@@ -292,8 +305,10 @@ a {
 
 .step-card {
   background: rgba(13,18,36,0.85);
-  border: 1px solid rgba(30,41,59,0.9);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05), inset 0 -1px 0 rgba(0,0,0,0.2);
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06), inset 0 -1px 0 rgba(0,0,0,0.2);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   transition: all 0.28s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .step-card:hover {
@@ -304,8 +319,10 @@ a {
 
 .trust-card {
   background: rgba(13,18,36,0.85);
-  border: 1px solid rgba(30,41,59,0.9);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05), inset 0 -1px 0 rgba(0,0,0,0.2);
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06), inset 0 -1px 0 rgba(0,0,0,0.2);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   transition: all 0.28s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .trust-card:hover {
@@ -317,9 +334,11 @@ a {
 
 /* ─── Auction card — neon edge on hover ─── */
 .auction-card {
-  background: linear-gradient(160deg, rgba(15,22,42,0.95) 0%, rgba(10,14,30,1) 100%);
-  border: 1px solid rgba(30,41,59,0.9);
-  box-shadow: 0 4px 32px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.055), inset 0 -1px 0 rgba(0,0,0,0.3);
+  background: linear-gradient(160deg, rgba(15,22,42,0.90) 0%, rgba(10,14,30,0.96) 100%);
+  border: 1px solid rgba(255,255,255,0.07);
+  box-shadow: 0 4px 32px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06), inset 0 -1px 0 rgba(0,0,0,0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   transition: all 0.28s cubic-bezier(0.22, 1, 0.36, 1);
   position: relative;
   overflow: hidden;
@@ -434,5 +453,5 @@ a {
 /* Neon separator line */
 .neon-separator {
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(56,189,248,0.25), transparent);
+  background: linear-gradient(90deg, transparent, rgba(124,58,237,0.30), transparent);
 }

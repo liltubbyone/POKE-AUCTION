@@ -29,7 +29,7 @@ const config: Config = {
       },
       fontFamily: {
         heading: ['var(--font-orbitron)', 'Orbitron', 'sans-serif'],
-        body:    ['var(--font-rajdhani)', 'Rajdhani', 'sans-serif'],
+        body:    ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
       },
       animation: {
         spin:           'spin 1s linear infinite',
