@@ -68,11 +68,9 @@ export default function CreateAuctionPage() {
   }
 
   const updateQuantity = (itemId: string, quantity: number) => {
-    const item = inventory.find((i) => i.id === itemId)
-    if (!item) return
-    const capped = Math.min(quantity, item.qty)
+    const val = Math.max(1, parseInt(String(quantity)) || 1)
     setSelectedItems((prev) =>
-      prev.map((si) => (si.itemId === itemId ? { ...si, quantity: capped } : si))
+      prev.map((si) => (si.itemId === itemId ? { ...si, quantity: val } : si))
     )
   }
 
@@ -372,12 +370,11 @@ export default function CreateAuctionPage() {
                         <input
                           type="number"
                           min={1}
-                          max={item.qty}
                           value={si.quantity}
                           onChange={(e) => updateQuantity(si.itemId, parseInt(e.target.value))}
                           className="w-16 bg-card border border-border rounded px-2 py-1 text-center text-white text-sm"
                         />
-                        <span className="text-gray-500 text-xs">max {item.qty}</span>
+                        <span className="text-gray-500 text-xs">{item.qty} in stock</span>
                         <button
                           type="button"
                           onClick={() => removeItem(si.itemId)}
