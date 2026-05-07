@@ -27,19 +27,19 @@ export default function Navbar() {
   const isActive = (href: string) => pathname === href || (href !== '/' && pathname.startsWith(href))
 
   const gamesLinks = [
-    { href: '/auctions', label: 'Raffles',    desc: 'Browse all raffle drops',       icon: '🎰' },
-    { href: '/giveaways', label: 'Giveaways', desc: 'Free entry giveaways',           icon: '🎁' },
-    { href: '/browse',   label: 'Browse All', desc: 'All games, raffles & giveaways', icon: '🌌' },
+    { href: '/auctions',    label: 'Raffles',    desc: 'Browse all raffle drops',       icon: '🎰' },
+    { href: '/giveaways',   label: 'Giveaways',  desc: 'Free entry giveaways',           icon: '🎁' },
+    { href: '/word-search', label: 'Word Search', desc: 'Daily Pokemon puzzle — free!',  icon: '🔍' },
+    { href: '/browse',      label: 'Browse All',  desc: 'All games, raffles & giveaways', icon: '🌌' },
   ]
 
   const navLinks = [
     { href: '/', label: 'Home' },
   ]
   const rightLinks = [
-    { href: '/daily-spin',  label: '🎁 Free Spin' },
-    { href: '/word-search', label: '🔍 Puzzle'    },
-    { href: '/inventory',   label: 'Inventory'    },
-    { href: '/results',     label: 'Results'      },
+    { href: '/daily-spin', label: '🎁 Free Spin' },
+    { href: '/inventory',  label: 'Inventory'    },
+    { href: '/results',    label: 'Results'      },
   ]
 
   return (
@@ -265,10 +265,9 @@ export default function Navbar() {
               </div>
             )}
 
-            <Link href="/daily-spin"  className="px-3 py-2.5 text-slate-300 hover:text-white rounded-xl font-semibold transition-colors hover:bg-white/[0.04] text-sm" onClick={() => setMobileOpen(false)}>🎁 Free Spin</Link>
-            <Link href="/word-search" className="px-3 py-2.5 text-slate-300 hover:text-white rounded-xl font-semibold transition-colors hover:bg-white/[0.04] text-sm" onClick={() => setMobileOpen(false)}>🔍 Puzzle</Link>
-            <Link href="/inventory"   className="px-3 py-2.5 text-slate-300 hover:text-white rounded-xl font-semibold transition-colors hover:bg-white/[0.04] text-sm" onClick={() => setMobileOpen(false)}>Inventory</Link>
-            <Link href="/results"     className="px-3 py-2.5 text-slate-300 hover:text-white rounded-xl font-semibold transition-colors hover:bg-white/[0.04] text-sm" onClick={() => setMobileOpen(false)}>Results</Link>
+            <Link href="/daily-spin" className="px-3 py-2.5 text-slate-300 hover:text-white rounded-xl font-semibold transition-colors hover:bg-white/[0.04] text-sm" onClick={() => setMobileOpen(false)}>🎁 Free Spin</Link>
+            <Link href="/inventory"  className="px-3 py-2.5 text-slate-300 hover:text-white rounded-xl font-semibold transition-colors hover:bg-white/[0.04] text-sm" onClick={() => setMobileOpen(false)}>Inventory</Link>
+            <Link href="/results"    className="px-3 py-2.5 text-slate-300 hover:text-white rounded-xl font-semibold transition-colors hover:bg-white/[0.04] text-sm" onClick={() => setMobileOpen(false)}>Results</Link>
 
             {session?.user?.isAdmin && (
               <Link href="/admin" className="px-3 py-2.5 font-bold text-sm" style={{ color: '#FFD700' }} onClick={() => setMobileOpen(false)}>Admin</Link>
