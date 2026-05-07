@@ -11,6 +11,7 @@ interface Settings {
   mysteryWheelTheme: string
   customMysteryColor: string
   customWheelTheme: string
+  wordSearchEnabled: boolean
 }
 
 const MYSTERY_WHEEL_PRESETS = [
@@ -116,7 +117,9 @@ export default function AdminSettings() {
     mysteryWheelTheme: 'cosmic',
     customMysteryColor: '#7C3AED',
     customWheelTheme: '{}',
+    wordSearchEnabled: true,
   })
+  const [wordSearchStats, setWordSearchStats] = useState<{ completionsToday: number; completionsTotal: number } | null>(null)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [imgError, setImgError] = useState(false)
@@ -135,6 +138,10 @@ export default function AdminSettings() {
         setActivePreset(match >= 0 ? match : null)
         setCustomColors(parseCustomPalette(d.customWheelTheme ?? '{}'))
       })
+    fetch('/api/admin/word-search')
+      .then((r) => r.json())
+      .then((d) => setWordSearchStats(d))
+      .catch(() => {})
   }, [])
 
   const applyPreset = (idx: number) => {
@@ -156,6 +163,7 @@ export default function AdminSettings() {
         mysteryWheelTheme: settings.mysteryWheelTheme,
         customMysteryColor: settings.customMysteryColor,
         customWheelTheme: buildCustomPalette(customColors),
+        wordSearchEnabled: settings.wordSearchEnabled,
       }),
     })
     setSaving(false)
@@ -427,6 +435,57 @@ export default function AdminSettings() {
                 <span className="text-gray-600 text-xs ml-1">Rim · S · A · B · C</span>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Word Search Game */}
+        <div>
+          <label className="block text-xs text-gray-400 mb-3 uppercase tracking-wider">Pokemon Word Search</label>
+          <div
+            className="rounded-xl p-4 space-y-4"
+            style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(30,30,53,0.8)' }}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-white font-semibold">Enable Daily Word Search</p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Players who find all words earn +1 free spin on the mystery wheel.
+                </p>
+              </div>
+              <button
+                onClick={() => setSettings((s) => ({ ...s, wordSearchEnabled: !s.wordSearchEnabled }))}
+                className="relative w-12 h-6 rounded-full transition-colors duration-200 flex-shrink-0"
+                style={{
+                  background: settings.wordSearchEnabled ? 'rgba(124,58,237,0.8)' : 'rgba(30,30,53,0.9)',
+                  border: settings.wordSearchEnabled ? '1px solid rgba(124,58,237,0.9)' : '1px solid rgba(30,30,53,0.8)',
+                }}
+              >
+                <span
+                  className="absolute top-0.5 w-5 h-5 rounded-full transition-all duration-200"
+                  style={{
+                    left: settings.wordSearchEnabled ? '1.375rem' : '0.125rem',
+                    background: settings.wordSearchEnabled ? '#ffffff' : '#475569',
+                  }}
+                />
+              </button>
+            </div>
+
+            {wordSearchStats && (
+              <div className="grid grid-cols-2 gap-3 pt-2" style={{ borderTop: '1px solid rgba(30,30,53,0.7)' }}>
+                <div className="rounded-lg p-3 text-center" style={{ background: 'rgba(124,58,237,0.07)', border: '1px solid rgba(124,58,237,0.18)' }}>
+                  <p className="text-2xl font-heading text-violet-400">{wordSearchStats.completionsToday}</p>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">Completed Today</p>
+                </div>
+                <div className="rounded-lg p-3 text-center" style={{ background: 'rgba(56,189,248,0.07)', border: '1px solid rgba(56,189,248,0.18)' }}>
+                  <p className="text-2xl font-heading text-sky-400">{wordSearchStats.completionsTotal}</p>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">All-Time Completions</p>
+                </div>
+              </div>
+            )}
+
+            <p className="text-[11px] text-gray-600">
+              The puzzle resets daily at midnight Central time — same as the mystery spin.
+            </p>
           </div>
         </div>
 

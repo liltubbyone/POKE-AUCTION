@@ -40,7 +40,14 @@ export async function GET() {
   ])
 
   const spinsUsed = userSpinsToday.length
-  const limit = (settings as any).dailySpinLimit ?? 1
+  const baseLimit = (settings as any).dailySpinLimit ?? 1
+
+  // Grant +1 spin if user completed today's word search
+  const wordSearchBonus = await prisma.wordSearchCompletion.findUnique({
+    where: { userId_date: { userId: session.user.id, date: today } },
+  })
+  const limit = baseLimit + (wordSearchBonus ? 1 : 0)
+
   const hasSpunToday = spinsUsed >= limit
   const won = userSpinsToday.some((s) => s.won)
   const lastSpin = userSpinsToday[0]
@@ -70,11 +77,15 @@ export async function POST() {
   const settings = await getSettings()
   const limit = (settings as any).dailySpinLimit ?? 1
 
-  const spinsUsed = await prisma.dailySpin.count({
-    where: { userId: session.user.id, spinDate: today },
-  })
+  const [spinsUsed, wordSearchBonus] = await Promise.all([
+    prisma.dailySpin.count({ where: { userId: session.user.id, spinDate: today } }),
+    prisma.wordSearchCompletion.findUnique({
+      where: { userId_date: { userId: session.user.id, date: today } },
+    }),
+  ])
+  const effectiveLimit = limit + (wordSearchBonus ? 1 : 0)
 
-  if (spinsUsed >= limit) {
+  if (spinsUsed >= effectiveLimit) {
     return NextResponse.json({ alreadySpun: true, won: false, spinNumber: null })
   }
 
@@ -91,7 +102,7 @@ export async function POST() {
     won,
     spinNumber,
     spinsUsed: spinsUsed + 1,
-    spinsLimit: limit,
+    spinsLimit: effectiveLimit,
     mysteryGiftName: settings.mysteryGiftName,
     mysteryGiftImage: settings.mysteryGiftImage,
     winnerSpinNumber: settings.winnerSpinNumber,
