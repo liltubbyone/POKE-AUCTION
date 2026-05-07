@@ -126,19 +126,19 @@ export default async function HomePage() {
       {/* ══════════════════════════════════════
           HERO
       ══════════════════════════════════════ */}
-      <section className="relative overflow-hidden py-28 md:py-40 grid-pattern">
+      <section className="relative overflow-hidden py-36 md:py-52 grid-pattern">
         {/* Radial glow centerpiece */}
         <div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
           style={{
-            width: '800px', height: '800px', borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(124,58,237,0.14) 0%, rgba(56,189,248,0.04) 45%, transparent 68%)',
+            width: '900px', height: '900px', borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(124,58,237,0.16) 0%, rgba(56,189,248,0.04) 45%, transparent 68%)',
           }}
         />
         {/* Orbital ring */}
         <div
           className="absolute top-1/2 left-1/2 pointer-events-none"
-          style={{ width: '650px', height: '650px', marginLeft: '-325px', marginTop: '-325px', perspective: '800px' }}
+          style={{ width: '700px', height: '700px', marginLeft: '-350px', marginTop: '-350px', perspective: '800px' }}
         >
           <div style={{
             width: '100%', height: '100%', borderRadius: '50%',
@@ -150,12 +150,12 @@ export default async function HomePage() {
         {/* Edge fades */}
         <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-transparent to-background pointer-events-none" />
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
 
           {/* Live pill */}
           {totalActive > 0 && (
             <div
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-8"
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-10"
               style={{
                 background: 'rgba(74,222,128,0.07)',
                 border: '1px solid rgba(74,222,128,0.22)',
@@ -163,80 +163,53 @@ export default async function HomePage() {
               }}
             >
               <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-              {totalActive} Raffle{totalActive !== 1 ? 's' : ''} Running Now
+              {totalActive} Active Now
             </div>
           )}
 
-          {/* Headline */}
-          <h1 className="font-heading leading-none mb-6 select-none">
-            <span className="block text-white" style={{ fontSize: 'clamp(2.8rem, 8vw, 6rem)' }}>DISCOVER YOUR</span>
-            <span className="block cosmic-title-shimmer" style={{ fontSize: 'clamp(3.2rem, 10vw, 8rem)' }}>COSMIC</span>
-            <span className="block shimmer-gold"         style={{ fontSize: 'clamp(2.8rem, 8vw, 6rem)' }}>GRAILS</span>
+          {/* Headline — single focal point */}
+          <h1 className="font-heading leading-none mb-8 select-none">
+            <span className="block text-white" style={{ fontSize: 'clamp(3rem, 9vw, 7rem)' }}>DISCOVER YOUR</span>
+            <span className="block cosmic-title-shimmer" style={{ fontSize: 'clamp(3.8rem, 12vw, 9.5rem)', lineHeight: 1 }}>COSMIC GRAILS</span>
           </h1>
 
-          <p className="text-lg md:text-xl text-slate-400 mb-10 font-body max-w-lg mx-auto leading-relaxed">
-            Sign in. Buy a spot. Spin the wheel. Rare trading cards and collectibles —{' '}
-            <span className="text-white font-semibold">100% randomized</span>, published publicly.
+          <p className="text-lg md:text-xl text-slate-500 mb-12 font-body max-w-md mx-auto leading-relaxed">
+            Buy a spot. Spin the wheel. Win rare cards —{' '}
+            <span className="text-slate-300 font-semibold">100% randomized</span>.
           </p>
 
-          {/* Policy pills */}
-          <div className="flex flex-wrap items-center justify-center gap-2.5 mb-10">
-            <span
-              className="px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wide"
-              style={{ background: 'rgba(220,38,38,0.07)', border: '1px solid rgba(220,38,38,0.20)', color: '#fca5a5' }}
-            >
-              All Sales Final
-            </span>
-            <span
-              className="px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wide"
-              style={{ background: 'rgba(74,222,128,0.07)', border: '1px solid rgba(74,222,128,0.20)', color: '#86efac' }}
-            >
-              Results Published · 100% Transparent
-            </span>
-          </div>
-
-          {/* CTAs */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-20">
-            <Link href="/games" className="btn-gold text-base px-9 py-3.5">
-              View Active Games
-            </Link>
-            <Link href="/inventory" className="btn-outline text-base px-9 py-3.5">
-              Browse Inventory
-            </Link>
-          </div>
-
-          {/* Stats row */}
-          <div className="grid grid-cols-3 max-w-md mx-auto gap-3">
-            {stats.map((s) => (
-              <div
-                key={s.label}
-                className="stat-card rounded-2xl"
-                style={{ borderColor: `${s.color}18`, background: `${s.color}08` }}
-              >
-                <p
-                  className="text-2xl md:text-3xl font-heading leading-none mb-1.5"
-                  style={{ color: s.color, textShadow: `0 0 20px ${s.color}55` }}
-                >
-                  {s.value}
-                </p>
-                <p className="text-[10px] sm:text-xs text-slate-600 uppercase tracking-widest font-bold leading-tight">{s.label}</p>
-              </div>
-            ))}
-          </div>
+          {/* Single primary CTA */}
+          <Link href="/browse" className="btn-gold text-base px-12 py-4">
+            Browse All Games
+          </Link>
         </div>
       </section>
+
+      {/* Stats strip */}
+      <div style={{ background: 'rgba(10,14,28,0.85)', borderTop: '1px solid rgba(30,41,59,0.6)', borderBottom: '1px solid rgba(30,41,59,0.6)' }}>
+        <div className="max-w-2xl mx-auto px-4 py-6 grid grid-cols-3 gap-4">
+          {stats.map((s) => (
+            <div key={s.label} className="text-center">
+              <p className="text-2xl md:text-3xl font-heading leading-none mb-1" style={{ color: s.color, textShadow: `0 0 20px ${s.color}55` }}>
+                {s.value}
+              </p>
+              <p className="text-[10px] text-slate-600 uppercase tracking-widest font-bold">{s.label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
 
       <div className="glow-line" />
 
       {/* ══════════════════════════════════════
           HOW IT WORKS
       ══════════════════════════════════════ */}
-      <section className="relative py-24" style={{ background: 'rgba(10,14,28,0.70)' }}>
+      <section className="relative py-32" style={{ background: 'rgba(10,14,28,0.70)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+          <div className="text-center mb-20">
             <p className="section-eyebrow">Process</p>
             <h2 className="section-title">How the Wheel Works</h2>
-            <p className="text-slate-500 max-w-sm mx-auto mt-3 text-sm leading-relaxed">
+            <p className="text-slate-500 max-w-sm mx-auto mt-4 text-sm leading-relaxed">
               Simple and transparent. No tricks, no manipulation, ever.
             </p>
           </div>
@@ -274,9 +247,9 @@ export default async function HomePage() {
           ACTIVE GAMES
       ══════════════════════════════════════ */}
       {games.length > 0 && (
-        <section id="active-games" className="py-24" style={{ background: 'rgba(10,14,28,0.50)' }}>
+        <section id="active-games" className="py-32" style={{ background: 'rgba(10,14,28,0.50)' }}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-end justify-between mb-12">
+            <div className="flex items-end justify-between mb-14">
               <div>
                 <p className="section-eyebrow" style={{ color: '#38bdf8' }}>Active Now</p>
                 <h2 className="section-title">Games</h2>
@@ -304,9 +277,9 @@ export default async function HomePage() {
           ACTIVE RAFFLES
       ══════════════════════════════════════ */}
       {raffles.length > 0 && (
-        <section id="active-raffles" className="py-24" style={{ background: 'rgba(7,8,18,0.60)' }}>
+        <section id="active-raffles" className="py-32" style={{ background: 'rgba(7,8,18,0.60)' }}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-end justify-between mb-12">
+            <div className="flex items-end justify-between mb-14">
               <div>
                 <p className="section-eyebrow" style={{ color: '#a78bfa' }}>Active Now</p>
                 <h2 className="section-title">Raffles</h2>
@@ -334,9 +307,9 @@ export default async function HomePage() {
           ACTIVE GIVEAWAYS
       ══════════════════════════════════════ */}
       {giveaways.length > 0 && (
-        <section id="active-giveaways" className="py-24" style={{ background: 'rgba(10,14,28,0.50)' }}>
+        <section id="active-giveaways" className="py-32" style={{ background: 'rgba(10,14,28,0.50)' }}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-end justify-between mb-12">
+            <div className="flex items-end justify-between mb-14">
               <div>
                 <p className="section-eyebrow">Active Now</p>
                 <h2 className="section-title">Giveaways</h2>
@@ -388,14 +361,14 @@ export default async function HomePage() {
       {/* ══════════════════════════════════════
           WHY TRUST
       ══════════════════════════════════════ */}
-      <section className="relative py-24">
+      <section className="relative py-32">
         {/* Subtle bg glow for this section */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{ background: 'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(56,189,248,0.05) 0%, transparent 60%)' }}
         />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+          <div className="text-center mb-20">
             <p className="section-eyebrow">Trust</p>
             <h2 className="section-title">
               Why Trust <span className="cosmic-gradient-text">Cosmic Grails</span>?
@@ -434,11 +407,11 @@ export default async function HomePage() {
           TESTIMONIALS
       ══════════════════════════════════════ */}
       <section
-        className="relative py-24"
+        className="relative py-32"
         style={{ background: 'rgba(10,14,28,0.65)', borderTop: '1px solid rgba(30,41,59,0.6)' }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+          <div className="text-center mb-20">
             <p className="section-eyebrow">Reviews</p>
             <h2 className="section-title">What Buyers Say</h2>
           </div>
@@ -490,9 +463,9 @@ export default async function HomePage() {
       {completedAuctions.length > 0 && (
         <>
           <div className="glow-line" />
-          <section className="py-24" style={{ background: 'rgba(7,8,18,0.60)' }}>
+          <section className="py-32" style={{ background: 'rgba(7,8,18,0.60)' }}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="text-center mb-12">
+              <div className="text-center mb-16">
                 <p className="section-eyebrow">Past Shows</p>
                 <h2 className="section-title">Recent Results</h2>
                 <p className="text-slate-500 mt-1 text-sm">See who won what in our completed raffles.</p>
