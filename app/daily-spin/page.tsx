@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useSession, signIn } from 'next-auth/react'
 
-const DEFAULT_SEGMENTS = ['pokeball', '🚀', '⭐', '🌙', '☄️', '🌌', '🪐', '💫']
+const DEFAULT_SEGMENTS = ['pikachu', 'pikachu', 'pikachu', 'pikachu', 'pikachu', 'pikachu', 'pikachu', 'pikachu']
 
 interface SpinStatus {
   hasSpunToday: boolean
@@ -62,6 +62,7 @@ function drawMysteryWheel(
   segments: string[],
   t: { a: string; b: string; pointer: string; center: string },
   pokeballImg: HTMLImageElement | null,
+  pikachuImg: HTMLImageElement | null,
 ) {
   const dpr = window.devicePixelRatio || 1
   const cssSize = 360
@@ -151,6 +152,11 @@ function drawMysteryWheel(
       ctx.arc(ix, iy, iconR - 1, 0, 2 * Math.PI)
       ctx.clip()
       ctx.drawImage(pokeballImg, ix - iconR, iy - iconR, iconR * 2, iconR * 2)
+    } else if (segments[i] === 'pikachu' && pikachuImg) {
+      ctx.beginPath()
+      ctx.arc(ix, iy, iconR - 1, 0, 2 * Math.PI)
+      ctx.clip()
+      ctx.drawImage(pikachuImg, ix - iconR, iy - iconR, iconR * 2, iconR * 2)
     } else {
       ctx.font = `${Math.round(iconR * 1.2)}px serif`
       ctx.textAlign = 'center'
@@ -283,18 +289,32 @@ export default function DailySpinPage() {
   const animRef = useRef<ReturnType<typeof requestAnimationFrame> | null>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const pokeballImgRef = useRef<HTMLImageElement | null>(null)
+  const pikachuImgRef = useRef<HTMLImageElement | null>(null)
 
   useEffect(() => {
-    const img = new Image()
-    img.src = '/logo.png'
-    img.onload = () => {
-      pokeballImgRef.current = img
+    const pokeball = new Image()
+    pokeball.src = '/logo.png'
+    pokeball.onload = () => {
+      pokeballImgRef.current = pokeball
       const canvas = canvasRef.current
       if (!canvas) return
       const ctx = canvas.getContext('2d')
       if (!ctx) return
       const currentT = getMysteryTheme('cosmic', '#7C3AED')
-      drawMysteryWheel(canvas, ctx, wheelRef.current, DEFAULT_SEGMENTS, currentT, img)
+      drawMysteryWheel(canvas, ctx, wheelRef.current, DEFAULT_SEGMENTS, currentT, pokeball, pikachuImgRef.current)
+    }
+
+    const pikachu = new Image()
+    pikachu.crossOrigin = 'anonymous'
+    pikachu.src = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png'
+    pikachu.onload = () => {
+      pikachuImgRef.current = pikachu
+      const canvas = canvasRef.current
+      if (!canvas) return
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return
+      const currentT = getMysteryTheme('cosmic', '#7C3AED')
+      drawMysteryWheel(canvas, ctx, wheelRef.current, DEFAULT_SEGMENTS, currentT, pokeballImgRef.current, pikachu)
     }
   }, []) // eslint-disable-line
 
@@ -314,7 +334,7 @@ export default function DailySpinPage() {
     const currentT = getMysteryTheme(spinStatus?.mysteryWheelTheme ?? 'cosmic', spinStatus?.customMysteryColor ?? '#7C3AED')
     let segs: string[]
     try { const s = JSON.parse(spinStatus?.wheelSegments ?? '[]'); segs = s.length === 8 ? s : DEFAULT_SEGMENTS } catch { segs = DEFAULT_SEGMENTS }
-    drawMysteryWheel(canvas, ctx, wheelRef.current, segs, currentT, pokeballImgRef.current)
+    drawMysteryWheel(canvas, ctx, wheelRef.current, segs, currentT, pokeballImgRef.current, pikachuImgRef.current)
   }, [spinStatus])
 
   useEffect(() => {
@@ -344,7 +364,7 @@ export default function DailySpinPage() {
       const eased = 1 - Math.pow(1 - elapsed / duration, 4)
       wheelRef.current = startAngle + (snapped - startAngle) * eased
       const ctx = canvas.getContext('2d')
-      if (ctx) drawMysteryWheel(canvas, ctx, wheelRef.current, segs, currentT, pokeballImgRef.current)
+      if (ctx) drawMysteryWheel(canvas, ctx, wheelRef.current, segs, currentT, pokeballImgRef.current, pikachuImgRef.current)
       if (elapsed < duration) animRef.current = requestAnimationFrame(animate)
     }
     animRef.current = requestAnimationFrame(animate)
