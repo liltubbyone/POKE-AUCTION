@@ -533,7 +533,7 @@ export default function DailySpinPage() {
               <>
                 <div className="text-6xl mb-4" style={{ filter: `drop-shadow(0 0 10px rgba(${t.a},0.6))` }}>🪐</div>
                 <p className="font-heading text-2xl text-white mb-2">NOT THIS TIME</p>
-                <p className="text-gray-400 text-sm mb-5">The cosmos wasn&apos;t aligned today. Come back tomorrow!</p>
+                <p className="text-gray-400 text-sm mb-5">The cosmos weren&apos;t aligned today. Come back tomorrow!</p>
                 <div
                   className="rounded-xl px-4 py-3"
                   style={{ background: `rgba(${t.a},0.06)`, border: `1px solid rgba(${t.a},0.20)` }}
