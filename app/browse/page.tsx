@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { prisma } from '@/lib/prisma'
 import AuctionCard from '@/components/AuctionCard'
+import WordSearchCard from '@/components/WordSearchCard'
 import Link from 'next/link'
 
 async function getAllAuctions(filter: string) {
@@ -106,11 +107,12 @@ export default async function BrowsePage({
 
       {/* Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {auctions.length > 0 ? (
+        {(auctions.length > 0 || filter === 'all' || filter === 'game') ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {auctions.map((auction) => (
               <AuctionCard key={auction.id} auction={auction} />
             ))}
+            {(filter === 'all' || filter === 'game') && <WordSearchCard />}
           </div>
         ) : (
           <div
