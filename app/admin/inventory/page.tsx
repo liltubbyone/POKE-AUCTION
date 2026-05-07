@@ -141,6 +141,10 @@ export default function AdminInventoryPage() {
     imageUrl: '',
   })
   const [message, setMessage] = useState({ type: '', text: '' })
+  const [search, setSearch] = useState('')
+  const [sortKey, setSortKey] = useState<'name' | 'qty' | 'cost' | 'resellMin' | 'tier'>('name')
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
+  const [filterTier, setFilterTier] = useState('all')
 
   useEffect(() => {
     if (status === 'unauthenticated' || (session && !session.user.isAdmin)) {
@@ -226,6 +230,32 @@ export default function AdminInventoryPage() {
       setMessage({ type: 'error', text: data.error || 'Failed to add item' })
     }
   }
+
+  const toggleSort = (key: typeof sortKey) => {
+    if (sortKey === key) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
+    else { setSortKey(key); setSortDir('asc') }
+  }
+
+  const sortArrow = (key: typeof sortKey) =>
+    sortKey !== key ? ' ↕' : sortDir === 'asc' ? ' ↑' : ' ↓'
+
+  const visibleItems = items
+    .filter((item) => {
+      const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase())
+      const matchesTier = filterTier === 'all' || item.tier === filterTier
+      return matchesSearch && matchesTier
+    })
+    .sort((a, b) => {
+      let val = 0
+      if (sortKey === 'name') val = a.name.localeCompare(b.name)
+      else if (sortKey === 'qty') val = a.qty - b.qty
+      else if (sortKey === 'cost') val = a.cost - b.cost
+      else if (sortKey === 'resellMin') val = a.resellMin - b.resellMin
+      else if (sortKey === 'tier') val = a.tier.localeCompare(b.tier)
+      return sortDir === 'asc' ? val : -val
+    })
+
+  const tiers = ['all', ...Array.from(new Set(items.map((i) => i.tier))).sort()]
 
   if (loading) {
     return (
@@ -343,15 +373,46 @@ export default function AdminInventoryPage() {
         </form>
       )}
 
+      {/* Filter / Sort bar */}
+      <div className="flex flex-wrap gap-3 mb-4 items-center">
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by name…"
+          className="input-field py-1.5 text-sm flex-1 min-w-[180px]"
+        />
+        <select
+          value={filterTier}
+          onChange={(e) => setFilterTier(e.target.value)}
+          className="input-field py-1.5 text-sm w-auto"
+        >
+          {tiers.map((t) => (
+            <option key={t} value={t}>{t === 'all' ? 'All Tiers' : `Tier ${t}`}</option>
+          ))}
+        </select>
+        <span className="text-gray-500 text-xs">{visibleItems.length} of {items.length} items</span>
+      </div>
+
       {/* Items table */}
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border text-gray-500 text-xs uppercase tracking-wider">
-              <th className="text-left py-2 pr-4">Name</th>
-              <th className="text-right py-2 pr-4">Qty</th>
-              <th className="text-right py-2 pr-4">Cost</th>
-              <th className="text-right py-2 pr-4">Resell</th>
+              {([
+                ['name',      'Name',   'text-left'],
+                ['qty',       'Qty',    'text-right'],
+                ['cost',      'Cost',   'text-right'],
+                ['resellMin', 'Resell', 'text-right'],
+              ] as [typeof sortKey, string, string][]).map(([key, label, align]) => (
+                <th
+                  key={key}
+                  onClick={() => toggleSort(key)}
+                  className={`${align} py-2 pr-4 cursor-pointer hover:text-white select-none transition-colors`}
+                >
+                  {label}{sortArrow(key)}
+                </th>
+              ))}
               <th className="text-right py-2 pr-4">Ship</th>
               <th className="text-left py-2 pr-4">Note</th>
               <th className="text-left py-2 pr-4">Image</th>
@@ -359,7 +420,7 @@ export default function AdminInventoryPage() {
             </tr>
           </thead>
           <tbody>
-            {items.map((item) => (
+            {visibleItems.map((item) => (
               <tr key={item.id} className="border-b border-border/50 hover:bg-card transition-colors">
                 {editingId === item.id ? (
                   <>
