@@ -1,5 +1,11 @@
-import { redirect } from 'next/navigation'
+'use client'
 
-export default function WordSearchRedirect() {
-  redirect('/games')
+import WordSearch from '@/components/WordSearch'
+
+export default function WordSearchPage() {
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <WordSearch />
+    </div>
+  )
 }

@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { prisma } from '@/lib/prisma'
 import AuctionCard from '@/components/AuctionCard'
-import WordSearch from '@/components/WordSearch'
+import WordSearchCard from '@/components/WordSearchCard'
 import Link from 'next/link'
 
 async function getGames() {
@@ -55,36 +55,11 @@ export default async function GamesPage() {
 
       {/* Games grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {games.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {games.map((game) => (
-              <AuctionCard key={game.id} auction={game} />
-            ))}
-          </div>
-        ) : (
-          <div
-            className="rounded-2xl py-16 text-center"
-            style={{ background: 'rgba(10,10,24,0.8)', border: '1px solid rgba(124,58,237,0.15)' }}
-          >
-            <div
-              className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5 text-3xl"
-              style={{ background: 'rgba(124,58,237,0.08)', border: '1px solid rgba(124,58,237,0.2)' }}
-            >
-              🎮
-            </div>
-            <h3 className="text-2xl font-heading text-gray-400 mb-2">No Active Games Right Now</h3>
-            <p className="text-gray-600 text-sm mb-6">Check back soon — new games drop regularly.</p>
-            <Link href="/browse" className="btn-outline text-sm py-2 px-6">Browse All</Link>
-          </div>
-        )}
-
-        {/* Daily Word Search */}
-        <div className="mt-12">
-          <div className="flex items-center gap-3 mb-5">
-            <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#38bdf8' }}>Free Daily Game</p>
-            <div className="h-px flex-1" style={{ background: 'rgba(56,189,248,0.15)' }} />
-          </div>
-          <WordSearch />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {games.map((game) => (
+            <AuctionCard key={game.id} auction={game} />
+          ))}
+          <WordSearchCard />
         </div>
       </div>
     </div>
