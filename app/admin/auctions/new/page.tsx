@@ -59,8 +59,13 @@ export default function CreateAuctionPage() {
   const profit = totalRevenue - totalCost
 
   const addItem = (itemId: string) => {
-    if (selectedItems.find((si) => si.itemId === itemId)) return
-    setSelectedItems((prev) => [...prev, { itemId, quantity: 1 }])
+    setSelectedItems((prev) => {
+      const existing = prev.find((si) => si.itemId === itemId)
+      if (existing) {
+        return prev.map((si) => si.itemId === itemId ? { ...si, quantity: si.quantity + 1 } : si)
+      }
+      return [...prev, { itemId, quantity: 1 }]
+    })
   }
 
   const removeItem = (itemId: string) => {
@@ -119,7 +124,7 @@ export default function CreateAuctionPage() {
   }
 
   const availableInventory = inventory.filter(
-    (i) => i.tier !== 'EXCLUDE' && i.qty > 0 && !selectedItems.find((si) => si.itemId === i.id)
+    (i) => i.tier !== 'EXCLUDE'
   )
 
   return (
@@ -394,23 +399,31 @@ export default function CreateAuctionPage() {
             {/* Available inventory */}
             <div className="card">
               <h2 className="text-xl font-heading text-white mb-3">AVAILABLE INVENTORY</h2>
-              <p className="text-gray-500 text-xs mb-4">Click an item to add it to the raffle.</p>
+              <p className="text-gray-500 text-xs mb-4">Click an item to add it — click again to add another.</p>
               <div className="space-y-1">
-                {availableInventory.map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => addItem(item.id)}
-                    className="w-full flex items-center gap-3 bg-background hover:bg-card border border-border hover:border-gold/30 rounded-lg p-3 text-left transition-all"
-                  >
-                    <span className="flex-1 text-white text-sm">{item.name}</span>
-                    <span className="text-gray-400 text-xs">x{item.qty}</span>
-                    <span className="text-green-400 text-xs font-semibold">
-                      {formatCurrency(item.resellMin)}+
-                    </span>
-                    <span className="text-gold text-xs">+ Add</span>
-                  </button>
-                ))}
+                {availableInventory.map((item) => {
+                  const selected = selectedItems.find((si) => si.itemId === item.id)
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => addItem(item.id)}
+                      className="w-full flex items-center gap-3 bg-background hover:bg-card border rounded-lg p-3 text-left transition-all"
+                      style={{ borderColor: selected ? 'rgba(255,215,0,0.4)' : 'rgba(30,41,59,0.8)' }}
+                    >
+                      <span className="flex-1 text-white text-sm">{item.name}</span>
+                      <span className="text-gray-400 text-xs">{item.qty} in stock</span>
+                      <span className="text-green-400 text-xs font-semibold">
+                        {formatCurrency(item.resellMin)}+
+                      </span>
+                      {selected ? (
+                        <span className="text-gold text-xs font-bold">x{selected.quantity} + 1</span>
+                      ) : (
+                        <span className="text-gold text-xs">+ Add</span>
+                      )}
+                    </button>
+                  )
+                })}
               </div>
             </div>
           </div>
