@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { prisma } from '@/lib/prisma'
 import AuctionCard from '@/components/AuctionCard'
+import WordSearch from '@/components/WordSearch'
 import Link from 'next/link'
 
 async function getGames() {
@@ -62,7 +63,7 @@ export default async function GamesPage() {
           </div>
         ) : (
           <div
-            className="rounded-2xl py-24 text-center"
+            className="rounded-2xl py-16 text-center"
             style={{ background: 'rgba(10,10,24,0.8)', border: '1px solid rgba(124,58,237,0.15)' }}
           >
             <div
@@ -76,6 +77,15 @@ export default async function GamesPage() {
             <Link href="/browse" className="btn-outline text-sm py-2 px-6">Browse All</Link>
           </div>
         )}
+
+        {/* Daily Word Search */}
+        <div className="mt-12">
+          <div className="flex items-center gap-3 mb-5">
+            <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#38bdf8' }}>Free Daily Game</p>
+            <div className="h-px flex-1" style={{ background: 'rgba(56,189,248,0.15)' }} />
+          </div>
+          <WordSearch />
+        </div>
       </div>
     </div>
   )

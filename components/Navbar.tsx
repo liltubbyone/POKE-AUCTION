@@ -27,10 +27,10 @@ export default function Navbar() {
   const isActive = (href: string) => pathname === href || (href !== '/' && pathname.startsWith(href))
 
   const gamesLinks = [
-    { href: '/auctions',    label: 'Raffles',    desc: 'Browse all raffle drops',       icon: '🎰' },
-    { href: '/giveaways',   label: 'Giveaways',  desc: 'Free entry giveaways',           icon: '🎁' },
-    { href: '/word-search', label: 'Word Search', desc: 'Daily Pokemon puzzle — free!',  icon: '🔍' },
-    { href: '/browse',      label: 'Browse All',  desc: 'All games, raffles & giveaways', icon: '🌌' },
+    { href: '/auctions',  label: 'Raffles',    desc: 'Browse all raffle drops',       icon: '🎰' },
+    { href: '/giveaways', label: 'Giveaways',  desc: 'Free entry giveaways',           icon: '🎁' },
+    { href: '/games',     label: 'Games',      desc: 'Daily puzzle & more',            icon: '🎮' },
+    { href: '/browse',    label: 'Browse All', desc: 'All games, raffles & giveaways', icon: '🌌' },
   ]
 
   const navLinks = [
