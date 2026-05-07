@@ -67,8 +67,14 @@ function parseCustomPalette(json: string): typeof DEFAULT_CUSTOM_COLORS {
   return DEFAULT_CUSTOM_COLORS
 }
 
-// All 8 slots — 'pokeball' renders the logo image, anything else is an emoji
+// All 8 slots — 'pokeball' renders the logo image, 'pikachu' renders the Pikachu sprite, anything else is an emoji
 const PRESETS: { name: string; emoji: string; desc: string; slots: string[] }[] = [
+  {
+    name: 'All Pikachu',
+    emoji: '⚡',
+    desc: 'Pikachu face on every slot',
+    slots: ['pikachu', 'pikachu', 'pikachu', 'pikachu', 'pikachu', 'pikachu', 'pikachu', 'pikachu'],
+  },
   {
     name: 'Cosmic',
     emoji: '🌌',
@@ -259,7 +265,9 @@ export default function AdminSettings() {
                 {/* Slot preview */}
                 <div className="flex gap-1 flex-wrap">
                   {preset.slots.map((s, i) => (
-                    <span key={i} className="text-sm">{s === 'pokeball' ? '🔴' : s}</span>
+                    s === 'pikachu'
+                      ? <img key={i} src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" alt="pikachu" className="w-5 h-5 object-contain" />
+                      : <span key={i} className="text-sm">{s === 'pokeball' ? '🔴' : s}</span>
                   ))}
                 </div>
               </button>
@@ -294,6 +302,22 @@ export default function AdminSettings() {
                         change
                       </button>
                     </div>
+                  ) : slot === 'pikachu' ? (
+                    <div className="relative w-full">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" alt="pikachu" className="w-10 h-10 mx-auto object-contain" />
+                      <button
+                        onClick={() => {
+                          setActivePreset(null)
+                          const next = [...customSlots]
+                          next[i] = '⚡'
+                          setCustomSlots(next)
+                        }}
+                        className="block w-full text-center text-[10px] text-violet-400 hover:text-white mt-0.5"
+                      >
+                        change
+                      </button>
+                    </div>
                   ) : (
                     <div className="relative w-full">
                       <input
@@ -309,23 +333,37 @@ export default function AdminSettings() {
                         className="w-full text-center rounded-lg py-2 text-lg"
                         style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(30,30,53,0.8)', color: '#fff' }}
                       />
-                      <button
-                        onClick={() => {
-                          setActivePreset(null)
-                          const next = [...customSlots]
-                          next[i] = 'pokeball'
-                          setCustomSlots(next)
-                        }}
-                        className="block w-full text-center text-[10px] text-violet-400 hover:text-white mt-0.5"
-                      >
-                        pokeball
-                      </button>
+                      <div className="flex gap-1 justify-center mt-0.5">
+                        <button
+                          onClick={() => {
+                            setActivePreset(null)
+                            const next = [...customSlots]
+                            next[i] = 'pokeball'
+                            setCustomSlots(next)
+                          }}
+                          className="text-[10px] text-violet-400 hover:text-white"
+                        >
+                          pokeball
+                        </button>
+                        <span className="text-[10px] text-gray-600">·</span>
+                        <button
+                          onClick={() => {
+                            setActivePreset(null)
+                            const next = [...customSlots]
+                            next[i] = 'pikachu'
+                            setCustomSlots(next)
+                          }}
+                          className="text-[10px] text-yellow-400 hover:text-white"
+                        >
+                          pikachu
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
               ))}
             </div>
-            <p className="text-gray-600 text-xs mt-3">Type any emoji per slot. Click <span className="text-violet-400">pokeball</span> to restore the logo, or <span className="text-violet-400">change</span> to replace it with an emoji.</p>
+            <p className="text-gray-600 text-xs mt-3">Type any emoji per slot. Click <span className="text-violet-400">pokeball</span> or <span className="text-yellow-400">pikachu</span> to use a special image, or <span className="text-violet-400">change</span> to replace with an emoji.</p>
           </div>
         </div>
 
