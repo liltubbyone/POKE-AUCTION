@@ -168,6 +168,7 @@ export default function AdminInventoryPage() {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        name: editValues.name,
         qty: parseInt(editValues.qty as any),
         cost: parseFloat(editValues.cost as any),
         resellMin: parseFloat(editValues.resellMin as any),
@@ -363,7 +364,13 @@ export default function AdminInventoryPage() {
                 {editingId === item.id ? (
                   <>
                     <td className="py-2 pr-4">
-                      <span className="text-white font-semibold">{item.name}</span>
+                      <input
+                        type="text"
+                        value={editValues.name || ''}
+                        onChange={(e) => setEditValues((v) => ({ ...v, name: e.target.value }))}
+                        className="input-field py-1 text-sm font-semibold"
+                        placeholder="Item name"
+                      />
                     </td>
                     <td className="py-2 pr-4">
                       <input
