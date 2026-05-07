@@ -143,13 +143,29 @@ function PokemonMascot({ id }: { id: number }) {
 
 export default function WordSearch() {
   const { data: session } = useSession()
+  const storageKey = `word-search-found:${todayCentral()}`
+
   const [pokemonNames, setPokemonNames] = useState<string[]>(FALLBACK_WORDS)
   const [selectedCells, setSelectedCells] = useState<string[]>([])
-  const [foundWords, setFoundWords] = useState<string[]>([])
+  const [foundWords, setFoundWords] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return []
+    try {
+      return JSON.parse(localStorage.getItem(storageKey) ?? '[]')
+    } catch {
+      return []
+    }
+  })
   const [message, setMessage] = useState("Find today's hidden Pokemon.")
   const [completionSent, setCompletionSent] = useState(false)
   const [bonusSpin, setBonusSpin] = useState<boolean | null>(null)
   const [alreadyCompleted, setAlreadyCompleted] = useState(false)
+
+  // Persist found words for today
+  useEffect(() => {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(foundWords))
+    } catch {}
+  }, [foundWords, storageKey])
 
   useEffect(() => {
     let isMounted = true
