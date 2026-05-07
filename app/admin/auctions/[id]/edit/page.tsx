@@ -55,7 +55,8 @@ export default async function EditAuctionItemsPage({ params }: { params: { id: s
                       <form
                         action={async (formData: FormData) => {
                           'use server'
-                          const newQty = Math.max(1, parseInt(formData.get('qty') as string) || 1)
+                          const maxQty = ai.quantity + ai.item.qty
+                          const newQty = Math.min(maxQty, Math.max(1, parseInt(formData.get('qty') as string) || 1))
                           const diff = newQty - ai.quantity
                           await prisma.auctionItem.update({
                             where: { id: ai.id },
@@ -78,6 +79,7 @@ export default async function EditAuctionItemsPage({ params }: { params: { id: s
                           name="qty"
                           defaultValue={ai.quantity}
                           min={1}
+                          max={ai.quantity + ai.item.qty}
                           className="w-14 bg-card border border-border rounded px-2 py-0.5 text-white text-xs text-center focus:outline-none focus:border-gold"
                         />
                         <button
