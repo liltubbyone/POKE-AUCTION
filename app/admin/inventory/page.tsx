@@ -173,7 +173,7 @@ export default function AdminInventoryPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name: editValues.name,
-        qty: parseInt(editValues.qty as any),
+        qty: Math.max(0, parseInt(String(editValues.qty)) || 0),
         cost: parseFloat(editValues.cost as any),
         resellMin: parseFloat(editValues.resellMin as any),
         resellMax: parseFloat(editValues.resellMax as any),
@@ -213,7 +213,7 @@ export default function AdminInventoryPage() {
       body: JSON.stringify({
         ...newItem,
         tier: 'C',
-        qty: parseInt(newItem.qty as any),
+        qty: Math.max(0, parseInt(String(newItem.qty)) || 0),
         cost: parseFloat(newItem.cost as any),
         resellMin: parseFloat(newItem.resellMin as any),
         resellMax: parseFloat(newItem.resellMax as any),
@@ -308,7 +308,7 @@ export default function AdminInventoryPage() {
               <input
                 type="number"
                 value={newItem.qty}
-                onChange={(e) => setNewItem((n) => ({ ...n, qty: parseInt(e.target.value) }))}
+                onChange={(e) => setNewItem((n) => ({ ...n, qty: Math.max(0, parseInt(e.target.value) || 0) }))}
                 className="input-field"
                 min={0}
               />
@@ -438,7 +438,7 @@ export default function AdminInventoryPage() {
                       <input
                         type="number"
                         value={editValues.qty}
-                        onChange={(e) => setEditValues((v) => ({ ...v, qty: parseInt(e.target.value) }))}
+                        onChange={(e) => setEditValues((v) => ({ ...v, qty: Math.max(0, parseInt(e.target.value) || 0) }))}
                         className="input-field w-20 text-right py-1 text-sm"
                         min={0}
                       />
