@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { spinForSpot } from '@/lib/spinLogic'
+import { spinForSpot, spinAllUnassigned } from '@/lib/spinLogic'
 
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
@@ -33,8 +33,16 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
     // Auto-spin when payment is verified and no item assigned yet
     if (body.paid === true && !spot.assignedItemId) {
-      const spinResult = await spinForSpot(spot.auctionId, spot.id)
-      return NextResponse.json({ spot, spinResult })
+      if (spot.auction.spinMode === 'all-filled') {
+        const paidCount = await prisma.auctionSpot.count({ where: { auctionId: spot.auctionId, paid: true } })
+        if (paidCount >= spot.auction.totalSpots) {
+          await spinAllUnassigned(spot.auctionId)
+        }
+        return NextResponse.json({ spot, spinResult: null })
+      } else {
+        const spinResult = await spinForSpot(spot.auctionId, spot.id)
+        return NextResponse.json({ spot, spinResult })
+      }
     }
 
     return NextResponse.json(spot)

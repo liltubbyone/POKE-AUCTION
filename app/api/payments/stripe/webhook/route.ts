@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getStripe } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
-import { spinForSpot } from '@/lib/spinLogic'
+import { spinForSpot, spinAllUnassigned } from '@/lib/spinLogic'
 import Stripe from 'stripe'
 
 export async function POST(req: Request) {
@@ -55,8 +55,15 @@ export async function POST(req: Request) {
             },
           })
 
-          // Immediately spin for this spot
-          await spinForSpot(auctionId, newSpot.id)
+          // Spin based on spinMode
+          if (auction.spinMode === 'all-filled') {
+            const paidCount = await prisma.auctionSpot.count({ where: { auctionId, paid: true } })
+            if (paidCount >= auction.totalSpots) {
+              await spinAllUnassigned(auctionId)
+            }
+          } else {
+            await spinForSpot(auctionId, newSpot.id)
+          }
         }
       }
     }

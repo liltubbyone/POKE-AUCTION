@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { spinForSpot } from '@/lib/spinLogic'
+import { spinForSpot, spinAllUnassigned } from '@/lib/spinLogic'
 import { getStripe } from '@/lib/stripe'
 
 export async function POST(req: Request) {
@@ -75,17 +75,42 @@ export async function POST(req: Request) {
       },
     })
 
-    // Spin immediately for paid spots
+    // Spin based on auction spinMode
     let spinResult = null
     let finalSpot = spot
     if (isPaid) {
-      spinResult = await spinForSpot(auctionId, spot.id)
+      const auctionFull = await prisma.auction.findUnique({
+        where: { id: auctionId },
+        select: { spinMode: true, totalSpots: true },
+      })
+      const paidCount = await prisma.auctionSpot.count({ where: { auctionId, paid: true } })
+      const allFilled = paidCount >= (auctionFull?.totalSpots ?? 0)
+
+      if (auctionFull?.spinMode === 'all-filled') {
+        if (allFilled) {
+          await spinAllUnassigned(auctionId)
+        }
+      } else {
+        spinResult = await spinForSpot(auctionId, spot.id)
+      }
+
       // Re-fetch the spot so assignedItemId is included in the response
       const updated = await prisma.auctionSpot.findUnique({
         where: { id: spot.id },
         include: { user: { select: { id: true, name: true, email: true } } },
       })
       if (updated) finalSpot = updated
+
+      // If all-filled mode just triggered, return this user's spin result
+      if (auctionFull?.spinMode === 'all-filled' && allFilled && finalSpot.assignedItemId) {
+        const auctionItem = await prisma.auctionItem.findUnique({
+          where: { id: finalSpot.assignedItemId },
+          include: { item: true },
+        })
+        if (auctionItem) {
+          spinResult = { itemName: auctionItem.item.name, itemTier: auctionItem.item.tier }
+        }
+      }
     }
 
     return NextResponse.json({ spot: finalSpot, spinResult }, { status: 201 })

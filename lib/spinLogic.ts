@@ -1,6 +1,22 @@
 import { prisma } from './prisma'
 
 /**
+ * Spins for every paid, unassigned spot in an auction at once.
+ * Used when spinMode === 'all-filled' and the last spot is purchased.
+ */
+export async function spinAllUnassigned(auctionId: string) {
+  const unassigned = await prisma.auctionSpot.findMany({
+    where: { auctionId, paid: true, assignedItemId: null },
+  })
+  const results = []
+  for (const spot of unassigned) {
+    const result = await spinForSpot(auctionId, spot.id)
+    if (result) results.push(result)
+  }
+  return results
+}
+
+/**
  * Spins for a single spot immediately upon payment verification.
  * Picks a random remaining item from the auction pool, assigns it
  * to the spot, and decrements inventory.

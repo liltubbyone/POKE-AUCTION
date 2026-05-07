@@ -34,6 +34,7 @@ export default function CreateAuctionPage() {
   const [selectedItems, setSelectedItems] = useState<AuctionItemEntry[]>([])
   const [category, setCategory] = useState('raffle')
   const [wheelTheme, setWheelTheme] = useState('cosmic')
+  const [spinMode, setSpinMode] = useState('immediate')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -99,6 +100,7 @@ export default function CreateAuctionPage() {
         description,
         category,
         wheelTheme,
+        spinMode,
         spotPrice,
         shippingRate,
         totalSpots,
@@ -207,6 +209,37 @@ export default function CreateAuctionPage() {
                           )}
                         </div>
                         <p className="text-gray-500 text-xs">{t.desc}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wider font-semibold">
+                    Spin Trigger
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { id: 'immediate',  label: 'Immediate',     desc: 'Wheel spins as each spot is purchased' },
+                      { id: 'all-filled', label: 'All Spots Full', desc: 'Wheel spins once every spot is sold' },
+                    ].map((opt) => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => setSpinMode(opt.id)}
+                        className="rounded-xl p-3 text-left transition-all duration-200"
+                        style={{
+                          background: spinMode === opt.id ? 'rgba(124,58,237,0.12)' : 'rgba(255,255,255,0.02)',
+                          border: spinMode === opt.id ? '1px solid rgba(124,58,237,0.5)' : '1px solid rgba(30,30,53,0.8)',
+                        }}
+                      >
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-sm text-white font-semibold">{opt.label}</span>
+                          {spinMode === opt.id && (
+                            <span className="ml-auto text-[10px] font-bold text-violet-400">Active</span>
+                          )}
+                        </div>
+                        <p className="text-gray-500 text-xs">{opt.desc}</p>
                       </button>
                     ))}
                   </div>

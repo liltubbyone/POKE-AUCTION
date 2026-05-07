@@ -44,6 +44,7 @@ interface AuctionData {
   shippingRate: number
   spinSeed: string | null
   wheelTheme: string | null
+  spinMode: string
   createdAt: string
   completedAt: string | null
   items: AuctionItem[]
@@ -289,6 +290,11 @@ export default function AuctionRoom({ initialAuction, customWheelTheme = '{}' }:
         <div className="no-refund-banner text-xs flex-1 min-w-fit">ALL SALES FINAL — NO REFUNDS</div>
         <div className="bg-green-950/30 border border-green-500/30 text-green-300 px-4 py-3 rounded-lg text-xs font-semibold text-center flex-1 min-w-fit">
           100% RANDOMIZED — PROVABLY FAIR
+        </div>
+        <div className="bg-violet-950/30 border border-violet-500/30 text-violet-300 px-4 py-3 rounded-lg text-xs font-semibold text-center flex-1 min-w-fit">
+          {auction.spinMode === 'all-filled'
+            ? 'WHEEL SPINS WHEN ALL SPOTS FILL'
+            : 'WHEEL SPINS ON PURCHASE'}
         </div>
       </div>
 
