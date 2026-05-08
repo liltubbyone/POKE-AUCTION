@@ -100,8 +100,9 @@ export default function AuctionRoom({ initialAuction, customWheelTheme = '{}' }:
   const [winnerLabel, setWinnerLabel] = useState<string | undefined>(undefined)
 
   const paidSpots = auction.spots.filter((s) => s.paid)
-  const spotsLeft = auction.totalSpots - paidSpots.length
-  const pctFilled = (paidSpots.length / auction.totalSpots) * 100
+  const totalSpots = auction.items.reduce((sum, ai) => sum + ai.quantity, 0) || totalSpots
+  const spotsLeft = totalSpots - paidSpots.length
+  const pctFilled = (paidSpots.length / totalSpots) * 100
 
   // Count assigned spots per auction item to compute remaining
   const assignedCounts: Record<string, number> = {}
@@ -391,7 +392,7 @@ export default function AuctionRoom({ initialAuction, customWheelTheme = '{}' }:
                 {/* Progress bar */}
                 <div className="mb-4">
                   <div className="flex justify-between text-sm mb-1.5">
-                    <span className="text-gray-400">{paidSpots.length}/{auction.totalSpots} spots</span>
+                    <span className="text-gray-400">{paidSpots.length}/{totalSpots} spots</span>
                     <span className={spotsLeft === 0 ? 'text-gold font-bold' : 'text-gray-400'}>
                       {spotsLeft === 0 ? 'FULL!' : `${spotsLeft} left`}
                     </span>
@@ -507,7 +508,7 @@ export default function AuctionRoom({ initialAuction, customWheelTheme = '{}' }:
           ) : (
             <div>
               <div className="spot-grid mb-4">
-                {Array.from({ length: auction.totalSpots }, (_, i) => i + 1).map((num) => {
+                {Array.from({ length: totalSpots }, (_, i) => i + 1).map((num) => {
                   const spot = paidSpots.find((s) => s.spotNumber === num)
                   const isYours = spot?.user.id === session?.user?.id
                   const assignedItem = spot ? getItemByAuctionItemId(spot.assignedItemId) : null
