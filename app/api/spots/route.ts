@@ -16,7 +16,10 @@ export async function POST(req: Request) {
 
     const auction = await prisma.auction.findUnique({
       where: { id: auctionId },
-      include: { spots: { where: { paid: true } } },
+      include: {
+        spots: { where: { paid: true } },
+        items: true,
+      },
     })
 
     if (!auction) {
@@ -27,8 +30,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'This auction is not accepting new spots' }, { status: 400 })
     }
 
+    const realTotal = auction.items.reduce((sum, ai) => sum + ai.quantity, 0) || auction.totalSpots
     const paidSpots = auction.spots.length
-    if (paidSpots >= auction.totalSpots) {
+    if (paidSpots >= realTotal) {
       return NextResponse.json({ error: 'All spots are sold out!' }, { status: 400 })
     }
 
@@ -81,10 +85,11 @@ export async function POST(req: Request) {
     if (isPaid) {
       const auctionFull = await prisma.auction.findUnique({
         where: { id: auctionId },
-        select: { spinMode: true, totalSpots: true },
+        select: { spinMode: true, totalSpots: true, items: true },
       })
       const paidCount = await prisma.auctionSpot.count({ where: { auctionId, paid: true } })
-      const allFilled = paidCount >= (auctionFull?.totalSpots ?? 0)
+      const auctionTotal = auctionFull?.items?.reduce((sum: number, ai: { quantity: number }) => sum + ai.quantity, 0) || auctionFull?.totalSpots || 0
+      const allFilled = paidCount >= auctionTotal
 
       if (auctionFull?.spinMode === 'all-filled') {
         if (allFilled) {

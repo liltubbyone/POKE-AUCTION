@@ -36,7 +36,7 @@ export async function POST(req: Request) {
       if (!existing) {
         const auction = await prisma.auction.findUnique({
           where: { id: auctionId },
-          include: { spots: { where: { paid: true } } },
+          include: { spots: { where: { paid: true } }, items: true },
         })
 
         if (auction) {
@@ -58,7 +58,8 @@ export async function POST(req: Request) {
           // Spin based on spinMode
           if (auction.spinMode === 'all-filled') {
             const paidCount = await prisma.auctionSpot.count({ where: { auctionId, paid: true } })
-            if (paidCount >= auction.totalSpots) {
+            const auctionTotal = auction.items.reduce((sum, ai) => sum + ai.quantity, 0) || auction.totalSpots
+            if (paidCount >= auctionTotal) {
               await spinAllUnassigned(auctionId)
             }
           } else {

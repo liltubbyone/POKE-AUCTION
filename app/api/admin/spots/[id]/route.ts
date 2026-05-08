@@ -27,7 +27,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       data: body,
       include: {
         user: { select: { id: true, name: true, email: true } },
-        auction: true,
+        auction: { include: { items: true } },
       },
     })
 
@@ -35,7 +35,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     if (body.paid === true && !spot.assignedItemId) {
       if (spot.auction.spinMode === 'all-filled') {
         const paidCount = await prisma.auctionSpot.count({ where: { auctionId: spot.auctionId, paid: true } })
-        if (paidCount >= spot.auction.totalSpots) {
+        const auctionTotal = spot.auction.items.reduce((sum: number, ai: { quantity: number }) => sum + ai.quantity, 0) || spot.auction.totalSpots
+        if (paidCount >= auctionTotal) {
           await spinAllUnassigned(spot.auctionId)
         }
         return NextResponse.json({ spot, spinResult: null })
