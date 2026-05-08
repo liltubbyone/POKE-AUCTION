@@ -41,9 +41,10 @@ const tierStyle: Record<string, { text: string; bg: string; border: string }> = 
 }
 
 export default function AuctionCard({ auction }: AuctionCardProps) {
+  const totalSpots = auction.items.reduce((sum, ai) => sum + ai.quantity, 0) || auction.totalSpots
   const soldSpots  = auction.spots.filter((s) => s.paid).length
-  const pctFilled  = Math.round((soldSpots / auction.totalSpots) * 100)
-  const spotsLeft  = auction.totalSpots - soldSpots
+  const pctFilled  = Math.round((soldSpots / totalSpots) * 100)
+  const spotsLeft  = totalSpots - soldSpots
   const isFull     = spotsLeft === 0
   const status     = statusDot[auction.status] ?? statusDot.active
   const cat        = categoryThemes[auction.category ?? 'raffle'] ?? categoryThemes.raffle
@@ -128,7 +129,7 @@ export default function AuctionCard({ auction }: AuctionCardProps) {
         <div className="flex justify-between text-xs mb-2">
           <span className="text-slate-500">
             <span className="text-white font-bold text-sm">{soldSpots}</span>
-            <span className="text-slate-600"> / {auction.totalSpots} spots filled</span>
+            <span className="text-slate-600"> / {totalSpots} spots filled</span>
           </span>
           <span
             className="font-bold text-[11px] uppercase tracking-wider"
