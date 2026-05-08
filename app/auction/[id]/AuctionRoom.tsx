@@ -100,7 +100,7 @@ export default function AuctionRoom({ initialAuction, customWheelTheme = '{}' }:
   const [winnerLabel, setWinnerLabel] = useState<string | undefined>(undefined)
 
   const paidSpots = auction.spots.filter((s) => s.paid)
-  const totalSpots = auction.items.reduce((sum, ai) => sum + ai.quantity, 0) || totalSpots
+  const totalSpots = auction.items.reduce((sum, ai) => sum + ai.quantity, 0) || auction.totalSpots
   const spotsLeft = totalSpots - paidSpots.length
   const pctFilled = (paidSpots.length / totalSpots) * 100
 
