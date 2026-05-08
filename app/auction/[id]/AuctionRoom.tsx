@@ -438,23 +438,28 @@ export default function AuctionRoom({ initialAuction, customWheelTheme = '{}' }:
         {/* Middle: Items in Pool */}
         <div className="lg:col-span-1">
           <h2 className="text-2xl font-heading text-white mb-4">ITEMS IN POOL</h2>
-          <div className="space-y-3">
-            {auction.items.map((ai) => {
-              const remaining = ai.quantity - (assignedCounts[ai.id] || 0)
-              const soldOut = remaining <= 0
-              return (
-                <div
-                  key={ai.id}
-                  className={`card p-4 transition-all ${soldOut ? 'opacity-40' : ''}`}
-                >
-                  <div className="flex items-center gap-3">
-                    <p className="font-semibold text-white text-sm flex-1">{ai.item.name}</p>
-                    <span className={`text-xs font-bold ${soldOut ? 'text-red-400' : 'text-gray-400'}`}>
-                      {soldOut ? 'GONE' : `x${remaining}`}
-                    </span>
+          <div className="space-y-2">
+            {auction.items.flatMap((ai) => {
+              const assigned = assignedCounts[ai.id] || 0
+              return Array.from({ length: ai.quantity }, (_, idx) => {
+                const gone = idx < assigned
+                return (
+                  <div
+                    key={`${ai.id}-${idx}`}
+                    className={`card p-3 transition-all ${gone ? 'opacity-40' : ''}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className={`text-xs font-bold w-5 text-center ${gone ? 'text-red-400' : 'text-gold'}`}>
+                        {gone ? '✓' : `${idx + 1}`}
+                      </span>
+                      <p className="font-semibold text-white text-sm flex-1">{ai.item.name}</p>
+                      {gone && (
+                        <span className="text-xs font-bold text-red-400">GONE</span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )
+                )
+              })
             })}
           </div>
         </div>
