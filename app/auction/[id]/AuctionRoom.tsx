@@ -449,10 +449,7 @@ export default function AuctionRoom({ initialAuction, customWheelTheme = '{}' }:
                     key={`${ai.id}-${idx}`}
                     className={`card p-3 transition-all ${gone ? 'opacity-40' : ''}`}
                   >
-                    <div className="flex items-center gap-3">
-                      <span className={`text-xs font-bold w-5 text-center ${gone ? 'text-red-400' : 'text-gold'}`}>
-                        {gone ? '✓' : `${idx + 1}`}
-                      </span>
+                    <div className="flex items-center justify-between gap-3">
                       <p className="font-semibold text-white text-sm flex-1">{ai.item.name}</p>
                       {gone && (
                         <span className="text-xs font-bold text-red-400">GONE</span>
