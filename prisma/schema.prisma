@@ -114,6 +114,16 @@ model SupportMessage {
   createdAt DateTime @default(now())
 }
 
+model PageView {
+  id        String   @id @default(cuid())
+  path      String
+  referrer  String?
+  createdAt DateTime @default(now())
+
+  @@index([path])
+  @@index([createdAt])
+}
+
 model AuctionSpot {
   id             String   @id @default(cuid())
   auctionId      String

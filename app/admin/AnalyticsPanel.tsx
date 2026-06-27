@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 
-interface DayData { date: string; revenue: number; spots: number }
+interface DayData { date: string; revenue: number; spots: number; pageViews: number }
 
 interface AnalyticsData {
   revenue:  { total: number; last7d: number; last30d: number; avgPerSpot: number }
@@ -16,6 +16,11 @@ interface AnalyticsData {
     revenue: number; spotPrice: number; createdAt: string
   }[]
   engagement: { totalSpins: number; spins7d: number; totalWordSearch: number; ws7d: number }
+  pageViews: {
+    total: number; last7d: number; today: number
+    topPages: { path: string; views: number }[]
+    topReferrers: { referrer: string; views: number }[]
+  }
 }
 
 function fmt(n: number) {
@@ -110,7 +115,7 @@ export default function AnalyticsPanel() {
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [activeChart, setActiveChart] = useState<'revenue' | 'spots'>('revenue')
+  const [activeChart, setActiveChart] = useState<'revenue' | 'spots' | 'pageViews'>('revenue')
 
   useEffect(() => {
     fetch('/api/admin/analytics')
@@ -141,6 +146,66 @@ export default function AnalyticsPanel() {
   return (
     <div className="space-y-6">
 
+      {/* ── Page Views ───────────────────────────────────────────── */}
+      <div className="card">
+        <h3 className="font-heading text-white text-lg mb-4">PAGE VIEWS</h3>
+        <div className="grid grid-cols-3 gap-3 mb-4">
+          <StatCard label="Today"      value={num(data.pageViews.today)}   color="text-cyan-400" />
+          <StatCard label="Last 7 Days" value={num(data.pageViews.last7d)}  color="text-cyan-400" />
+          <StatCard label="All Time"    value={num(data.pageViews.total)}   color="text-cyan-400" />
+        </div>
+
+        {data.pageViews.topPages.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">Top Pages</p>
+              <div className="space-y-1.5">
+                {data.pageViews.topPages.map((p) => {
+                  const maxViews = data.pageViews.topPages[0].views
+                  const pct = maxViews > 0 ? (p.views / maxViews) * 100 : 0
+                  return (
+                    <div key={p.path} className="flex items-center gap-2">
+                      <span className="text-gray-400 text-xs w-36 truncate flex-shrink-0">{p.path}</span>
+                      <div className="flex-1 h-1.5 rounded-full bg-white/5 overflow-hidden">
+                        <div className="h-full rounded-full bg-cyan-500/60" style={{ width: `${pct}%` }} />
+                      </div>
+                      <span className="text-white text-xs font-semibold w-8 text-right flex-shrink-0">{num(p.views)}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {data.pageViews.topReferrers.length > 0 && (
+              <div>
+                <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">Top Referrers</p>
+                <div className="space-y-1.5">
+                  {data.pageViews.topReferrers.map((r) => {
+                    const maxViews = data.pageViews.topReferrers[0].views
+                    const pct = maxViews > 0 ? (r.views / maxViews) * 100 : 0
+                    let host = r.referrer
+                    try { host = new URL(r.referrer).hostname } catch {}
+                    return (
+                      <div key={r.referrer} className="flex items-center gap-2">
+                        <span className="text-gray-400 text-xs w-36 truncate flex-shrink-0">{host}</span>
+                        <div className="flex-1 h-1.5 rounded-full bg-white/5 overflow-hidden">
+                          <div className="h-full rounded-full bg-violet-500/60" style={{ width: `${pct}%` }} />
+                        </div>
+                        <span className="text-white text-xs font-semibold w-8 text-right flex-shrink-0">{num(r.views)}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {data.pageViews.topPages.length === 0 && (
+          <p className="text-gray-600 text-xs">No page views recorded yet. Views will appear here as users browse your site.</p>
+        )}
+      </div>
+
       {/* ── Top KPIs ─────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <StatCard label="All-time Revenue"   value={fmt(data.revenue.total)}  color="text-gold" />
@@ -167,7 +232,7 @@ export default function AnalyticsPanel() {
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-heading text-white text-lg">14-DAY TREND</h3>
           <div className="flex gap-1">
-            {(['revenue', 'spots'] as const).map((v) => (
+            {(['revenue', 'spots', 'pageViews'] as const).map((v) => (
               <button
                 key={v}
                 onClick={() => setActiveChart(v)}
@@ -175,7 +240,7 @@ export default function AnalyticsPanel() {
                   activeChart === v ? 'bg-gold text-black' : 'border border-border text-gray-500 hover:text-white'
                 }`}
               >
-                {v === 'revenue' ? 'Revenue' : 'Spots'}
+                {v === 'revenue' ? 'Revenue' : v === 'spots' ? 'Spots' : 'Views'}
               </button>
             ))}
           </div>
@@ -183,9 +248,9 @@ export default function AnalyticsPanel() {
 
         <BarChart
           data={data.dailyData}
-          getValue={activeChart === 'revenue' ? (d) => d.revenue : (d) => d.spots}
-          getLabel={activeChart === 'revenue' ? (d) => fmt(d.revenue) : (d) => `${d.spots} spots`}
-          color={activeChart === 'revenue' ? '#FFD700' : '#7C3AED'}
+          getValue={activeChart === 'revenue' ? (d) => d.revenue : activeChart === 'spots' ? (d) => d.spots : (d) => d.pageViews}
+          getLabel={activeChart === 'revenue' ? (d) => fmt(d.revenue) : activeChart === 'spots' ? (d) => `${d.spots} spots` : (d) => `${d.pageViews} views`}
+          color={activeChart === 'revenue' ? '#FFD700' : activeChart === 'spots' ? '#7C3AED' : '#22d3ee'}
         />
 
         {/* X-axis labels — show every other to avoid crowding */}
@@ -226,7 +291,7 @@ export default function AnalyticsPanel() {
           ))}
         </div>
         <p className="text-gray-600 text-xs mt-3">
-          Visitor → buyer funnel requires page-view tracking (see Vercel Analytics below).
+          Visitor → buyer funnel: total page-view visitors tracked above vs. registered buyers.
         </p>
       </div>
 
@@ -316,6 +381,14 @@ export default function AnalyticsPanel() {
             <div className="h-px bg-border/50" />
             <div>
               <div className="flex justify-between text-sm mb-1">
+                <span className="text-gray-400">Page Views (7d)</span>
+                <span className="text-white font-semibold">{num(data.pageViews.last7d)}</span>
+              </div>
+              <p className="text-gray-600 text-xs">{num(data.pageViews.today)} views today</p>
+            </div>
+            <div className="h-px bg-border/50" />
+            <div>
+              <div className="flex justify-between text-sm mb-1">
                 <span className="text-gray-400">Return rate</span>
                 <span className="text-gray-500 text-xs">Requires page-view tracking</span>
               </div>
@@ -342,31 +415,6 @@ export default function AnalyticsPanel() {
         </div>
       </div>
 
-      {/* ── Traffic tracking callout ─────────────────────────────── */}
-      <div
-        className="rounded-xl px-5 py-4 text-sm"
-        style={{ background: 'rgba(124,58,237,0.08)', border: '1px solid rgba(124,58,237,0.25)' }}
-      >
-        <p className="text-violet-300 font-semibold mb-1">Add Page-View & Traffic Analytics</p>
-        <p className="text-gray-500 text-xs leading-relaxed mb-3">
-          The metrics above are pulled from your database (purchases, users, engagement). To also track
-          page views, referrers, and UTM sources — add Vercel Analytics. It's free, privacy-friendly,
-          and takes 2 commands since you're already on Vercel.
-        </p>
-        <div className="bg-black/40 rounded-lg px-3 py-2 font-mono text-xs text-gray-300 space-y-1">
-          <p># 1. Install</p>
-          <p className="text-green-400">npm install @vercel/analytics</p>
-          <p className="mt-2"># 2. Add to app/layout.tsx</p>
-          <p className="text-green-400">{'import { Analytics } from \'@vercel/analytics/react\''}</p>
-          <p className="text-green-400">{'<Analytics /> // inside <body>'}</p>
-          <p className="mt-2"># 3. Enable in Vercel Dashboard → your project → Analytics tab</p>
-        </div>
-        <p className="text-gray-600 text-xs mt-3">
-          For custom funnel events (room opened, checkout started), add{' '}
-          <code className="text-violet-400">track(&#39;spot_purchased&#39;, {'{ auctionId, amount }'})</code>{' '}
-          calls at key conversion points.
-        </p>
-      </div>
 
     </div>
   )

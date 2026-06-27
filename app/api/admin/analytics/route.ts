@@ -13,6 +13,9 @@ export async function GET() {
   const d7  = new Date(now); d7.setDate(d7.getDate() - 7)
   const d30 = new Date(now); d30.setDate(d30.getDate() - 30)
 
+  const today = new Date(now)
+  today.setHours(0, 0, 0, 0)
+
   const [
     allPaidSpots,
     allAuctions,
@@ -24,6 +27,12 @@ export async function GET() {
     spins7d,
     allWS,
     ws7d,
+    totalPageViews,
+    pageViews7d,
+    pageViewsToday,
+    topPages,
+    topReferrers,
+    allPageViews14d,
   ] = await Promise.all([
     // All paid spots with auction price info
     prisma.auctionSpot.findMany({
@@ -54,6 +63,16 @@ export async function GET() {
     prisma.dailySpin.count({ where: { createdAt: { gte: d7 } } }),
     prisma.wordSearchCompletion.count(),
     prisma.wordSearchCompletion.count({ where: { createdAt: { gte: d7 } } }),
+    // Page views
+    prisma.pageView.count(),
+    prisma.pageView.count({ where: { createdAt: { gte: d7 } } }),
+    prisma.pageView.count({ where: { createdAt: { gte: today } } }),
+    prisma.pageView.groupBy({ by: ['path'], _count: { id: true }, orderBy: { _count: { id: 'desc' } }, take: 10 }),
+    prisma.pageView.groupBy({ by: ['referrer'], _count: { id: true }, orderBy: { _count: { id: 'desc' } }, take: 10, where: { referrer: { not: null } } }),
+    prisma.pageView.findMany({
+      where: { createdAt: { gte: new Date(new Date(now).setDate(now.getDate() - 13)) } },
+      select: { createdAt: true },
+    }),
   ])
 
   // ── Revenue totals ───────────────────────────────────────────────
@@ -63,16 +82,18 @@ export async function GET() {
   const avgPerSpot   = allPaidSpots.length > 0 ? totalRevenue / allPaidSpots.length : 0
 
   // ── Daily data — last 14 days ────────────────────────────────────
-  const dailyData: { date: string; revenue: number; spots: number }[] = []
+  const dailyData: { date: string; revenue: number; spots: number; pageViews: number }[] = []
   for (let i = 13; i >= 0; i--) {
     const d = new Date(now)
     d.setDate(d.getDate() - i)
     const dateStr = d.toISOString().slice(0, 10)
     const daySpots = allPaidSpots.filter(sp => sp.createdAt.toISOString().slice(0, 10) === dateStr)
+    const dayViews = allPageViews14d.filter(pv => pv.createdAt.toISOString().slice(0, 10) === dateStr)
     dailyData.push({
       date: dateStr,
       revenue: daySpots.reduce((s, sp) => s + sp.auction.spotPrice, 0),
       spots: daySpots.length,
+      pageViews: dayViews.length,
     })
   }
 
@@ -109,6 +130,11 @@ export async function GET() {
   const spots7d    = allPaidSpots.filter(sp => sp.createdAt >= d7).length
   const spots30d   = allPaidSpots.filter(sp => sp.createdAt >= d30).length
 
+  const topPagesFormatted = topPages.map(p => ({ path: p.path, views: p._count.id }))
+  const topReferrersFormatted = topReferrers
+    .filter(r => r.referrer)
+    .map(r => ({ referrer: r.referrer!, views: r._count.id }))
+
   return NextResponse.json({
     revenue:  { total: totalRevenue, last7d: revenue7d, last30d: revenue30d, avgPerSpot },
     spots:    { total: totalSpots,   last7d: spots7d,   last30d: spots30d },
@@ -117,5 +143,6 @@ export async function GET() {
     paymentBreakdown,
     raffles,
     engagement: { totalSpins: allSpins, spins7d, totalWordSearch: allWS, ws7d },
+    pageViews: { total: totalPageViews, last7d: pageViews7d, today: pageViewsToday, topPages: topPagesFormatted, topReferrers: topReferrersFormatted },
   })
 }
