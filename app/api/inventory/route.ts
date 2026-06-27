@@ -7,6 +7,7 @@ export async function GET() {
   try {
     const items = await prisma.inventoryItem.findMany({
       orderBy: [{ tier: 'asc' }, { name: 'asc' }],
+      include: { _count: { select: { auctionItems: true } } },
     })
     return NextResponse.json(items)
   } catch (err) {
