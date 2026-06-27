@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 
-type PanelId = 'overview' | 'raffles' | 'stock' | 'spots' | 'settings' | 'inbox'
+type PanelId = 'overview' | 'raffles' | 'stock' | 'spots' | 'analytics' | 'settings' | 'inbox'
 
 interface Props {
   adminEmail: string
@@ -11,26 +11,29 @@ interface Props {
   rafflesPanel: React.ReactNode
   stockPanel: React.ReactNode
   spotsPanel: React.ReactNode
+  analyticsPanel: React.ReactNode
   settingsPanel: React.ReactNode
   inboxPanel: React.ReactNode
 }
 
-const PANELS: { id: PanelId; label: string; icon: string }[] = [
-  { id: 'overview', label: 'Overview',   icon: '◼' },
-  { id: 'raffles',  label: 'Raffles',    icon: '◼' },
-  { id: 'stock',    label: 'Stock',      icon: '◼' },
-  { id: 'spots',    label: 'Spots',      icon: '◼' },
-  { id: 'settings', label: 'Settings',   icon: '◼' },
-  { id: 'inbox',    label: 'Inbox',      icon: '◼' },
+const PANELS: { id: PanelId; label: string }[] = [
+  { id: 'overview',   label: 'Overview'        },
+  { id: 'raffles',    label: 'Raffles'         },
+  { id: 'stock',      label: 'Stock'           },
+  { id: 'spots',      label: 'Spots'           },
+  { id: 'analytics',  label: 'Analytics'       },
+  { id: 'settings',   label: 'Settings'        },
+  { id: 'inbox',      label: 'Inbox'           },
 ]
 
 const PANEL_TITLES: Record<PanelId, string> = {
-  overview: 'Overview',
-  raffles:  'Raffles',
-  stock:    'Stock',
-  spots:    'Spots & Shipping',
-  settings: 'Settings',
-  inbox:    'Support Inbox',
+  overview:  'Overview',
+  raffles:   'Raffles',
+  stock:     'Stock',
+  spots:     'Spots & Shipping',
+  analytics: 'Analytics',
+  settings:  'Settings',
+  inbox:     'Support Inbox',
 }
 
 export default function AdminDashboardClient({
@@ -39,6 +42,7 @@ export default function AdminDashboardClient({
   rafflesPanel,
   stockPanel,
   spotsPanel,
+  analyticsPanel,
   settingsPanel,
   inboxPanel,
 }: Props) {
@@ -59,12 +63,13 @@ export default function AdminDashboardClient({
   }
 
   const panelContent: Record<PanelId, React.ReactNode> = {
-    overview: overviewPanel,
-    raffles:  rafflesPanel,
-    stock:    stockPanel,
-    spots:    spotsPanel,
-    settings: settingsPanel,
-    inbox:    inboxPanel,
+    overview:  overviewPanel,
+    raffles:   rafflesPanel,
+    stock:     stockPanel,
+    spots:     spotsPanel,
+    analytics: analyticsPanel,
+    settings:  settingsPanel,
+    inbox:     inboxPanel,
   }
 
   return (
@@ -176,10 +181,10 @@ export default function AdminDashboardClient({
             <select
               value={current}
               onChange={(e) => navigateTo(e.target.value as PanelId)}
-              className="md:hidden input-field text-xs py-1 w-auto"
+              className="md:hidden input-field text-xs py-1 w-auto text-white"
             >
               {PANELS.map((p) => (
-                <option key={p.id} value={p.id}>{p.label}</option>
+                <option key={p.id} value={p.id} className="text-black">{p.label}</option>
               ))}
             </select>
             <Link href="/admin/auctions/new" className="btn-gold text-xs py-1.5 px-4">

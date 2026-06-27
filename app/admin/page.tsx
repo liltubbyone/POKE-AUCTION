@@ -10,6 +10,7 @@ import GenerateLabelButton from '@/components/GenerateLabelButton'
 import PendingPayments from '@/components/PendingPayments'
 import AdminSettings from '@/components/AdminSettings'
 import AdminDashboardClient from './AdminDashboardClient'
+import AnalyticsPanel from './AnalyticsPanel'
 
 async function getAdminData() {
   const [auctions, inventory, recentSpots] = await Promise.all([
@@ -352,6 +353,7 @@ export default async function AdminDashboard() {
       rafflesPanel={rafflesPanel}
       stockPanel={stockPanel}
       spotsPanel={spotsPanel}
+      analyticsPanel={<AnalyticsPanel />}
       settingsPanel={settingsPanel}
       inboxPanel={inboxPanel}
     />
