@@ -145,6 +145,10 @@ export default function AdminInventoryPage() {
   const [sortKey, setSortKey] = useState<'name' | 'qty' | 'cost' | 'resellMin' | 'tier'>('name')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   const [filterTier, setFilterTier] = useState('all')
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [showBulkEdit, setShowBulkEdit] = useState(false)
+  const [bulkValues, setBulkValues] = useState({ qty: '', cost: '', tier: '', note: '', shippingCost: '' })
+  const [bulkLoading, setBulkLoading] = useState(false)
 
   useEffect(() => {
     if (status === 'unauthenticated' || (session && !session.user.isAdmin)) {
@@ -230,6 +234,68 @@ export default function AdminInventoryPage() {
       const data = await res.json()
       setMessage({ type: 'error', text: data.error || 'Failed to add item' })
     }
+  }
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === visibleItems.length && visibleItems.length > 0) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(visibleItems.map((i) => i.id)))
+    }
+  }
+
+  const handleBulkDelete = async () => {
+    const count = selectedIds.size
+    if (!confirm(`Delete ${count} item${count !== 1 ? 's' : ''}? Items used in auctions will be skipped.`)) return
+    setBulkLoading(true)
+    const ids = Array.from(selectedIds)
+    const results = await Promise.all(ids.map((id) => fetch(`/api/inventory/${id}`, { method: 'DELETE' })))
+    const failed = results.filter((r) => !r.ok).length
+    setSelectedIds(new Set())
+    fetchItems()
+    setBulkLoading(false)
+    if (failed > 0) {
+      setMessage({ type: 'error', text: `${ids.length - failed} deleted, ${failed} skipped (in use by auctions).` })
+    } else {
+      setMessage({ type: 'success', text: `${ids.length} item${ids.length !== 1 ? 's' : ''} deleted.` })
+    }
+  }
+
+  const handleBulkEdit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const updates: Partial<InventoryItem> = {}
+    if (bulkValues.qty !== '')          updates.qty          = Math.max(0, parseInt(bulkValues.qty) || 0)
+    if (bulkValues.cost !== '')         updates.cost         = parseFloat(bulkValues.cost)
+    if (bulkValues.tier !== '')         updates.tier         = bulkValues.tier
+    if (bulkValues.note !== '')         updates.note         = bulkValues.note
+    if (bulkValues.shippingCost !== '') updates.shippingCost = parseFloat(bulkValues.shippingCost)
+    if (Object.keys(updates).length === 0) return
+    setBulkLoading(true)
+    const ids = Array.from(selectedIds)
+    await Promise.all(
+      ids.map((id) =>
+        fetch(`/api/inventory/${id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updates),
+        })
+      )
+    )
+    setShowBulkEdit(false)
+    setBulkValues({ qty: '', cost: '', tier: '', note: '', shippingCost: '' })
+    setSelectedIds(new Set())
+    fetchItems()
+    setBulkLoading(false)
+    setMessage({ type: 'success', text: `${ids.length} item${ids.length !== 1 ? 's' : ''} updated.` })
   }
 
   const toggleSort = (key: typeof sortKey) => {
@@ -374,6 +440,106 @@ export default function AdminInventoryPage() {
         </form>
       )}
 
+      {/* Bulk action bar */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-3 flex-wrap bg-card border border-gold/30 rounded-xl px-4 py-3 mb-4">
+          <span className="text-gold font-semibold text-sm">{selectedIds.size} selected</span>
+          <button
+            onClick={() => { setShowBulkEdit((v) => !v); setBulkValues({ qty: '', cost: '', tier: '', note: '', shippingCost: '' }) }}
+            className="btn-gold text-xs py-1.5 px-4"
+          >
+            {showBulkEdit ? 'Cancel Edit' : 'Edit Selected'}
+          </button>
+          <button
+            onClick={handleBulkDelete}
+            disabled={bulkLoading}
+            className="text-xs bg-red-950/60 border border-red-500/40 text-red-300 hover:bg-red-900/60 px-4 py-1.5 rounded font-semibold transition-colors disabled:opacity-50"
+          >
+            {bulkLoading ? 'Working…' : 'Delete Selected'}
+          </button>
+          <button
+            onClick={() => { setSelectedIds(new Set()); setShowBulkEdit(false) }}
+            className="text-xs text-gray-500 hover:text-white ml-auto transition-colors"
+          >
+            Clear
+          </button>
+        </div>
+      )}
+
+      {/* Bulk edit form */}
+      {showBulkEdit && selectedIds.size > 0 && (
+        <form onSubmit={handleBulkEdit} className="card mb-6 border-gold/20">
+          <h3 className="text-lg font-heading text-gold mb-1">EDIT {selectedIds.size} ITEMS</h3>
+          <p className="text-gray-500 text-xs mb-4">Leave a field blank to keep its current value unchanged.</p>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <div>
+              <label className="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Qty</label>
+              <input
+                type="number"
+                value={bulkValues.qty}
+                onChange={(e) => setBulkValues((v) => ({ ...v, qty: e.target.value }))}
+                className="input-field py-1.5 text-sm"
+                placeholder="unchanged"
+                min={0}
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Cost ($)</label>
+              <input
+                type="number"
+                step="0.01"
+                value={bulkValues.cost}
+                onChange={(e) => setBulkValues((v) => ({ ...v, cost: e.target.value }))}
+                className="input-field py-1.5 text-sm"
+                placeholder="unchanged"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Tier</label>
+              <select
+                value={bulkValues.tier}
+                onChange={(e) => setBulkValues((v) => ({ ...v, tier: e.target.value }))}
+                className="input-field py-1.5 text-sm"
+              >
+                <option value="">unchanged</option>
+                {['S', 'A', 'B', 'C', 'EXCLUDE'].map((t) => (
+                  <option key={t} value={t} className="text-black">{t}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Ship Cost ($)</label>
+              <input
+                type="number"
+                step="0.01"
+                value={bulkValues.shippingCost}
+                onChange={(e) => setBulkValues((v) => ({ ...v, shippingCost: e.target.value }))}
+                className="input-field py-1.5 text-sm"
+                placeholder="unchanged"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Note</label>
+              <input
+                type="text"
+                value={bulkValues.note}
+                onChange={(e) => setBulkValues((v) => ({ ...v, note: e.target.value }))}
+                className="input-field py-1.5 text-sm"
+                placeholder="unchanged"
+              />
+            </div>
+          </div>
+          <div className="flex gap-3 mt-4">
+            <button type="submit" className="btn-gold text-sm py-2" disabled={bulkLoading}>
+              {bulkLoading ? 'Saving…' : `Apply to ${selectedIds.size} Items`}
+            </button>
+            <button type="button" onClick={() => setShowBulkEdit(false)} className="btn-ghost text-sm py-2">
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
+
       {/* Filter / Sort bar */}
       <div className="flex flex-wrap gap-3 mb-4 items-center">
         <input
@@ -400,6 +566,14 @@ export default function AdminInventoryPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border text-gray-500 text-xs uppercase tracking-wider">
+              <th className="py-2 pr-3 w-8">
+                <input
+                  type="checkbox"
+                  checked={selectedIds.size === visibleItems.length && visibleItems.length > 0}
+                  onChange={toggleSelectAll}
+                  className="cursor-pointer accent-gold"
+                />
+              </th>
               {([
                 ['name',      'Name',   'text-left'],
                 ['qty',       'Qty',    'text-right'],
@@ -422,7 +596,18 @@ export default function AdminInventoryPage() {
           </thead>
           <tbody>
             {visibleItems.map((item) => (
-              <tr key={item.id} className="border-b border-border/50 hover:bg-card transition-colors">
+              <tr
+                key={item.id}
+                className={`border-b border-border/50 hover:bg-card transition-colors ${selectedIds.has(item.id) ? 'bg-gold/5' : ''}`}
+              >
+                <td className="py-2 pr-3">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.has(item.id)}
+                    onChange={() => toggleSelect(item.id)}
+                    className="cursor-pointer accent-gold"
+                  />
+                </td>
                 {editingId === item.id ? (
                   <>
                     <td className="py-2 pr-4">

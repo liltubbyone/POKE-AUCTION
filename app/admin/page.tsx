@@ -176,6 +176,19 @@ export default async function AdminDashboard() {
               {auction.status === 'completed' && <ResetAuctionForm auctionId={auction.id} />}
               <ChangeCategoryForm auctionId={auction.id} currentCategory={(auction as any).category ?? 'raffle'} />
             </div>
+
+            {/* Danger zone */}
+            <details className="mt-3 pt-3 border-t border-red-900/30">
+              <summary className="text-xs text-red-500/70 hover:text-red-400 cursor-pointer select-none transition-colors">
+                Danger zone
+              </summary>
+              <div className="mt-2">
+                <p className="text-xs text-gray-600 mb-2">
+                  Permanently deletes this raffle and all its spots. This cannot be undone.
+                </p>
+                <DeleteAuctionForm auctionId={auction.id} auctionName={auction.name} />
+              </div>
+            </details>
           </div>
         )
       })}
@@ -470,6 +483,40 @@ function ResetAuctionForm({ auctionId }: { auctionId: string }) {
       <input name="confirm" placeholder="Type RESET to confirm" className="input-field text-xs py-1 w-40" />
       <button type="submit" className="text-xs bg-orange-900/50 border border-orange-500/40 text-orange-300 hover:bg-orange-900 px-3 py-1 rounded font-semibold transition-colors whitespace-nowrap">
         Reset Raffle
+      </button>
+    </form>
+  )
+}
+
+function DeleteAuctionForm({ auctionId, auctionName }: { auctionId: string; auctionName: string }) {
+  return (
+    <form
+      action={async (formData: FormData) => {
+        'use server'
+        const confirm = formData.get('confirm') as string
+        if (confirm !== auctionName) return
+        const { prisma } = await import('@/lib/prisma')
+        await prisma.auctionSpot.deleteMany({ where: { auctionId } })
+        await prisma.auctionItem.deleteMany({ where: { auctionId } })
+        await prisma.auction.delete({ where: { id: auctionId } })
+        const { revalidatePath } = await import('next/cache')
+        revalidatePath('/admin')
+        revalidatePath('/auctions')
+        revalidatePath('/games')
+        revalidatePath('/browse')
+      }}
+      className="flex gap-2 items-center flex-wrap"
+    >
+      <input
+        name="confirm"
+        placeholder={`Type raffle name to confirm`}
+        className="input-field text-xs py-1 flex-1 min-w-36"
+      />
+      <button
+        type="submit"
+        className="text-xs bg-red-950/60 border border-red-600/40 text-red-400 hover:bg-red-900/60 px-3 py-1 rounded font-semibold transition-colors whitespace-nowrap"
+      >
+        Delete Raffle
       </button>
     </form>
   )
