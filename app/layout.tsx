@@ -7,6 +7,7 @@ import MobileBottomBar from '@/components/MobileBottomBar'
 import StarField from '@/components/StarField'
 import SessionProvider from '@/components/SessionProvider'
 import PageViewTracker from '@/components/PageViewTracker'
+import PresenceTracker from '@/components/PresenceTracker'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 
@@ -50,6 +51,7 @@ export default async function RootLayout({
           <StarField />
           <Navbar />
           <PageViewTracker />
+          <PresenceTracker />
           <main className="flex-1 relative z-10">{children}</main>
           <Footer />
           <MobileBottomBar />

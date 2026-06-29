@@ -116,12 +116,26 @@ export default function AnalyticsPanel() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [activeChart, setActiveChart] = useState<'revenue' | 'spots' | 'pageViews'>('revenue')
+  const [liveVisitors, setLiveVisitors] = useState<number | null>(null)
 
   useEffect(() => {
     fetch('/api/admin/analytics')
       .then((r) => r.json())
       .then((d) => { setData(d); setLoading(false) })
       .catch(() => { setError('Failed to load analytics'); setLoading(false) })
+  }, [])
+
+  // Poll live visitor count every 30s
+  useEffect(() => {
+    function fetchCount() {
+      fetch('/api/presence')
+        .then((r) => r.json())
+        .then((d) => setLiveVisitors(d.count ?? 0))
+        .catch(() => {})
+    }
+    fetchCount()
+    const id = setInterval(fetchCount, 30_000)
+    return () => clearInterval(id)
   }, [])
 
   if (loading) {
@@ -145,6 +159,23 @@ export default function AnalyticsPanel() {
 
   return (
     <div className="space-y-6">
+
+      {/* ── Live Visitors ────────────────────────────────────────── */}
+      <div className="card flex items-center gap-4">
+        <div className="relative flex-shrink-0">
+          <div className="w-3 h-3 rounded-full bg-green-400" />
+          <div className="absolute inset-0 w-3 h-3 rounded-full bg-green-400 animate-ping opacity-75" />
+        </div>
+        <div>
+          <p className="text-gray-400 text-xs uppercase tracking-wider">Live Visitors Right Now</p>
+          <p className="text-3xl font-heading text-green-400 leading-none mt-0.5">
+            {liveVisitors === null ? '—' : liveVisitors}
+          </p>
+        </div>
+        <p className="text-gray-600 text-xs ml-auto text-right">
+          Updated every 30s<br />Active in last 90s
+        </p>
+      </div>
 
       {/* ── Page Views ───────────────────────────────────────────── */}
       <div className="card">
