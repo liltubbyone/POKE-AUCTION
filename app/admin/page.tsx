@@ -11,6 +11,7 @@ import PendingPayments from '@/components/PendingPayments'
 import AdminSettings from '@/components/AdminSettings'
 import AdminDashboardClient from './AdminDashboardClient'
 import AnalyticsPanel from './AnalyticsPanel'
+import CouponsPanel from './CouponsPanel'
 
 async function getAdminData() {
   const [auctions, inventory, recentSpots] = await Promise.all([
@@ -354,6 +355,7 @@ export default async function AdminDashboard() {
       stockPanel={stockPanel}
       spotsPanel={spotsPanel}
       analyticsPanel={<AnalyticsPanel />}
+      couponsPanel={<CouponsPanel />}
       settingsPanel={settingsPanel}
       inboxPanel={inboxPanel}
     />

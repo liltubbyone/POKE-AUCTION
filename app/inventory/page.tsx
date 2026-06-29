@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import { formatCurrency } from '@/lib/utils'
+import StoreCheckout, { CartItem } from '@/components/StoreCheckout'
 
 function compressImage(file: File, maxPx = 800, quality = 0.82): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -106,6 +107,8 @@ interface StoreItem {
   note: string | null
   imageUrl: string | null
   shippingCost: number
+  forSale: boolean
+  storePrice: number | null
   _count: { auctionItems: number }
 }
 
@@ -132,12 +135,55 @@ export default function StorePage() {
   const [message, setMessage] = useState({ type: '', text: '' })
   const [submitting, setSubmitting] = useState(false)
 
+  // Cart state
+  const [cart, setCart] = useState<CartItem[]>([])
+  const [showCart, setShowCart] = useState(false)
+  const [showCheckout, setShowCheckout] = useState(false)
+  const [cartSuccess, setCartSuccess] = useState(false)
+
   useEffect(() => { fetchItems() }, [])
 
   const fetchItems = async () => {
     const res = await fetch('/api/inventory')
     if (res.ok) setItems(await res.json())
     setLoading(false)
+  }
+
+  // Cart helpers
+  const addToCart = (item: StoreItem) => {
+    if (!item.storePrice || item.qty === 0) return
+    setCart((prev) => {
+      const existing = prev.find((c) => c.id === item.id)
+      if (existing) {
+        if (existing.quantity >= item.qty) return prev
+        return prev.map((c) => c.id === item.id ? { ...c, quantity: c.quantity + 1 } : c)
+      }
+      return [...prev, {
+        id: item.id, name: item.name, storePrice: item.storePrice!, imageUrl: item.imageUrl,
+        qty: item.qty, quantity: 1, shippingCost: item.shippingCost,
+      }]
+    })
+    setCartSuccess(false)
+  }
+
+  const removeFromCart = (id: string) => setCart((prev) => prev.filter((c) => c.id !== id))
+
+  const updateQty = (id: string, qty: number) => {
+    if (qty < 1) { removeFromCart(id); return }
+    setCart((prev) => prev.map((c) => c.id === id ? { ...c, quantity: qty } : c))
+  }
+
+  const cartCount = cart.reduce((s, c) => s + c.quantity, 0)
+
+  // Admin: toggle for-sale + set store price
+  const handleSetStorePrice = async (item: { id: string; forSale: boolean; storePrice: number | null }, price: number | null) => {
+    const forSale = price != null && price > 0
+    await fetch(`/api/inventory/${item.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ forSale, storePrice: forSale ? price : null }),
+    })
+    fetchItems()
   }
 
   const handleAddItem = async (e: React.FormEvent) => {
@@ -206,14 +252,33 @@ export default function StorePage() {
             <strong className="text-red-400">SOLD OUT</strong> have zero quantity remaining.
           </p>
         </div>
-        {isAdmin && (
-          <button
-            onClick={() => setShowAddForm((v) => !v)}
-            className="btn-gold flex-shrink-0 self-start sm:self-auto"
-          >
-            {showAddForm ? 'Cancel' : '+ Add Item'}
-          </button>
-        )}
+        <div className="flex gap-3 flex-shrink-0 self-start sm:self-auto">
+          {/* Cart button */}
+          {!isAdmin && session?.user && (
+            <button
+              onClick={() => setShowCart(true)}
+              className="relative btn-outline flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-16H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              Cart
+              {cartCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-gold text-black text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {cartCount}
+                </span>
+              )}
+            </button>
+          )}
+          {isAdmin && (
+            <button
+              onClick={() => setShowAddForm((v) => !v)}
+              className="btn-gold"
+            >
+              {showAddForm ? 'Cancel' : '+ Add Item'}
+            </button>
+          )}
+        </div>
       </div>
 
       {message.text && (
@@ -223,6 +288,13 @@ export default function StorePage() {
             : 'bg-red-950/50 border border-red-500/40 text-red-300'
         }`}>
           {message.text}
+        </div>
+      )}
+
+      {cartSuccess && (
+        <div className="mb-6 px-4 py-3 rounded-lg text-sm font-semibold bg-green-950/50 border border-green-500/40 text-green-300 flex items-center justify-between">
+          <span>Order placed successfully! Check your profile for order details.</span>
+          <button onClick={() => setCartSuccess(false)} className="text-green-500 hover:text-green-300 ml-4">✕</button>
         </div>
       )}
 
@@ -430,6 +502,31 @@ export default function StorePage() {
                     <p className="text-gold text-xs">{item.note}</p>
                   </div>
                 )}
+
+                {/* Add to Cart — shown to logged-in non-admin users when item is for sale */}
+                {!isAdmin && session?.user && item.forSale && item.storePrice && !soldOut && (
+                  <button
+                    onClick={() => addToCart(item)}
+                    className="mt-3 w-full btn-gold text-xs py-2"
+                  >
+                    {cart.find((c) => c.id === item.id) ? 'Add Another' : `Add to Cart — ${formatCurrency(item.storePrice)}`}
+                  </button>
+                )}
+                {!isAdmin && session?.user && item.forSale && item.storePrice && soldOut && (
+                  <div className="mt-3 w-full text-center text-xs text-red-400 font-semibold py-2 border border-red-400/20 rounded-lg bg-red-400/5">
+                    Sold Out
+                  </div>
+                )}
+                {!isAdmin && !session?.user && item.forSale && item.storePrice && (
+                  <a href="/auth/login" className="mt-3 block w-full text-center text-xs text-gray-400 border border-border hover:border-gold/40 hover:text-white py-2 rounded-lg transition-all">
+                    Sign in to buy — {formatCurrency(item.storePrice)}
+                  </a>
+                )}
+
+                {/* Admin: store price control */}
+                {isAdmin && (
+                  <AdminStorePriceControl item={item} onSave={handleSetStorePrice} />
+                )}
               </div>
             )
           })}
@@ -446,6 +543,138 @@ export default function StorePage() {
           100% RANDOMIZED — PROVABLY FAIR
         </div>
       </div>
+
+      {/* Cart drawer */}
+      {showCart && !cartSuccess && (
+        <div className="fixed inset-0 z-40 flex">
+          <div className="flex-1 bg-black/60" onClick={() => setShowCart(false)} />
+          <div
+            className="w-full max-w-sm h-full overflow-y-auto flex flex-col"
+            style={{ background: '#0d0d1a', borderLeft: '1px solid rgba(30,30,53,0.8)' }}
+          >
+            <div className="flex items-center justify-between p-5 border-b border-border/60">
+              <h2 className="text-xl font-heading text-white">Cart ({cartCount})</h2>
+              <button onClick={() => setShowCart(false)} className="text-gray-500 hover:text-white transition-colors">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="flex-1 p-5 space-y-4">
+              {cart.length === 0 ? (
+                <p className="text-gray-500 text-sm text-center mt-8">Your cart is empty.</p>
+              ) : cart.map((item) => (
+                <div key={item.id} className="flex items-start gap-3">
+                  {item.imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={item.imageUrl} alt={item.name} className="w-14 h-14 object-contain rounded-lg bg-black/20 flex-shrink-0" />
+                  ) : (
+                    <div className="w-14 h-14 rounded-lg bg-black/30 flex-shrink-0" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white text-sm font-semibold truncate">{item.name}</p>
+                    <p className="text-gold text-sm font-bold">{formatCurrency(item.storePrice * item.quantity)}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <button onClick={() => updateQty(item.id, item.quantity - 1)} className="w-6 h-6 rounded border border-border text-gray-400 hover:text-white flex items-center justify-center text-sm">−</button>
+                      <span className="text-white text-sm w-4 text-center">{item.quantity}</span>
+                      <button onClick={() => updateQty(item.id, item.quantity + 1)} disabled={item.quantity >= item.qty} className="w-6 h-6 rounded border border-border text-gray-400 hover:text-white flex items-center justify-center text-sm disabled:opacity-40">+</button>
+                      <button onClick={() => removeFromCart(item.id)} className="ml-auto text-xs text-gray-600 hover:text-red-400 transition-colors">Remove</button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {cart.length > 0 && (
+              <div className="p-5 border-t border-border/60">
+                <div className="flex justify-between text-sm mb-4">
+                  <span className="text-gray-400">Subtotal</span>
+                  <span className="text-white font-bold">
+                    {formatCurrency(cart.reduce((s, i) => s + i.storePrice * i.quantity, 0))}
+                  </span>
+                </div>
+                <button
+                  onClick={() => { setShowCart(false); setShowCheckout(true) }}
+                  className="btn-gold w-full"
+                >
+                  Checkout
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Checkout modal */}
+      {showCheckout && cart.length > 0 && (
+        <StoreCheckout
+          cart={cart}
+          onClose={() => { setShowCheckout(false) }}
+          onSuccess={() => { setCart([]); setCartSuccess(true); setShowCheckout(false) }}
+        />
+      )}
+    </div>
+  )
+}
+
+function AdminStorePriceControl({
+  item,
+  onSave,
+}: {
+  item: { id: string; forSale: boolean; storePrice: number | null }
+  onSave: (item: { id: string; forSale: boolean; storePrice: number | null }, price: number | null) => Promise<void>
+}) {
+  const [price, setPrice] = useState(item.storePrice?.toString() ?? '')
+  const [saving, setSaving] = useState(false)
+
+  const handleSave = async () => {
+    setSaving(true)
+    const parsed = price === '' ? null : parseFloat(price)
+    await onSave(item as any, parsed)
+    setSaving(false)
+  }
+
+  const handleRemove = async () => {
+    setSaving(true)
+    setPrice('')
+    await onSave(item as any, null)
+    setSaving(false)
+  }
+
+  return (
+    <div className="mt-3 pt-3 border-t border-border/50">
+      <p className="text-[10px] text-gray-600 uppercase tracking-wider mb-1.5">Store Price</p>
+      <div className="flex gap-1.5">
+        <input
+          type="number"
+          step="0.01"
+          min="0"
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+          placeholder="0.00"
+          className="input-field text-xs py-1 flex-1"
+        />
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="text-xs bg-gold/10 border border-gold/30 text-gold hover:bg-gold/20 px-2 py-1 rounded font-semibold transition-colors disabled:opacity-50"
+        >
+          {saving ? '…' : item.forSale ? 'Update' : 'List'}
+        </button>
+        {item.forSale && (
+          <button
+            onClick={handleRemove}
+            disabled={saving}
+            className="text-xs bg-red-900/30 border border-red-500/30 text-red-400 hover:bg-red-900/50 px-2 py-1 rounded font-semibold transition-colors disabled:opacity-50"
+          >
+            Delist
+          </button>
+        )}
+      </div>
+      {item.forSale && (
+        <p className="text-[10px] text-green-400 mt-1">Listed in store</p>
+      )}
     </div>
   )
 }

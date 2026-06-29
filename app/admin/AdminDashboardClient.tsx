@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 
-type PanelId = 'overview' | 'raffles' | 'stock' | 'spots' | 'analytics' | 'settings' | 'inbox'
+type PanelId = 'overview' | 'raffles' | 'stock' | 'spots' | 'analytics' | 'settings' | 'inbox' | 'coupons'
 
 interface Props {
   adminEmail: string
@@ -14,6 +14,7 @@ interface Props {
   analyticsPanel: React.ReactNode
   settingsPanel: React.ReactNode
   inboxPanel: React.ReactNode
+  couponsPanel: React.ReactNode
 }
 
 const PANELS: { id: PanelId; label: string }[] = [
@@ -22,6 +23,7 @@ const PANELS: { id: PanelId; label: string }[] = [
   { id: 'stock',      label: 'Stock'           },
   { id: 'spots',      label: 'Spots'           },
   { id: 'analytics',  label: 'Analytics'       },
+  { id: 'coupons',    label: 'Coupons'         },
   { id: 'settings',   label: 'Settings'        },
   { id: 'inbox',      label: 'Inbox'           },
 ]
@@ -32,6 +34,7 @@ const PANEL_TITLES: Record<PanelId, string> = {
   stock:     'Stock',
   spots:     'Spots & Shipping',
   analytics: 'Analytics',
+  coupons:   'Coupon Codes',
   settings:  'Settings',
   inbox:     'Support Inbox',
 }
@@ -45,6 +48,7 @@ export default function AdminDashboardClient({
   analyticsPanel,
   settingsPanel,
   inboxPanel,
+  couponsPanel,
 }: Props) {
   const [current, setCurrent] = useState<PanelId>('overview')
   const [history, setHistory] = useState<PanelId[]>([])
@@ -68,6 +72,7 @@ export default function AdminDashboardClient({
     stock:     stockPanel,
     spots:     spotsPanel,
     analytics: analyticsPanel,
+    coupons:   couponsPanel,
     settings:  settingsPanel,
     inbox:     inboxPanel,
   }

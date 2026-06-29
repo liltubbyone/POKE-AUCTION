@@ -20,6 +20,7 @@ model User {
   spots                 AuctionSpot[]
   dailySpins            DailySpin[]
   wordSearchCompletions WordSearchCompletion[]
+  storeOrders           StoreOrder[]
   passwordResetToken String?
   passwordResetExpiry DateTime?
 }
@@ -35,7 +36,10 @@ model InventoryItem {
   note         String?
   imageUrl     String?
   shippingCost Float         @default(10.0)
-  auctionItems AuctionItem[]
+  forSale      Boolean       @default(false)
+  storePrice   Float?
+  auctionItems    AuctionItem[]
+  storeOrderItems StoreOrderItem[]
 }
 
 model Auction {
@@ -141,4 +145,48 @@ model AuctionSpot {
   shippingPaymentId String?
   shippingCost      Float?
   createdAt         DateTime @default(now())
+}
+
+model Coupon {
+  id        String       @id @default(cuid())
+  code      String       @unique
+  type      String       // "percent" | "fixed"
+  value     Float        // percent 0-100 or fixed dollar amount
+  minOrder  Float        @default(0)
+  maxUses   Int?         // null = unlimited
+  usedCount Int          @default(0)
+  expiresAt DateTime?
+  active    Boolean      @default(true)
+  createdAt DateTime     @default(now())
+  orders    StoreOrder[]
+}
+
+model StoreOrder {
+  id             String           @id @default(cuid())
+  userId         String
+  user           User             @relation(fields: [userId], references: [id])
+  status         String           @default("pending") // pending, paid, shipped, cancelled
+  subtotal       Float
+  discount       Float            @default(0)
+  total          Float
+  couponId       String?
+  coupon         Coupon?          @relation(fields: [couponId], references: [id])
+  paymentId      String?
+  paymentMethod  String?
+  shippingName   String?
+  shippingAddr   String?
+  trackingNumber String?
+  shipped        Boolean          @default(false)
+  createdAt      DateTime         @default(now())
+  items          StoreOrderItem[]
+}
+
+model StoreOrderItem {
+  id        String        @id @default(cuid())
+  orderId   String
+  order     StoreOrder    @relation(fields: [orderId], references: [id])
+  itemId    String
+  item      InventoryItem @relation(fields: [itemId], references: [id])
+  quantity  Int
+  priceEach Float
 }
