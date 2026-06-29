@@ -15,7 +15,7 @@ async function main() {
     update: {},
     create: {
       email: 'admin@pokeauction.com',
-      name: 'PokeAuction Admin',
+      name: 'Cosmic Grails Admin',
       password: hashedPassword,
       isAdmin: true,
     },
@@ -57,7 +57,7 @@ async function main() {
   const auction = await prisma.auction.create({
     data: {
       name: '🔥 First Partner Flex',
-      description: 'The inaugural PokeAuction surprise wheel! 29 spots at $45 each. One lucky spin decides who gets the First Partner Illustration Collection, Booster Boxes, 3-Pack Blisters, and PO Sleeves. ALL spots must fill before the wheel spins.',
+      description: 'The inaugural Cosmic Grails surprise wheel! 29 spots at $45 each. One lucky spin decides who gets the First Partner Illustration Collection, Booster Boxes, 3-Pack Blisters, and PO Sleeves. ALL spots must fill before the wheel spins.',
       status: 'active',
       spotPrice: 45.0,
       totalSpots: 29,

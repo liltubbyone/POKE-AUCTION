@@ -36,9 +36,9 @@ export async function POST(req: Request) {
     })
 
     await transporter.sendMail({
-      from: `"Poke Auction" <${process.env.EMAIL_SERVER_USER}>`,
+      from: `"Cosmic Grails" <${process.env.EMAIL_SERVER_USER}>`,
       to: email,
-      subject: 'Reset your Poke Auction password',
+      subject: 'Reset your Cosmic Grails password',
       html: `
 <!DOCTYPE html>
 <html>
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
 <body style="margin:0;padding:0;background:#06060d;font-family:Arial,sans-serif;">
   <div style="max-width:480px;margin:40px auto;background:#0e0e1a;border:1px solid #2a2a3d;border-radius:12px;overflow:hidden;">
     <div style="background:linear-gradient(135deg,#c9a227,#a07818);padding:32px 40px;">
-      <h1 style="margin:0;color:#06060d;font-size:28px;letter-spacing:2px;font-weight:900;">POKE AUCTION</h1>
+      <h1 style="margin:0;color:#06060d;font-size:28px;letter-spacing:2px;font-weight:900;">COSMIC GRAILS</h1>
     </div>
     <div style="padding:40px;">
       <h2 style="margin:0 0 8px;color:#ffffff;font-size:20px;">Password Reset Request</h2>
@@ -67,7 +67,7 @@ export async function POST(req: Request) {
       </p>
     </div>
     <div style="padding:20px 40px;border-top:1px solid #2a2a3d;text-align:center;">
-      <p style="color:#4b5563;font-size:11px;margin:0;">© ${new Date().getFullYear()} Poke Auction. All rights reserved.</p>
+      <p style="color:#4b5563;font-size:11px;margin:0;">© ${new Date().getFullYear()} Cosmic Grails. All rights reserved.</p>
     </div>
   </div>
 </body>

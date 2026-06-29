@@ -38,7 +38,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <h1 className="text-5xl font-heading gold-gradient-text mb-2">POKEAUCTION</h1>
+          <h1 className="text-5xl font-heading gold-gradient-text mb-2">COSMIC GRAILS</h1>
           <p className="text-gray-400">Sign in to your account</p>
         </div>
 

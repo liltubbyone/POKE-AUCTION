@@ -75,7 +75,7 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center px-4 py-16">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-5xl font-heading gold-gradient-text mb-2">POKEAUCTION</h1>
+          <h1 className="text-5xl font-heading gold-gradient-text mb-2">COSMIC GRAILS</h1>
           <p className="text-gray-400">Create your account</p>
         </div>
 

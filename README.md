@@ -1,4 +1,4 @@
-# PokeAuction
+# Cosmic Grails
 
 A full-stack Pokemon surprise wheel auction site. Users buy spots in an auction pool. When all spots are filled, a provably-fair cryptographic wheel spins and randomly assigns each bidder a random item from the pool.
 

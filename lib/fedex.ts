@@ -126,7 +126,7 @@ export async function createFedexLabel(
     requestedShipment: {
       shipper: {
         contact: {
-          personName: process.env.FEDEX_SHIPPER_NAME || 'POKE-AUCTION',
+          personName: process.env.FEDEX_SHIPPER_NAME || 'COSMIC GRAILS',
           phoneNumber: process.env.FEDEX_SHIPPER_PHONE || '4174304228',
         },
         address: SHIPPER_ADDRESS,
