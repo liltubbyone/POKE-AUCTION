@@ -9,9 +9,9 @@ const ACTIVE_WINDOW_MS = 90_000
 // Clean up stale sessions every call (cheap since this map stays small)
 function cleanStale() {
   const cutoff = Date.now() - ACTIVE_WINDOW_MS
-  for (const [id, ts] of sessions) {
+  Array.from(sessions.entries()).forEach(([id, ts]) => {
     if (ts < cutoff) sessions.delete(id)
-  }
+  })
 }
 
 // POST /api/presence — visitor heartbeat
