@@ -477,12 +477,9 @@ export default function StorePage() {
 
                 <h3 className="font-semibold text-white mb-2 leading-tight text-sm">{item.name}</h3>
 
-                <p className="text-2xl font-bold gold-gradient-text mb-1">{formatCurrency(item.cost)}</p>
-                {item.resellMin > 0 && (
-                  <p className="text-xs text-gray-500 mb-3">
-                    Market: {formatCurrency(item.resellMin)}–{formatCurrency(item.resellMax)}
-                  </p>
-                )}
+                <p className="text-2xl font-bold gold-gradient-text mb-1">
+                  {formatCurrency(item.forSale && item.storePrice ? item.storePrice : item.cost)}
+                </p>
 
                 <div className="flex items-center justify-between mt-auto pt-3 border-t border-border/50">
                   <span className={`text-xs font-semibold ${
@@ -503,14 +500,29 @@ export default function StorePage() {
                   </div>
                 )}
 
-                {/* Add to Cart — shown to logged-in non-admin users when item is for sale */}
+                {/* Buy Now / store actions */}
                 {!isAdmin && session?.user && item.forSale && item.storePrice && !soldOut && (
-                  <button
-                    onClick={() => addToCart(item)}
-                    className="mt-3 w-full btn-gold text-xs py-2"
-                  >
-                    {cart.find((c) => c.id === item.id) ? 'Add Another' : `Add to Cart — ${formatCurrency(item.storePrice)}`}
-                  </button>
+                  <div className="mt-3 flex flex-col gap-1.5">
+                    <button
+                      onClick={() => {
+                        const cartItem: import('@/components/StoreCheckout').CartItem = {
+                          id: item.id, name: item.name, storePrice: item.storePrice!,
+                          imageUrl: item.imageUrl, qty: item.qty, quantity: 1, shippingCost: item.shippingCost,
+                        }
+                        setCart([cartItem])
+                        setShowCheckout(true)
+                      }}
+                      className="w-full btn-gold text-sm py-2"
+                    >
+                      Buy Now — {formatCurrency(item.storePrice)}
+                    </button>
+                    <button
+                      onClick={() => { addToCart(item); setShowCart(true) }}
+                      className="w-full text-center text-xs text-gray-400 border border-border hover:border-gold/40 hover:text-white py-2 rounded-lg transition-all"
+                    >
+                      {cart.find((c) => c.id === item.id) ? 'In Cart — View Cart' : 'Add to Cart'}
+                    </button>
+                  </div>
                 )}
                 {!isAdmin && session?.user && item.forSale && item.storePrice && soldOut && (
                   <div className="mt-3 w-full text-center text-xs text-red-400 font-semibold py-2 border border-red-400/20 rounded-lg bg-red-400/5">
@@ -518,8 +530,8 @@ export default function StorePage() {
                   </div>
                 )}
                 {!isAdmin && !session?.user && item.forSale && item.storePrice && (
-                  <a href="/auth/login" className="mt-3 block w-full text-center text-xs text-gray-400 border border-border hover:border-gold/40 hover:text-white py-2 rounded-lg transition-all">
-                    Sign in to buy — {formatCurrency(item.storePrice)}
+                  <a href="/auth/login" className="mt-3 block w-full text-center text-sm btn-gold py-2">
+                    Sign In to Buy
                   </a>
                 )}
 
@@ -610,7 +622,7 @@ export default function StorePage() {
       {showCheckout && cart.length > 0 && (
         <StoreCheckout
           cart={cart}
-          onClose={() => { setShowCheckout(false) }}
+          onClose={() => setShowCheckout(false)}
           onSuccess={() => { setCart([]); setCartSuccess(true); setShowCheckout(false) }}
         />
       )}
