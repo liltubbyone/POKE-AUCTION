@@ -190,3 +190,14 @@ model StoreOrderItem {
   quantity  Int
   priceEach Float
 }
+
+model PokeFlapScore {
+  id          String   @id @default(cuid())
+  playerName  String
+  score       Int
+  pokemonName String
+  pokemonImg  String
+  createdAt   DateTime @default(now())
+
+  @@index([score])
+}
