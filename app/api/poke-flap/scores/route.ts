@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma'
 export async function GET() {
   const scores = await prisma.pokeFlapScore.findMany({
     orderBy: { score: 'desc' },
-    take: 20,
+    take: 50,
     select: {
       id: true,
       playerName: true,
