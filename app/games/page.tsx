@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { prisma } from '@/lib/prisma'
 import AuctionCard from '@/components/AuctionCard'
 import WordSearchCard from '@/components/WordSearchCard'
+import PokeFlapCard from '@/components/PokeFlapCard'
 import Link from 'next/link'
 
 async function getGames() {
@@ -60,6 +61,7 @@ export default async function GamesPage() {
             <AuctionCard key={game.id} auction={game} />
           ))}
           <WordSearchCard />
+          <PokeFlapCard />
         </div>
       </div>
     </div>
