@@ -13,12 +13,6 @@ export const PIPE_STYLES: PipeStyle[] = [
     swatch: ['#7ED957', '#3D8B27'],
   },
   {
-    id: 'pokeball',
-    label: 'Poké Ball',
-    description: 'Red & white with buttons',
-    swatch: ['#F04040', '#FFFFFF', '#1a1a1a'],
-  },
-  {
     id: 'ice',
     label: 'Ice',
     description: 'Frozen blue pipes',

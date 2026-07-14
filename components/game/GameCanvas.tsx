@@ -52,7 +52,7 @@ export default function GameCanvas({
     localStorage.setItem('flappy_pipe_decoration', dec)
   }
 
-  const { playJump, playScore, playHit, playPowerUp, muted, toggleMute } = useSounds()
+  const { playJump, playScore, playHit, muted, toggleMute } = useSounds()
 
   useEffect(() => { initSprites() }, [])
 
@@ -67,7 +67,6 @@ export default function GameCanvas({
     onJump: playJump,
     onScore: playScore,
     onHit: playHit,
-    onBerryCollect: playPowerUp,
   })
 
   useEffect(() => {
@@ -136,10 +135,11 @@ export default function GameCanvas({
     <div className="relative w-full h-full max-w-md mx-auto" style={{ maxHeight: '700px' }}>
       <div
         className="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl border-4 border-white/30 cursor-pointer"
+        style={{ touchAction: 'none', willChange: 'transform' }}
         onClick={handleInteraction}
         onTouchStart={(e) => { e.preventDefault(); handleInteraction() }}
       >
-        <canvas ref={canvasRef} className="w-full h-full block" />
+        <canvas ref={canvasRef} className="w-full h-full block" style={{ display: 'block' }} />
 
         <div className="absolute top-3 left-3 z-20 flex gap-1.5">
           <PipeStyleSelector value={pipeStyle} onChange={handlePipeStyleChange} />
