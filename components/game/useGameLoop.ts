@@ -1,11 +1,10 @@
 'use client'
 
 import { useRef, useCallback, useEffect, MutableRefObject } from 'react'
-import { getPipePattern } from '@/lib/spriteCache'
 import { Pokemon } from '@/lib/pokemonData'
 
-const GRAVITY = 0.38
-const JUMP_FORCE = -5.8
+const GRAVITY = 0.44
+const JUMP_FORCE = -4.8
 const PIPE_WIDTH = 70
 const PIPE_GAP_MIN = 106
 const PIPE_GAP_MAX = 167
@@ -31,7 +30,6 @@ interface UseGameLoopProps {
   selectedPokemon: Pokemon | null
   birdImgRef: MutableRefObject<HTMLImageElement | null>
   pipeStyle: string
-  pipeDecoration: string
   onJump?: () => void
   onScore?: () => void
   onHit?: () => void
@@ -79,15 +77,12 @@ export default function useGameLoop({
   selectedPokemon,
   birdImgRef,
   pipeStyle,
-  pipeDecoration,
   onJump,
   onScore,
   onHit,
 }: UseGameLoopProps) {
   const pipeStyleRef = useRef(pipeStyle)
   useEffect(() => { pipeStyleRef.current = pipeStyle }, [pipeStyle])
-  const pipeDecorationRef = useRef(pipeDecoration)
-  useEffect(() => { pipeDecorationRef.current = pipeDecoration }, [pipeDecoration])
   const selectedPokemonRef = useRef(selectedPokemon)
   useEffect(() => { selectedPokemonRef.current = selectedPokemon }, [selectedPokemon])
   const gameStateRef = useRef(gameState)
@@ -146,24 +141,6 @@ export default function useGameLoop({
     ctx.restore()
   }, [])
 
-  const drawPipeDecor = useCallback((ctx: CanvasRenderingContext2D, pipe: Pipe, h: number) => {
-    const decor = pipeDecorationRef.current || 'pokeball'
-    const pattern = getPipePattern(decor)
-    if (!pattern.length) return
-    const playableH = h - GROUND_HEIGHT
-    const bottomY = pipe.topHeight + pipe.gap
-    const ICON = 48
-    const SPACING = 68
-    const x = pipe.x + (PIPE_WIDTH - ICON) / 2
-    ctx.save()
-    ctx.globalAlpha = 0.92
-    let y = 4; let idx = 0
-    while (y + ICON < pipe.topHeight - 30) { ctx.drawImage(pattern[idx++ % pattern.length], x, y, ICON, ICON); y += SPACING }
-    y = bottomY + 34; idx = 0
-    while (y + ICON < playableH) { ctx.drawImage(pattern[idx++ % pattern.length], x, y, ICON, ICON); y += SPACING }
-    ctx.restore()
-  }, [])
-
   const drawPipe = useCallback((ctx: CanvasRenderingContext2D, pipe: Pipe, h: number, grads: typeof gradCache) => {
     const playableH = h - GROUND_HEIGHT
     const style = pipeStyleRef.current || 'classic'
@@ -196,9 +173,7 @@ export default function useGameLoop({
     ctx.fillRect(pipe.x + 6, bottomY + 28, 8, playableH - bottomY - 28)
     ctx.fillStyle = capColor
     ctx.fillRect(pipe.x - 5, bottomY, PIPE_WIDTH + 10, 28)
-
-    drawPipeDecor(ctx, pipe, h)
-  }, [drawPipeDecor])
+  }, [])
 
   const drawGround = useCallback((ctx: CanvasRenderingContext2D, w: number, h: number) => {
     const gY = h - GROUND_HEIGHT
@@ -220,18 +195,14 @@ export default function useGameLoop({
     const cx = 80 + BIRD_SIZE / 2
     const cy = bird.y + BIRD_SIZE / 2
     if (img && img.complete && img.naturalWidth > 0) {
-      const TARGET_SIZE = 46
-      const maxDim = Math.max(img.naturalWidth, img.naturalHeight) || TARGET_SIZE
-      const scale = TARGET_SIZE / maxDim
-      const drawW = img.naturalWidth * scale
-      const drawH = img.naturalHeight * scale
+      const SIZE = 46
       ctx.save()
       if (selectedPokemonRef.current?.mirrored) {
         ctx.translate(cx, cy)
         ctx.scale(-1, 1)
-        ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH)
+        ctx.drawImage(img, -SIZE / 2, -SIZE / 2, SIZE, SIZE)
       } else {
-        ctx.drawImage(img, cx - drawW / 2, cy - drawH / 2, drawW, drawH)
+        ctx.drawImage(img, cx - SIZE / 2, cy - SIZE / 2, SIZE, SIZE)
       }
       ctx.restore()
     } else {
@@ -270,7 +241,7 @@ export default function useGameLoop({
     // Delta-time: normalize to 60fps so physics are frame-rate independent
     const rawDt = lastTimestampRef.current ? timestamp - lastTimestampRef.current : FRAME_MS
     lastTimestampRef.current = timestamp
-    const dt = Math.min(rawDt / FRAME_MS, 2.5) // cap at 2.5x to prevent spiral of death
+    const dt = Math.min(rawDt / FRAME_MS, 1.5) // cap at 1.5x — tighter cap prevents physics spikes on mobile
 
     const grads = getGradients(ctx, w)
 

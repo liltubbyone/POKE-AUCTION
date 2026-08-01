@@ -6,10 +6,7 @@ import { Volume2, VolumeX } from 'lucide-react'
 import useGameLoop from './useGameLoop'
 import GameOverOverlay from './GameOverOverlay'
 import PipeStyleSelector from './PipeStyleSelector'
-import PipeDecorationSelector from './PipeDecorationSelector'
 import { DEFAULT_PIPE_STYLE } from '@/lib/pipeStyles'
-import { DEFAULT_PIPE_DECORATION } from '@/lib/pipeDecorations'
-import { initSprites } from '@/lib/spriteCache'
 import useSounds from '@/lib/useSounds'
 import { Pokemon } from '@/lib/pokemonData'
 
@@ -37,24 +34,12 @@ export default function GameCanvas({
     if (typeof window === 'undefined') return DEFAULT_PIPE_STYLE
     return localStorage.getItem('flappy_pipe_style') || DEFAULT_PIPE_STYLE
   })
-  const [pipeDecoration, setPipeDecoration] = useState(() => {
-    if (typeof window === 'undefined') return DEFAULT_PIPE_DECORATION
-    return localStorage.getItem('flappy_pipe_decoration') || DEFAULT_PIPE_DECORATION
-  })
-
   const handlePipeStyleChange = (style: string) => {
     setPipeStyle(style)
     localStorage.setItem('flappy_pipe_style', style)
   }
 
-  const handlePipeDecorationChange = (dec: string) => {
-    setPipeDecoration(dec)
-    localStorage.setItem('flappy_pipe_decoration', dec)
-  }
-
   const { playJump, playScore, playHit, muted, toggleMute } = useSounds()
-
-  useEffect(() => { initSprites() }, [])
 
   const { jump, score } = useGameLoop({
     canvasRef,
@@ -63,7 +48,6 @@ export default function GameCanvas({
     selectedPokemon,
     birdImgRef,
     pipeStyle,
-    pipeDecoration,
     onJump: playJump,
     onScore: playScore,
     onHit: playHit,
@@ -141,13 +125,17 @@ export default function GameCanvas({
       >
         <canvas ref={canvasRef} className="w-full h-full block" style={{ display: 'block' }} />
 
-        <div className="absolute top-3 left-3 z-20 flex gap-1.5">
+        <div
+          className="absolute top-3 left-3 z-20 flex gap-1.5"
+          onTouchStart={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        >
           <PipeStyleSelector value={pipeStyle} onChange={handlePipeStyleChange} />
-          <PipeDecorationSelector value={pipeDecoration} onChange={handlePipeDecorationChange} />
         </div>
 
         <button
           onClick={(e) => { e.stopPropagation(); toggleMute() }}
+          onTouchStart={(e) => e.stopPropagation()}
           className="absolute top-3 right-3 z-20 bg-black/30 hover:bg-black/50 text-white rounded-full p-1.5 transition-colors"
         >
           {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
