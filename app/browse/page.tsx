@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { prisma } from '@/lib/prisma'
 import AuctionCard from '@/components/AuctionCard'
 import WordSearchCard from '@/components/WordSearchCard'
+import PokeFlapCard from '@/components/PokeFlapCard'
 import Link from 'next/link'
 
 async function getAllAuctions(filter: string) {
@@ -113,6 +114,7 @@ export default async function BrowsePage({
               <AuctionCard key={auction.id} auction={auction} />
             ))}
             {(filter === 'all' || filter === 'game') && <WordSearchCard />}
+            {(filter === 'all' || filter === 'game') && <PokeFlapCard />}
           </div>
         ) : (
           <div
