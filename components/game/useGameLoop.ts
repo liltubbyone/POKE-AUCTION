@@ -3,8 +3,8 @@
 import { useRef, useCallback, useEffect, MutableRefObject } from 'react'
 import { Pokemon } from '@/lib/pokemonData'
 
-const GRAVITY = 0.44
-const JUMP_FORCE = -4.8
+const GRAVITY = 0.40
+const JUMP_FORCE = -5.6
 const PIPE_WIDTH = 70
 const PIPE_GAP_MIN = 106
 const PIPE_GAP_MAX = 167
@@ -238,10 +238,12 @@ export default function useGameLoop({
     const h = canvas.height
     const playableH = h - GROUND_HEIGHT
 
-    // Delta-time: normalize to 60fps so physics are frame-rate independent
+    // Delta-time: cap raw ms at 50ms before normalizing.
+    // This lets 30fps mobile run at full speed (dt≈2.0) while still
+    // limiting the physics spike when the tab was backgrounded.
     const rawDt = lastTimestampRef.current ? timestamp - lastTimestampRef.current : FRAME_MS
     lastTimestampRef.current = timestamp
-    const dt = Math.min(rawDt / FRAME_MS, 1.5) // cap at 1.5x — tighter cap prevents physics spikes on mobile
+    const dt = Math.min(rawDt, 50) / FRAME_MS
 
     const grads = getGradients(ctx, w)
 
