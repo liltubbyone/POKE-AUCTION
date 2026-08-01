@@ -121,6 +121,8 @@ interface InventoryItem {
   note: string | null
   imageUrl: string | null
   shippingCost: number
+  sku: string | null
+  gtin: string | null
 }
 
 export default function AdminInventoryPage() {
@@ -184,6 +186,8 @@ export default function AdminInventoryPage() {
         shippingCost: parseFloat(editValues.shippingCost as any),
         note: editValues.note || null,
         imageUrl: editValues.imageUrl || null,
+        sku: editValues.sku || null,
+        gtin: editValues.gtin || null,
       }),
     })
 
@@ -428,6 +432,26 @@ export default function AdminInventoryPage() {
                 className="input-field"
               />
             </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1 uppercase tracking-wider">SKU (optional)</label>
+              <input
+                type="text"
+                value={newItem.sku || ''}
+                onChange={(e) => setNewItem((n) => ({ ...n, sku: e.target.value }))}
+                className="input-field"
+                placeholder="e.g. PKM-BPEV-EN"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1 uppercase tracking-wider">GTIN / Barcode (optional)</label>
+              <input
+                type="text"
+                value={newItem.gtin || ''}
+                onChange={(e) => setNewItem((n) => ({ ...n, gtin: e.target.value }))}
+                className="input-field"
+                placeholder="e.g. 820650850386"
+              />
+            </div>
             <div className="col-span-4">
               <label className="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Image</label>
               <ImageUploader
@@ -590,6 +614,8 @@ export default function AdminInventoryPage() {
               ))}
               <th className="text-right py-2 pr-4">Ship</th>
               <th className="text-left py-2 pr-4">Note</th>
+              <th className="text-left py-2 pr-4">SKU</th>
+              <th className="text-left py-2 pr-4">GTIN</th>
               <th className="text-left py-2 pr-4">Image</th>
               <th className="text-right py-2">Actions</th>
             </tr>
@@ -674,6 +700,24 @@ export default function AdminInventoryPage() {
                         placeholder="Note"
                       />
                     </td>
+                    <td className="py-2 pr-4">
+                      <input
+                        type="text"
+                        value={editValues.sku || ''}
+                        onChange={(e) => setEditValues((v) => ({ ...v, sku: e.target.value }))}
+                        className="input-field py-1 text-sm w-28"
+                        placeholder="SKU"
+                      />
+                    </td>
+                    <td className="py-2 pr-4">
+                      <input
+                        type="text"
+                        value={editValues.gtin || ''}
+                        onChange={(e) => setEditValues((v) => ({ ...v, gtin: e.target.value }))}
+                        className="input-field py-1 text-sm w-36"
+                        placeholder="GTIN"
+                      />
+                    </td>
                     <td className="py-2 pr-4 w-48">
                       <ImageUploader
                         value={editValues.imageUrl || ''}
@@ -709,6 +753,8 @@ export default function AdminInventoryPage() {
                     </td>
                     <td className="py-3 pr-4 text-right text-gray-300">{formatCurrency(item.shippingCost)}</td>
                     <td className="py-3 pr-4 text-gray-500 text-xs">{item.note || '—'}</td>
+                    <td className="py-3 pr-4 text-gray-400 text-xs font-mono">{item.sku || '—'}</td>
+                    <td className="py-3 pr-4 text-gray-400 text-xs font-mono">{item.gtin || '—'}</td>
                     <td className="py-3 pr-4">
                       {item.imageUrl ? (
                         <img src={item.imageUrl} alt={item.name} className="w-10 h-10 object-contain rounded" referrerPolicy="no-referrer" />

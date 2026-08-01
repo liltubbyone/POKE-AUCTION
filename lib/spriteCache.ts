@@ -1,12 +1,9 @@
-const POKEBALL_URL =
-  'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png'
 const SMALL_BASE =
   'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon'
 
 const PIPE_POKEMON_IDS = [25, 1, 4, 7, 133, 94, 150, 151, 39, 143, 6, 9]
 
-const cache: { pokeball: HTMLImageElement | null; pokemon: HTMLImageElement[]; loaded: boolean } = {
-  pokeball: null,
+const cache: { pokemon: HTMLImageElement[]; loaded: boolean } = {
   pokemon: [],
   loaded: false,
 }
@@ -25,11 +22,9 @@ function loadImage(url: string): Promise<HTMLImageElement | null> {
 export function initSprites(): Promise<void> {
   if (initPromise) return initPromise
   initPromise = (async () => {
-    const pokeball = await loadImage(POKEBALL_URL)
     const pokemonImgs = await Promise.all(
       PIPE_POKEMON_IDS.map((id) => loadImage(`${SMALL_BASE}/${id}.png`))
     )
-    cache.pokeball = pokeball
     cache.pokemon = pokemonImgs.filter(Boolean) as HTMLImageElement[]
     cache.loaded = true
   })()
@@ -37,7 +32,6 @@ export function initSprites(): Promise<void> {
 }
 
 export function getPipePattern(type: string): HTMLImageElement[] {
-  if (type === 'pokeball') return cache.pokeball ? [cache.pokeball] : []
   if (type === 'pokemon') return cache.pokemon
   return []
 }

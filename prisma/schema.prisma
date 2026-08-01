@@ -35,6 +35,8 @@ model InventoryItem {
   resellMax    Float
   note         String?
   imageUrl     String?
+  sku          String?
+  gtin         String?
   shippingCost Float         @default(10.0)
   forSale      Boolean       @default(false)
   storePrice   Float?

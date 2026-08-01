@@ -7,12 +7,6 @@ export interface PipeDecoration {
 
 export const PIPE_DECORATIONS: PipeDecoration[] = [
   {
-    id: 'pokeball',
-    label: 'Poké Balls',
-    description: 'Ball icons on pipes',
-    icon: '⭕',
-  },
-  {
     id: 'pokemon',
     label: 'Pokémon',
     description: 'Monster sprites on pipes',
@@ -26,7 +20,7 @@ export const PIPE_DECORATIONS: PipeDecoration[] = [
   },
 ]
 
-export const DEFAULT_PIPE_DECORATION = 'pokeball'
+export const DEFAULT_PIPE_DECORATION = 'none'
 
 export function getPipeDecoration(id: string): PipeDecoration {
   return PIPE_DECORATIONS.find((d) => d.id === id) || PIPE_DECORATIONS[0]
