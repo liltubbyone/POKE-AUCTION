@@ -89,7 +89,11 @@ export default function GameCanvas({
     }
   }, [gameState, score, bestScore])
 
+  const lastInteractionRef = useRef(0)
   const handleInteraction = useCallback(() => {
+    const now = performance.now()
+    if (now - lastInteractionRef.current < 150) return
+    lastInteractionRef.current = now
     const state = gameStateRef.current
     if (state === 'ready') {
       setGameState('playing')
