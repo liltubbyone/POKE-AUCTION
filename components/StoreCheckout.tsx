@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { formatCurrency } from '@/lib/utils'
@@ -25,6 +24,12 @@ interface CouponInfo {
   type: string
   value: number
   discount: number
+}
+
+interface GuestInfo {
+  name: string
+  email: string
+  address: string
 }
 
 // --- Inner Stripe form ---
@@ -91,9 +96,13 @@ interface Props {
 
 export default function StoreCheckout({ cart, onClose, onSuccess }: Props) {
   const { data: session } = useSession()
-  const router = useRouter()
 
-  const [step, setStep] = useState<'cart' | 'payment' | 'done'>('cart')
+  const [step, setStep] = useState<'guest-info' | 'cart' | 'payment' | 'done'>(
+    session?.user ? 'cart' : 'guest-info'
+  )
+  const [guestInfo, setGuestInfo] = useState<GuestInfo>({ name: '', email: '', address: '' })
+  const [guestErrors, setGuestErrors] = useState<Partial<GuestInfo>>({})
+
   const [couponCode, setCouponCode] = useState('')
   const [coupon, setCoupon] = useState<CouponInfo | null>(null)
   const [couponError, setCouponError] = useState('')
@@ -104,15 +113,23 @@ export default function StoreCheckout({ cart, onClose, onSuccess }: Props) {
   const [loading, setLoading] = useState(false)
   const [orderId, setOrderId] = useState<string | null>(null)
 
-  if (!session?.user) {
-    router.push('/auth/login')
-    return null
-  }
-
   const subtotal = cart.reduce((s, i) => s + i.storePrice * i.quantity, 0)
   const shippingEst = Math.max(...cart.map((i) => i.shippingCost))
   const displayDiscount = coupon?.discount ?? 0
   const displayTotal = Math.max(0, subtotal - displayDiscount)
+
+  const handleGuestInfoContinue = () => {
+    const errors: Partial<GuestInfo> = {}
+    if (!guestInfo.name.trim()) errors.name = 'Name is required'
+    if (!guestInfo.email.trim()) {
+      errors.email = 'Email is required'
+    } else if (!/\S+@\S+\.\S+/.test(guestInfo.email)) {
+      errors.email = 'Enter a valid email address'
+    }
+    if (!guestInfo.address.trim()) errors.address = 'Shipping address is required'
+    setGuestErrors(errors)
+    if (Object.keys(errors).length === 0) setStep('cart')
+  }
 
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) return
@@ -153,6 +170,11 @@ export default function StoreCheckout({ cart, onClose, onSuccess }: Props) {
         body: JSON.stringify({
           items: cart.map((i) => ({ id: i.id, quantity: i.quantity })),
           couponCode: coupon?.code || undefined,
+          ...(!session?.user ? {
+            guestEmail: guestInfo.email,
+            guestName: guestInfo.name,
+            guestAddr: guestInfo.address,
+          } : {}),
         }),
       })
       const data = await res.json()
@@ -219,7 +241,9 @@ export default function StoreCheckout({ cart, onClose, onSuccess }: Props) {
             <h2 className="text-2xl font-heading text-white mb-2">Order Confirmed!</h2>
             <p className="text-gray-400 text-sm mb-1">Order #{orderId?.slice(-8).toUpperCase()}</p>
             <p className="text-gray-500 text-sm mb-6">
-              Your items will be shipped to your address on file. You&apos;ll receive a tracking number when shipped.
+              {session?.user
+                ? "Your items will be shipped to your address on file. You'll receive a tracking number when shipped."
+                : `A confirmation will be sent to ${guestInfo.email}. You'll receive a tracking number when shipped.`}
             </p>
             <button onClick={onClose} className="btn-gold">
               Continue Shopping
@@ -227,9 +251,75 @@ export default function StoreCheckout({ cart, onClose, onSuccess }: Props) {
           </div>
         )}
 
+        {/* Guest info step */}
+        {step === 'guest-info' && (
+          <>
+            <h2 className="text-2xl font-heading text-white mb-2">Guest Checkout</h2>
+            <p className="text-gray-400 text-sm mb-5">
+              No account needed.{' '}
+              <a href="/auth/login" className="text-gold hover:underline">Sign in</a>
+              {' '}for order history &amp; faster checkout.
+            </p>
+
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-xs text-gray-400 uppercase tracking-wider mb-1.5">Full Name *</label>
+                <input
+                  type="text"
+                  value={guestInfo.name}
+                  onChange={(e) => setGuestInfo((g) => ({ ...g, name: e.target.value }))}
+                  placeholder="Jane Smith"
+                  className="input-field w-full"
+                />
+                {guestErrors.name && <p className="text-red-400 text-xs mt-1">{guestErrors.name}</p>}
+              </div>
+
+              <div>
+                <label className="block text-xs text-gray-400 uppercase tracking-wider mb-1.5">Email Address *</label>
+                <input
+                  type="email"
+                  value={guestInfo.email}
+                  onChange={(e) => setGuestInfo((g) => ({ ...g, email: e.target.value }))}
+                  placeholder="jane@example.com"
+                  className="input-field w-full"
+                />
+                {guestErrors.email && <p className="text-red-400 text-xs mt-1">{guestErrors.email}</p>}
+              </div>
+
+              <div>
+                <label className="block text-xs text-gray-400 uppercase tracking-wider mb-1.5">Shipping Address *</label>
+                <textarea
+                  value={guestInfo.address}
+                  onChange={(e) => setGuestInfo((g) => ({ ...g, address: e.target.value }))}
+                  placeholder="123 Main St, City, State, ZIP"
+                  rows={3}
+                  className="input-field w-full resize-none"
+                />
+                {guestErrors.address && <p className="text-red-400 text-xs mt-1">{guestErrors.address}</p>}
+              </div>
+            </div>
+
+            <button onClick={handleGuestInfoContinue} className="btn-gold w-full">
+              Continue to Cart
+            </button>
+          </>
+        )}
+
         {/* Cart + coupon step */}
         {step === 'cart' && (
           <>
+            {!session?.user && (
+              <button
+                onClick={() => setStep('guest-info')}
+                className="flex items-center gap-1 text-xs text-gray-500 hover:text-white mb-4 transition-colors"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Edit contact info
+              </button>
+            )}
+
             <h2 className="text-2xl font-heading text-white mb-5">Your Cart</h2>
 
             {/* Cart items */}

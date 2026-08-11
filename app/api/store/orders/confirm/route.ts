@@ -6,7 +6,6 @@ import { getStripe } from '@/lib/stripe'
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions)
-  if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { paymentIntentId } = await req.json()
   if (!paymentIntentId) return NextResponse.json({ error: 'paymentIntentId required' }, { status: 400 })
@@ -17,7 +16,11 @@ export async function POST(req: Request) {
   if (pi.status !== 'succeeded') {
     return NextResponse.json({ error: 'Payment not completed' }, { status: 400 })
   }
-  if (pi.metadata.userId !== session.user.id) {
+
+  const isGuest = !pi.metadata.userId
+
+  // For logged-in users, verify the payment belongs to them
+  if (!isGuest && session?.user && pi.metadata.userId !== session.user.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -30,6 +33,10 @@ export async function POST(req: Request) {
   const subtotal = parseFloat(pi.metadata.subtotal || '0')
   const discount = parseFloat(pi.metadata.discount || '0')
   const total = subtotal - discount
+
+  const guestEmail = pi.metadata.guestEmail || null
+  const guestName = pi.metadata.guestName || null
+  const guestAddr = pi.metadata.guestAddr || null
 
   // Get prices from DB (don't trust client metadata for prices)
   const inventoryItems = await prisma.inventoryItem.findMany({
@@ -53,9 +60,22 @@ export async function POST(req: Request) {
       await tx.coupon.update({ where: { id: couponId }, data: { usedCount: { increment: 1 } } })
     }
 
+    let shippingAddr: string | null = guestAddr
+    let shippingName: string | null = guestName
+    if (!isGuest && session?.user) {
+      const userRecord = await tx.user.findUnique({
+        where: { id: session.user.id },
+        select: { address: true, name: true },
+      })
+      shippingAddr = userRecord?.address || null
+      shippingName = userRecord?.name || null
+    }
+
     const newOrder = await tx.storeOrder.create({
       data: {
-        userId: session.user.id,
+        userId: isGuest ? null : (session?.user?.id ?? null),
+        guestEmail: isGuest ? guestEmail : null,
+        guestName: isGuest ? guestName : null,
         status: 'paid',
         subtotal,
         discount,
@@ -63,7 +83,8 @@ export async function POST(req: Request) {
         couponId: couponId || null,
         paymentId: paymentIntentId,
         paymentMethod: 'stripe',
-        shippingAddr: (await tx.user.findUnique({ where: { id: session.user.id }, select: { address: true } }))?.address || null,
+        shippingName,
+        shippingAddr,
         items: {
           create: items.map((cartItem) => {
             const inv = inventoryItems.find((i) => i.id === cartItem.id)!

@@ -221,6 +221,8 @@ export default function StorePage() {
     .filter((item) => item.tier !== 'EXCLUDE')
     .filter((item) => item.name.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => {
+      // Always show in-stock items before out-of-stock
+      if ((a.qty === 0) !== (b.qty === 0)) return a.qty === 0 ? 1 : -1
       switch (sort) {
         case 'alpha-asc':  return a.name.localeCompare(b.name)
         case 'alpha-desc': return b.name.localeCompare(a.name)
@@ -245,16 +247,12 @@ export default function StorePage() {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
         <div>
           <h1 className="text-5xl md:text-6xl font-heading text-white mb-3">
-            THE <span className="gold-gradient-text">STORE</span>
+            THE <span className="gold-gradient-text">SHOP</span>
           </h1>
-          <p className="text-gray-400 max-w-xl leading-relaxed">
-            Browse all available Pokemon products. Items marked{' '}
-            <strong className="text-red-400">SOLD OUT</strong> have zero quantity remaining.
-          </p>
         </div>
         <div className="flex gap-3 flex-shrink-0 self-start sm:self-auto">
           {/* Cart button */}
-          {!isAdmin && session?.user && (
+          {!isAdmin && (
             <button
               onClick={() => setShowCart(true)}
               className="relative btn-outline flex items-center gap-2"
@@ -445,9 +443,7 @@ export default function StorePage() {
             return (
               <div
                 key={item.id}
-                className={`card relative flex flex-col ${
-                  soldOut ? 'opacity-60' : 'hover:border-gold/30 hover:-translate-y-0.5'
-                } transition-all duration-200`}
+                className="card relative flex flex-col hover:border-gold/30 hover:-translate-y-0.5 transition-all duration-200"
               >
                 {soldOut && (
                   <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-xl z-10">
@@ -501,7 +497,7 @@ export default function StorePage() {
                 )}
 
                 {/* Buy Now / store actions */}
-                {!isAdmin && session?.user && item.forSale && item.storePrice && !soldOut && (
+                {!isAdmin && item.forSale && item.storePrice && !soldOut && (
                   <div className="mt-3 flex flex-col gap-1.5">
                     <button
                       onClick={() => {
@@ -524,15 +520,10 @@ export default function StorePage() {
                     </button>
                   </div>
                 )}
-                {!isAdmin && session?.user && item.forSale && item.storePrice && soldOut && (
+                {!isAdmin && item.forSale && item.storePrice && soldOut && (
                   <div className="mt-3 w-full text-center text-xs text-red-400 font-semibold py-2 border border-red-400/20 rounded-lg bg-red-400/5">
                     Sold Out
                   </div>
-                )}
-                {!isAdmin && !session?.user && item.forSale && item.storePrice && (
-                  <a href="/auth/login" className="mt-3 block w-full text-center text-sm btn-gold py-2">
-                    Sign In to Buy
-                  </a>
                 )}
 
                 {/* Admin: store price control */}

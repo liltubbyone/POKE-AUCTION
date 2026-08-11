@@ -165,8 +165,10 @@ model Coupon {
 
 model StoreOrder {
   id             String           @id @default(cuid())
-  userId         String
-  user           User             @relation(fields: [userId], references: [id])
+  userId         String?
+  user           User?            @relation(fields: [userId], references: [id])
+  guestEmail     String?
+  guestName      String?
   status         String           @default("pending") // pending, paid, shipped, cancelled
   subtotal       Float
   discount       Float            @default(0)

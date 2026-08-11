@@ -8,10 +8,29 @@ interface CartItem { id: string; quantity: number }
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions)
-  if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { items, couponCode }: { items: CartItem[]; couponCode?: string } = await req.json()
+  const {
+    items,
+    couponCode,
+    guestEmail,
+    guestName,
+    guestAddr,
+  }: {
+    items: CartItem[]
+    couponCode?: string
+    guestEmail?: string
+    guestName?: string
+    guestAddr?: string
+  } = await req.json()
+
   if (!items?.length) return NextResponse.json({ error: 'Cart is empty' }, { status: 400 })
+
+  // Guest validation
+  if (!session?.user) {
+    if (!guestEmail?.trim()) return NextResponse.json({ error: 'Email is required for guest checkout' }, { status: 400 })
+    if (!guestName?.trim()) return NextResponse.json({ error: 'Name is required for guest checkout' }, { status: 400 })
+    if (!guestAddr?.trim()) return NextResponse.json({ error: 'Shipping address is required for guest checkout' }, { status: 400 })
+  }
 
   // Validate each item and compute subtotal
   const inventoryItems = await prisma.inventoryItem.findMany({
@@ -54,14 +73,18 @@ export async function POST(req: Request) {
   }
 
   const stripe = getStripe()
+
+  // Only create/retrieve Stripe customer for logged-in users
   let customerId: string | undefined
-  const user = await prisma.user.findUnique({ where: { id: session.user.id } })
-  if (user?.stripeCustomerId) {
-    customerId = user.stripeCustomerId
-  } else if (user) {
-    const customer = await stripe.customers.create({ email: user.email, name: user.name || undefined })
-    customerId = customer.id
-    await prisma.user.update({ where: { id: user.id }, data: { stripeCustomerId: customerId } })
+  if (session?.user) {
+    const user = await prisma.user.findUnique({ where: { id: session.user.id } })
+    if (user?.stripeCustomerId) {
+      customerId = user.stripeCustomerId
+    } else if (user) {
+      const customer = await stripe.customers.create({ email: user.email, name: user.name || undefined })
+      customerId = customer.id
+      await prisma.user.update({ where: { id: user.id }, data: { stripeCustomerId: customerId } })
+    }
   }
 
   const paymentIntent = await stripe.paymentIntents.create({
@@ -69,7 +92,10 @@ export async function POST(req: Request) {
     currency: 'usd',
     customer: customerId,
     metadata: {
-      userId: session.user.id,
+      userId: session?.user?.id ?? '',
+      guestEmail: guestEmail ?? '',
+      guestName: guestName ?? '',
+      guestAddr: guestAddr ?? '',
       couponId: couponId ?? '',
       subtotal: subtotal.toString(),
       discount: discount.toString(),

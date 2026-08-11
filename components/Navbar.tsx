@@ -38,7 +38,7 @@ export default function Navbar() {
   ]
   const rightLinks = [
     { href: '/daily-spin', label: '🎁 Free Spin' },
-    { href: '/inventory',  label: 'Store'        },
+    { href: '/inventory',  label: 'Shop'         },
     { href: '/results',    label: 'Results'      },
   ]
 
@@ -270,7 +270,7 @@ export default function Navbar() {
             )}
 
             <Link href="/daily-spin" className="px-3 py-2.5 text-slate-300 hover:text-white rounded-xl font-semibold transition-colors hover:bg-white/[0.04] text-sm" onClick={() => setMobileOpen(false)}>🎁 Free Spin</Link>
-            <Link href="/inventory"  className="px-3 py-2.5 text-slate-300 hover:text-white rounded-xl font-semibold transition-colors hover:bg-white/[0.04] text-sm" onClick={() => setMobileOpen(false)}>Store</Link>
+            <Link href="/inventory"  className="px-3 py-2.5 text-slate-300 hover:text-white rounded-xl font-semibold transition-colors hover:bg-white/[0.04] text-sm" onClick={() => setMobileOpen(false)}>Shop</Link>
             <Link href="/results"    className="px-3 py-2.5 text-slate-300 hover:text-white rounded-xl font-semibold transition-colors hover:bg-white/[0.04] text-sm" onClick={() => setMobileOpen(false)}>Results</Link>
 
             {session?.user?.isAdmin && (
