@@ -121,10 +121,10 @@ function slotsToSegments(slots: string[]): string {
 }
 
 const DEFAULT_SHIPPING_RATES: ShippingRate[] = [
-  { maxOz: 8,   price: 5  },
-  { maxOz: 16,  price: 8  },
-  { maxOz: 32,  price: 12 },
-  { maxOz: null, price: 15 },
+  { maxOz: 8,   price: 8  },
+  { maxOz: 16,  price: 10 },
+  { maxOz: 32,  price: 14 },
+  { maxOz: null, price: 18 },
 ]
 
 function parseRates(json: string): ShippingRate[] {

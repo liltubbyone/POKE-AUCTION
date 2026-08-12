@@ -72,6 +72,22 @@ export default function MobileBottomBar() {
         )}
       </Link>
 
+      {/* Shop */}
+      <Link
+        href="/inventory"
+        className="flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-all active:scale-95 relative"
+        style={{ color: isActive('/inventory') ? '#FFD700' : '#475569' }}
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+        </svg>
+        <span className="text-[10px] font-bold uppercase tracking-widest">Shop</span>
+        {isActive('/inventory') && (
+          <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-full"
+            style={{ background: '#FFD700', boxShadow: '0 0 6px #FFD700' }} />
+        )}
+      </Link>
+
       {/* Spin (Free Spin — highlighted center) */}
       <Link
         href="/daily-spin"

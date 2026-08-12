@@ -3,7 +3,7 @@ export interface ShippingRate {
   price: number
 }
 
-export const DEFAULT_SHIPPING_PRICE = 5
+export const DEFAULT_SHIPPING_PRICE = 8
 
 export function parseRates(json: string): ShippingRate[] {
   try {
