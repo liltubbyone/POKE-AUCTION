@@ -8,6 +8,7 @@ const JUMP_FORCE = -5.6
 const PIPE_WIDTH = 70
 const PIPE_GAP_MIN = 106
 const PIPE_GAP_MAX = 167
+const MAX_GAP_SHIFT = 100 // max vertical gap-center shift between consecutive pipes
 const PIPE_SPEED = 3.1
 const PIPE_SPAWN_INTERVAL = 1800
 const BIRD_SIZE = 52
@@ -122,7 +123,23 @@ export default function useGameLoop({
     const playableH = h - GROUND_HEIGHT
     const gapSizes = [PIPE_GAP_MIN, (PIPE_GAP_MIN + PIPE_GAP_MAX) / 2, PIPE_GAP_MAX]
     const gap = gapSizes[Math.floor(Math.random() * gapSizes.length)]
-    const topHeight = 40 + Math.random() * (playableH - gap - 80)
+
+    const margin = 40
+    const minTop = margin
+    const maxTop = playableH - gap - margin
+
+    let topHeight: number
+    const lastPipe = pipesRef.current[pipesRef.current.length - 1]
+
+    if (lastPipe) {
+      const prevCenter = lastPipe.topHeight + lastPipe.gap / 2
+      const topMin = Math.max(minTop, prevCenter - MAX_GAP_SHIFT - gap / 2)
+      const topMax = Math.min(maxTop, prevCenter + MAX_GAP_SHIFT - gap / 2)
+      topHeight = topMin + Math.random() * Math.max(0, topMax - topMin)
+    } else {
+      topHeight = minTop + Math.random() * (maxTop - minTop)
+    }
+
     pipesRef.current.push({ x: w + 20, topHeight, gap, scored: false })
   }, [getCanvasSize])
 
