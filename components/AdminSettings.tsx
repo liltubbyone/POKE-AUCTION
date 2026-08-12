@@ -12,6 +12,13 @@ interface Settings {
   customMysteryColor: string
   customWheelTheme: string
   wordSearchEnabled: boolean
+  shippingRates: string
+  freeShippingThreshold: number
+}
+
+interface ShippingRate {
+  maxOz: number | null
+  price: number
 }
 
 const MYSTERY_WHEEL_PRESETS = [
@@ -113,6 +120,21 @@ function slotsToSegments(slots: string[]): string {
   return JSON.stringify(slots)
 }
 
+const DEFAULT_SHIPPING_RATES: ShippingRate[] = [
+  { maxOz: 8,   price: 5  },
+  { maxOz: 16,  price: 8  },
+  { maxOz: 32,  price: 12 },
+  { maxOz: null, price: 15 },
+]
+
+function parseRates(json: string): ShippingRate[] {
+  try {
+    const arr = JSON.parse(json)
+    if (Array.isArray(arr) && arr.length > 0) return arr
+  } catch {}
+  return DEFAULT_SHIPPING_RATES
+}
+
 export default function AdminSettings() {
   const [settings, setSettings] = useState<Settings>({
     mysteryGiftName: 'Perfect Order Booster Pack',
@@ -124,7 +146,10 @@ export default function AdminSettings() {
     customMysteryColor: '#7C3AED',
     customWheelTheme: '{}',
     wordSearchEnabled: true,
+    shippingRates: '[]',
+    freeShippingThreshold: 0,
   })
+  const [shippingRates, setShippingRates] = useState<ShippingRate[]>(DEFAULT_SHIPPING_RATES)
   const [wordSearchStats, setWordSearchStats] = useState<{ completionsToday: number; completionsTotal: number } | null>(null)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
@@ -143,6 +168,7 @@ export default function AdminSettings() {
         const match = PRESETS.findIndex((p) => JSON.stringify(p.slots) === JSON.stringify(slots))
         setActivePreset(match >= 0 ? match : null)
         setCustomColors(parseCustomPalette(d.customWheelTheme ?? '{}'))
+        setShippingRates(parseRates(d.shippingRates ?? '[]'))
       })
     fetch('/api/admin/word-search')
       .then((r) => r.json())
@@ -170,6 +196,8 @@ export default function AdminSettings() {
         customMysteryColor: settings.customMysteryColor,
         customWheelTheme: buildCustomPalette(customColors),
         wordSearchEnabled: settings.wordSearchEnabled,
+        shippingRates: JSON.stringify(shippingRates),
+        freeShippingThreshold: settings.freeShippingThreshold,
       }),
     })
     setSaving(false)
@@ -524,6 +552,93 @@ export default function AdminSettings() {
             <p className="text-[11px] text-gray-600">
               The puzzle resets daily at midnight Central time — same as the mystery spin.
             </p>
+          </div>
+        </div>
+
+        {/* Shipping Rates */}
+        <div>
+          <label className="block text-xs text-gray-400 mb-3 uppercase tracking-wider">Shop Shipping Rates</label>
+          <div
+            className="rounded-xl p-4 space-y-4"
+            style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(30,30,53,0.8)' }}
+          >
+            <p className="text-gray-500 text-xs">
+              Rates are matched by total order weight (oz). The first bracket where the order weight fits is used.
+              Leave <span className="text-gold">Max oz</span> blank on the last row for a catch-all rate.
+              Default rate if no weights are set on items: <strong className="text-white">$5</strong>.
+            </p>
+
+            {/* Rate rows */}
+            <div className="space-y-2">
+              <div className="grid grid-cols-[1fr_1fr_auto] gap-2 text-[10px] text-gray-600 uppercase tracking-wider px-1">
+                <span>Max weight (oz)</span>
+                <span>Price ($)</span>
+                <span />
+              </div>
+              {shippingRates.map((rate, idx) => (
+                <div key={idx} className="grid grid-cols-[1fr_1fr_auto] gap-2 items-center">
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    value={rate.maxOz ?? ''}
+                    onChange={(e) => {
+                      const val = e.target.value === '' ? null : parseFloat(e.target.value)
+                      setShippingRates((r) => r.map((row, i) => i === idx ? { ...row, maxOz: val } : row))
+                    }}
+                    placeholder="∞ (catch-all)"
+                    className="input-field text-xs py-1.5"
+                  />
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={rate.price}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value) || 0
+                      setShippingRates((r) => r.map((row, i) => i === idx ? { ...row, price: val } : row))
+                    }}
+                    className="input-field text-xs py-1.5"
+                  />
+                  <button
+                    onClick={() => setShippingRates((r) => r.filter((_, i) => i !== idx))}
+                    className="text-red-400 hover:text-red-300 text-xs px-2 py-1.5 rounded border border-red-400/20 hover:border-red-400/40 transition-colors"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setShippingRates((r) => [...r, { maxOz: null, price: 5 }])}
+              className="text-xs text-violet-400 hover:text-white border border-violet-400/20 hover:border-violet-400/40 px-3 py-1.5 rounded transition-colors"
+            >
+              + Add Rate
+            </button>
+
+            {/* Free shipping threshold */}
+            <div style={{ borderTop: '1px solid rgba(30,30,53,0.8)', paddingTop: '1rem' }}>
+              <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wider">
+                Free Shipping Threshold ($)
+              </label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={settings.freeShippingThreshold || ''}
+                  onChange={(e) => setSettings((s) => ({ ...s, freeShippingThreshold: parseFloat(e.target.value) || 0 }))}
+                  placeholder="0 = disabled"
+                  className="input-field text-xs py-1.5 max-w-[160px]"
+                />
+                <p className="text-gray-600 text-xs">
+                  {settings.freeShippingThreshold > 0
+                    ? `Orders over $${settings.freeShippingThreshold.toFixed(2)} ship free.`
+                    : 'Free shipping is disabled.'}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 

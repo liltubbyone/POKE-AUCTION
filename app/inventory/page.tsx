@@ -107,6 +107,7 @@ interface StoreItem {
   note: string | null
   imageUrl: string | null
   shippingCost: number
+  weight: number
   forSale: boolean
   storePrice: number | null
   _count: { auctionItems: number }
@@ -130,7 +131,7 @@ export default function StorePage() {
   const [sort, setSort] = useState<SortOption>('alpha-asc')
   const [showAddForm, setShowAddForm] = useState(false)
   const [newItem, setNewItem] = useState({
-    name: '', qty: 1, cost: 0, resellMin: 0, resellMax: 0, shippingCost: 10, imageUrl: '', note: '',
+    name: '', qty: 1, cost: 0, resellMin: 0, resellMax: 0, shippingCost: 10, weight: 0, imageUrl: '', note: '',
   })
   const [message, setMessage] = useState({ type: '', text: '' })
   const [submitting, setSubmitting] = useState(false)
@@ -200,6 +201,7 @@ export default function StorePage() {
         resellMin: parseFloat(String(newItem.resellMin)) || 0,
         resellMax: parseFloat(String(newItem.resellMax)) || 0,
         shippingCost: parseFloat(String(newItem.shippingCost)) || 10,
+        weight: parseFloat(String(newItem.weight)) || 0,
         note: newItem.note || null,
         imageUrl: newItem.imageUrl || null,
       }),
@@ -207,7 +209,7 @@ export default function StorePage() {
     setSubmitting(false)
     if (res.ok) {
       setShowAddForm(false)
-      setNewItem({ name: '', qty: 1, cost: 0, resellMin: 0, resellMax: 0, shippingCost: 10, imageUrl: '', note: '' })
+      setNewItem({ name: '', qty: 1, cost: 0, resellMin: 0, resellMax: 0, shippingCost: 10, weight: 0, imageUrl: '', note: '' })
       fetchItems()
       setMessage({ type: 'success', text: 'Item added to store!' })
       setTimeout(() => setMessage({ type: '', text: '' }), 4000)
@@ -353,13 +355,15 @@ export default function StorePage() {
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Ship Cost ($)</label>
+              <label className="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Weight (oz)</label>
               <input
                 type="number"
-                step="0.01"
-                value={newItem.shippingCost}
-                onChange={(e) => setNewItem((n) => ({ ...n, shippingCost: parseFloat(e.target.value) }))}
+                step="0.1"
+                min="0"
+                value={newItem.weight}
+                onChange={(e) => setNewItem((n) => ({ ...n, weight: parseFloat(e.target.value) || 0 }))}
                 className="input-field"
+                placeholder="0"
               />
             </div>
             <div>
@@ -526,9 +530,9 @@ export default function StorePage() {
                   </div>
                 )}
 
-                {/* Admin: store price control */}
+                {/* Admin: weight + store price control */}
                 {isAdmin && (
-                  <AdminStorePriceControl item={item} onSave={handleSetStorePrice} />
+                  <AdminStorePriceControl item={{ id: item.id, forSale: item.forSale, storePrice: item.storePrice, weight: item.weight ?? 0 }} onSave={handleSetStorePrice} />
                 )}
               </div>
             )
@@ -625,11 +629,13 @@ function AdminStorePriceControl({
   item,
   onSave,
 }: {
-  item: { id: string; forSale: boolean; storePrice: number | null }
+  item: { id: string; forSale: boolean; storePrice: number | null; weight: number }
   onSave: (item: { id: string; forSale: boolean; storePrice: number | null }, price: number | null) => Promise<void>
 }) {
   const [price, setPrice] = useState(item.storePrice?.toString() ?? '')
+  const [weight, setWeight] = useState(item.weight?.toString() ?? '0')
   const [saving, setSaving] = useState(false)
+  const [savingWeight, setSavingWeight] = useState(false)
 
   const handleSave = async () => {
     setSaving(true)
@@ -645,39 +651,75 @@ function AdminStorePriceControl({
     setSaving(false)
   }
 
+  const handleSaveWeight = async () => {
+    setSavingWeight(true)
+    await fetch(`/api/inventory/${item.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ weight: parseFloat(weight) || 0 }),
+    })
+    setSavingWeight(false)
+  }
+
   return (
-    <div className="mt-3 pt-3 border-t border-border/50">
-      <p className="text-[10px] text-gray-600 uppercase tracking-wider mb-1.5">Store Price</p>
-      <div className="flex gap-1.5">
-        <input
-          type="number"
-          step="0.01"
-          min="0"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-          placeholder="0.00"
-          className="input-field text-xs py-1 flex-1"
-        />
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="text-xs bg-gold/10 border border-gold/30 text-gold hover:bg-gold/20 px-2 py-1 rounded font-semibold transition-colors disabled:opacity-50"
-        >
-          {saving ? '…' : item.forSale ? 'Update' : 'List'}
-        </button>
-        {item.forSale && (
+    <div className="mt-3 pt-3 border-t border-border/50 space-y-2">
+      {/* Weight */}
+      <div>
+        <p className="text-[10px] text-gray-600 uppercase tracking-wider mb-1">Weight (oz)</p>
+        <div className="flex gap-1.5">
+          <input
+            type="number"
+            step="0.1"
+            min="0"
+            value={weight}
+            onChange={(e) => setWeight(e.target.value)}
+            placeholder="0"
+            className="input-field text-xs py-1 flex-1"
+          />
           <button
-            onClick={handleRemove}
-            disabled={saving}
-            className="text-xs bg-red-900/30 border border-red-500/30 text-red-400 hover:bg-red-900/50 px-2 py-1 rounded font-semibold transition-colors disabled:opacity-50"
+            onClick={handleSaveWeight}
+            disabled={savingWeight}
+            className="text-xs bg-blue-900/30 border border-blue-500/30 text-blue-400 hover:bg-blue-900/50 px-2 py-1 rounded font-semibold transition-colors disabled:opacity-50"
           >
-            Delist
+            {savingWeight ? '…' : 'Save'}
           </button>
+        </div>
+      </div>
+
+      {/* Store Price */}
+      <div>
+        <p className="text-[10px] text-gray-600 uppercase tracking-wider mb-1">Store Price</p>
+        <div className="flex gap-1.5">
+          <input
+            type="number"
+            step="0.01"
+            min="0"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            placeholder="0.00"
+            className="input-field text-xs py-1 flex-1"
+          />
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="text-xs bg-gold/10 border border-gold/30 text-gold hover:bg-gold/20 px-2 py-1 rounded font-semibold transition-colors disabled:opacity-50"
+          >
+            {saving ? '…' : item.forSale ? 'Update' : 'List'}
+          </button>
+          {item.forSale && (
+            <button
+              onClick={handleRemove}
+              disabled={saving}
+              className="text-xs bg-red-900/30 border border-red-500/30 text-red-400 hover:bg-red-900/50 px-2 py-1 rounded font-semibold transition-colors disabled:opacity-50"
+            >
+              Delist
+            </button>
+          )}
+        </div>
+        {item.forSale && (
+          <p className="text-[10px] text-green-400 mt-1">Listed in store</p>
         )}
       </div>
-      {item.forSale && (
-        <p className="text-[10px] text-green-400 mt-1">Listed in store</p>
-      )}
     </div>
   )
 }

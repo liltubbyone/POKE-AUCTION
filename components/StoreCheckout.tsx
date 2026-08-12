@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
@@ -107,16 +107,41 @@ export default function StoreCheckout({ cart, onClose, onSuccess }: Props) {
   const [coupon, setCoupon] = useState<CouponInfo | null>(null)
   const [couponError, setCouponError] = useState('')
   const [couponLoading, setCouponLoading] = useState(false)
+
+  // Shipping estimate (fetched from API on cart step)
+  const [shippingInfo, setShippingInfo] = useState<{ amount: number; isFree: boolean } | null>(null)
+  const [shippingLoading, setShippingLoading] = useState(false)
+
   const [clientSecret, setClientSecret] = useState<string | null>(null)
-  const [pricing, setPricing] = useState<{ subtotal: number; discount: number; total: number } | null>(null)
+  const [pricing, setPricing] = useState<{ subtotal: number; discount: number; shipping: number; shippingIsFree: boolean; total: number } | null>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [orderId, setOrderId] = useState<string | null>(null)
 
   const subtotal = cart.reduce((s, i) => s + i.storePrice * i.quantity, 0)
-  const shippingEst = Math.max(...cart.map((i) => i.shippingCost))
   const displayDiscount = coupon?.discount ?? 0
-  const displayTotal = Math.max(0, subtotal - displayDiscount)
+  const discountedSubtotal = Math.max(0, subtotal - displayDiscount)
+  const displayShipping = shippingInfo?.amount ?? null
+  const displayTotal = displayShipping !== null ? discountedSubtotal + displayShipping : discountedSubtotal
+
+  // Fetch shipping estimate whenever entering cart step or coupon changes
+  useEffect(() => {
+    if (step !== 'cart') return
+    setShippingLoading(true)
+    fetch('/api/store/shipping', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        items: cart.map((i) => ({ id: i.id, quantity: i.quantity })),
+        subtotal: discountedSubtotal,
+      }),
+    })
+      .then((r) => r.json())
+      .then((d) => setShippingInfo({ amount: d.shipping, isFree: d.isFree }))
+      .catch(() => setShippingInfo({ amount: 5, isFree: false }))
+      .finally(() => setShippingLoading(false))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, displayDiscount])
 
   const handleGuestInfoContinue = () => {
     const errors: Partial<GuestInfo> = {}
@@ -182,7 +207,13 @@ export default function StoreCheckout({ cart, onClose, onSuccess }: Props) {
         setError(data.error || 'Failed to start checkout')
       } else {
         setClientSecret(data.clientSecret)
-        setPricing({ subtotal: data.subtotal, discount: data.discount, total: data.total })
+        setPricing({
+          subtotal: data.subtotal,
+          discount: data.discount,
+          shipping: data.shipping,
+          shippingIsFree: data.shippingIsFree,
+          total: data.total,
+        })
         setStep('payment')
       }
     } catch {
@@ -394,12 +425,24 @@ export default function StoreCheckout({ cart, onClose, onSuccess }: Props) {
                 </div>
               )}
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-gray-400">Shipping (est.)</span>
-                <span className="text-gray-300">~{formatCurrency(shippingEst)}</span>
+                <span className="text-gray-400">Shipping</span>
+                {shippingLoading ? (
+                  <span className="text-gray-500 animate-pulse text-xs">Calculating…</span>
+                ) : shippingInfo?.isFree ? (
+                  <span className="text-green-400 font-semibold text-xs">FREE</span>
+                ) : displayShipping !== null ? (
+                  <span className="text-gray-300">{formatCurrency(displayShipping)}</span>
+                ) : (
+                  <span className="text-gray-500 text-xs">Calculating…</span>
+                )}
               </div>
               <div className="border-t border-gold/20 mt-2 pt-2 flex justify-between">
-                <span className="text-gray-400 font-semibold text-sm">Total (excl. shipping)</span>
-                <span className="text-gold font-bold text-xl font-heading">{formatCurrency(displayTotal)}</span>
+                <span className="text-gray-400 font-semibold text-sm">Total</span>
+                <span className="text-gold font-bold text-xl font-heading">
+                  {shippingLoading || displayShipping === null
+                    ? <span className="text-gray-500 animate-pulse text-base">…</span>
+                    : formatCurrency(displayTotal)}
+                </span>
               </div>
             </div>
 
@@ -413,10 +456,10 @@ export default function StoreCheckout({ cart, onClose, onSuccess }: Props) {
 
             <button
               onClick={handleProceedToPayment}
-              disabled={loading || cart.length === 0}
+              disabled={loading || cart.length === 0 || shippingLoading || displayShipping === null}
               className="btn-gold w-full disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Loading checkout...' : `Proceed to Payment — ${formatCurrency(displayTotal)}`}
+              {loading ? 'Loading checkout...' : `Proceed to Payment — ${displayShipping !== null ? formatCurrency(displayTotal) : '…'}`}
             </button>
           </>
         )}
@@ -435,10 +478,19 @@ export default function StoreCheckout({ cart, onClose, onSuccess }: Props) {
             </button>
 
             <h2 className="text-2xl font-heading text-white mb-1">Payment</h2>
-            <p className="text-gray-500 text-sm mb-5">
-              Total: <strong className="text-gold">{formatCurrency(pricing.total)}</strong>
-              {pricing.discount > 0 && <span className="text-green-400 ml-2">(saved {formatCurrency(pricing.discount)})</span>}
-            </p>
+            <div className="text-sm text-gray-500 mb-5 space-y-0.5">
+              <p>Subtotal: <span className="text-white">{formatCurrency(pricing.subtotal)}</span></p>
+              {pricing.discount > 0 && (
+                <p>Discount: <span className="text-green-400">-{formatCurrency(pricing.discount)}</span></p>
+              )}
+              <p>
+                Shipping:{' '}
+                {pricing.shippingIsFree
+                  ? <span className="text-green-400 font-semibold">FREE</span>
+                  : <span className="text-white">{formatCurrency(pricing.shipping)}</span>}
+              </p>
+              <p className="text-base">Total: <strong className="text-gold">{formatCurrency(pricing.total)}</strong></p>
+            </div>
 
             {error && (
               <div className="px-4 py-3 rounded-xl mb-4 text-sm" style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.25)', color: '#fca5a5' }}>

@@ -32,7 +32,8 @@ export async function POST(req: Request) {
   const couponId = pi.metadata.couponId || null
   const subtotal = parseFloat(pi.metadata.subtotal || '0')
   const discount = parseFloat(pi.metadata.discount || '0')
-  const total = subtotal - discount
+  const shipping = parseFloat(pi.metadata.shipping || '0')
+  const total = subtotal - discount + shipping
 
   const guestEmail = pi.metadata.guestEmail || null
   const guestName = pi.metadata.guestName || null
@@ -79,6 +80,7 @@ export async function POST(req: Request) {
         status: 'paid',
         subtotal,
         discount,
+        shipping,
         total,
         couponId: couponId || null,
         paymentId: paymentIntentId,

@@ -38,6 +38,7 @@ model InventoryItem {
   sku          String?
   gtin         String?
   shippingCost Float         @default(10.0)
+  weight       Float         @default(0)
   forSale      Boolean       @default(false)
   storePrice   Float?
   auctionItems    AuctionItem[]
@@ -95,8 +96,10 @@ model SiteSettings {
   mysteryWheelTheme  String   @default("cosmic")
   customWheelTheme   String   @default("{}")
   customMysteryColor String   @default("#7C3AED")
-  wordSearchEnabled  Boolean  @default(true)
-  updatedAt          DateTime @updatedAt
+  wordSearchEnabled        Boolean  @default(true)
+  shippingRates            String   @default("[]")
+  freeShippingThreshold    Float    @default(0)
+  updatedAt                DateTime @updatedAt
 }
 
 model WordSearchCompletion {
@@ -172,6 +175,7 @@ model StoreOrder {
   status         String           @default("pending") // pending, paid, shipped, cancelled
   subtotal       Float
   discount       Float            @default(0)
+  shipping       Float            @default(0)
   total          Float
   couponId       String?
   coupon         Coupon?          @relation(fields: [couponId], references: [id])

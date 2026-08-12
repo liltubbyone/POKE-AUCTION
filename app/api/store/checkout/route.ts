@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { getStripe } from '@/lib/stripe'
+import { calcShipping, parseRates } from '@/lib/shipping'
 
 interface CartItem { id: string; quantity: number }
 
@@ -33,9 +34,12 @@ export async function POST(req: Request) {
   }
 
   // Validate each item and compute subtotal
-  const inventoryItems = await prisma.inventoryItem.findMany({
-    where: { id: { in: items.map((i) => i.id) }, forSale: true },
-  })
+  const [inventoryItems, settings] = await Promise.all([
+    prisma.inventoryItem.findMany({
+      where: { id: { in: items.map((i) => i.id) }, forSale: true },
+    }),
+    prisma.siteSettings.findUnique({ where: { id: 'main' } }),
+  ])
 
   if (inventoryItems.length !== items.length) {
     return NextResponse.json({ error: 'One or more items are not available' }, { status: 400 })
@@ -65,7 +69,17 @@ export async function POST(req: Request) {
     }
   }
 
-  const total = Math.max(0, subtotal - discount)
+  // Calculate shipping based on total weight
+  const totalOz = items.reduce((sum, cartItem) => {
+    const inv = inventoryItems.find((i) => i.id === cartItem.id)!
+    return sum + (inv.weight ?? 0) * cartItem.quantity
+  }, 0)
+
+  const rates = parseRates(settings?.shippingRates ?? '[]')
+  const threshold = settings?.freeShippingThreshold ?? 0
+  const { amount: shipping, isFree: shippingIsFree } = calcShipping(totalOz, rates, threshold, subtotal - discount)
+
+  const total = Math.max(0, subtotal - discount + shipping)
   const amountInCents = Math.round(total * 100)
 
   if (amountInCents < 50) {
@@ -99,10 +113,18 @@ export async function POST(req: Request) {
       couponId: couponId ?? '',
       subtotal: subtotal.toString(),
       discount: discount.toString(),
+      shipping: shipping.toString(),
       items: JSON.stringify(items),
     },
     description: `Cosmic Grails store order — ${items.length} item(s)`,
   })
 
-  return NextResponse.json({ clientSecret: paymentIntent.client_secret, subtotal, discount, total })
+  return NextResponse.json({
+    clientSecret: paymentIntent.client_secret,
+    subtotal,
+    discount,
+    shipping,
+    shippingIsFree,
+    total,
+  })
 }
